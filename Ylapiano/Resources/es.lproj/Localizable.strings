@@ -1,0 +1,62 @@
+/* Home Screen */
+"Ylapiano" = "Ylapiano";
+"Add Song" = "Añadir Canción";
+"Delete" = "Eliminar";
+
+/* Add Song Screen */
+"New Song" = "Nueva Canción";
+"Edit Song" = "Editar Canción";
+"Song Title" = "Título de la Canción";
+"BPM" = "BPM";
+"Song Info" = "Info de Canción";
+"Quick Input" = "Entrada Rápida";
+"Type notes separated by spaces:" = "Escribe las notas separadas por espacios:";
+"Add as Quarter Notes" = "Añadir como Negras";
+"Add as Eighth Notes" = "Añadir como Corcheas";
+"Notes" = "Notas";
+"No notes added yet. Use Quick Input above or tap + below." = "No hay notas todavía. Usa Entrada Rápida arriba o pulsa + abajo.";
+"Add Note" = "Añadir Nota";
+"Cancel" = "Cancelar";
+"Save" = "Guardar";
+
+/* Player Screen */
+"Start" = "Empezar";
+"Stop" = "Parar";
+"Restart" = "Reiniciar";
+"Play:" = "Toca:";
+"Guided" = "Guiado";
+"Free" = "Libre";
+"No notes yet" = "Sin notas";
+"Add Notes" = "Añadir Notas";
+"Great job!" = "¡Muy bien!";
+"You played all the notes!" = "¡Has tocado todas las notas!";
+"Play Again" = "Tocar Otra Vez";
+
+/* Onboarding */
+"Learn piano the fun way!" = "¡Aprende piano de forma divertida!";
+"Follow songs note by note" = "Sigue las canciones nota a nota";
+"Listens to your piano playing" = "Escucha lo que tocas en el piano";
+"Get instant feedback" = "Feedback al instante";
+"Next" = "Siguiente";
+"Microphone Access" = "Acceso al Micrófono";
+"Ylapiano listens to your piano through the microphone to know which notes you play." = "Ylapiano escucha tu piano a través del micrófono para saber qué notas tocas.";
+"Allow Microphone" = "Permitir Micrófono";
+"Microphone enabled" = "Micrófono activado";
+"Permission denied" = "Permiso denegado";
+"You can enable it later in Settings." = "Puedes activarlo más tarde en Ajustes.";
+"You're all set!" = "¡Todo listo!";
+"Pick a song and start playing. Have fun!" = "¡Elige una canción y empieza a tocar! ¡Diviértete!";
+"Let's Go!" = "¡Vamos!";
+
+/* Mic Permission */
+"Microphone Access Needed" = "Se Necesita Acceso al Micrófono";
+"Go to Settings > Ylapiano to enable microphone access." = "Ve a Ajustes > Ylapiano para activar el acceso al micrófono.";
+
+/* Note Durations */
+"Whole" = "Redonda";
+"Half" = "Blanca";
+"Quarter" = "Negra";
+"Eighth" = "Corchea";
+
+/* Notes */
+"notes" = "notas";

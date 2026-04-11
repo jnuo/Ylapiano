@@ -1,0 +1,62 @@
+/* Home Screen */
+"Ylapiano" = "Ylapiano";
+"Add Song" = "Add Song";
+"Delete" = "Delete";
+
+/* Add Song Screen */
+"New Song" = "New Song";
+"Edit Song" = "Edit Song";
+"Song Title" = "Song Title";
+"BPM" = "BPM";
+"Song Info" = "Song Info";
+"Quick Input" = "Quick Input";
+"Type notes separated by spaces:" = "Type notes separated by spaces:";
+"Add as Quarter Notes" = "Add as Quarter Notes";
+"Add as Eighth Notes" = "Add as Eighth Notes";
+"Notes" = "Notes";
+"No notes added yet. Use Quick Input above or tap + below." = "No notes added yet. Use Quick Input above or tap + below.";
+"Add Note" = "Add Note";
+"Cancel" = "Cancel";
+"Save" = "Save";
+
+/* Player Screen */
+"Start" = "Start";
+"Stop" = "Stop";
+"Restart" = "Restart";
+"Play:" = "Play:";
+"Guided" = "Guided";
+"Free" = "Free";
+"No notes yet" = "No notes yet";
+"Add Notes" = "Add Notes";
+"Great job!" = "Great job!";
+"You played all the notes!" = "You played all the notes!";
+"Play Again" = "Play Again";
+
+/* Onboarding */
+"Learn piano the fun way!" = "Learn piano the fun way!";
+"Follow songs note by note" = "Follow songs note by note";
+"Listens to your piano playing" = "Listens to your piano playing";
+"Get instant feedback" = "Get instant feedback";
+"Next" = "Next";
+"Microphone Access" = "Microphone Access";
+"Ylapiano listens to your piano through the microphone to know which notes you play." = "Ylapiano listens to your piano through the microphone to know which notes you play.";
+"Allow Microphone" = "Allow Microphone";
+"Microphone enabled" = "Microphone enabled";
+"Permission denied" = "Permission denied";
+"You can enable it later in Settings." = "You can enable it later in Settings.";
+"You're all set!" = "You're all set!";
+"Pick a song and start playing. Have fun!" = "Pick a song and start playing. Have fun!";
+"Let's Go!" = "Let's Go!";
+
+/* Mic Permission */
+"Microphone Access Needed" = "Microphone Access Needed";
+"Go to Settings > Ylapiano to enable microphone access." = "Go to Settings > Ylapiano to enable microphone access.";
+
+/* Note Durations */
+"Whole" = "Whole";
+"Half" = "Half";
+"Quarter" = "Quarter";
+"Eighth" = "Eighth";
+
+/* Notes */
+"notes" = "notes";
