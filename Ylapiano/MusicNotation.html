@@ -1,0 +1,221 @@
+<!doctype html>
+<html>
+  <head>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0"
+    />
+    <script src="abcjs-basic-min.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: transparent;
+        font-family: -apple-system, sans-serif;
+      }
+      #paper {
+        width: 100%;
+        padding: 8px;
+        position: relative;
+      }
+      .abcjs-highlight {
+        fill: #ff6b00 !important;
+        stroke: #ff6b00 !important;
+      }
+      #cursor {
+        position: absolute;
+        width: 2px;
+        background: #ff6b00;
+        display: none;
+        pointer-events: none;
+        z-index: 10;
+        transition:
+          left 0.08s linear,
+          top 0.05s linear;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="paper"></div>
+    <div id="cursor"></div>
+    <script>
+      var visualObj = null;
+      var timingCallbacks = null;
+      var cursorEl = document.getElementById("cursor");
+      var currentBPM = 90;
+      var noteIndex = -1;
+
+      function renderMusic(abcString) {
+        visualObj = ABCJS.renderAbc("paper", abcString, {
+          add_classes: true,
+          responsive: "resize",
+          wrap: {
+            minSpacing: 1.5,
+            maxSpacing: 2.5,
+            preferredMeasuresPerLine: 4,
+          },
+          staffwidth: 500,
+          paddingleft: 10,
+          paddingright: 10,
+          paddingtop: 0,
+          paddingbottom: 0,
+          scale: 1.2,
+        })[0];
+      }
+
+      var synthControl = null;
+
+      function startPlayback(bpm) {
+        if (!visualObj) return;
+        stopPlayback();
+
+        currentBPM = bpm || 90;
+        noteIndex = -1;
+        cursorEl.style.display = "block";
+
+        if (ABCJS.synth.supportsAudio()) {
+          var synth = new ABCJS.synth.CreateSynth();
+          synth
+            .init({
+              visualObj: visualObj,
+              options: { qpm: currentBPM, program: 0 },
+            })
+            .then(function () {
+              return synth.prime();
+            })
+            .then(function () {
+              // Set up timing callbacks for cursor + highlighting
+              timingCallbacks = new ABCJS.TimingCallbacks(visualObj, {
+                qpm: currentBPM,
+                extraMeasuresAtBeginning: 0,
+                beatCallback: function (beatNumber) {
+                  if (
+                    window.webkit &&
+                    window.webkit.messageHandlers &&
+                    window.webkit.messageHandlers.beat
+                  ) {
+                    window.webkit.messageHandlers.beat.postMessage({
+                      beat: beatNumber,
+                    });
+                  }
+                },
+                eventCallback: function (event) {
+                  if (!event) {
+                    cursorEl.style.display = "none";
+                    clearHighlight();
+                    synth.stop();
+                    if (
+                      window.webkit &&
+                      window.webkit.messageHandlers &&
+                      window.webkit.messageHandlers.playbackEnd
+                    ) {
+                      window.webkit.messageHandlers.playbackEnd.postMessage({});
+                    }
+                    return;
+                  }
+
+                  var paperEl = document.getElementById("paper");
+                  if (event.left !== undefined && event.top !== undefined) {
+                    cursorEl.style.left =
+                      event.left + paperEl.offsetLeft + "px";
+                    cursorEl.style.top = event.top + paperEl.offsetTop + "px";
+                    cursorEl.style.height = event.height + "px";
+
+                    var scrollTarget = event.top - 40;
+                    if (scrollTarget < 0) scrollTarget = 0;
+                    window.scrollTo({ top: scrollTarget, behavior: "smooth" });
+                  }
+
+                  clearHighlight();
+                  if (event.elements && event.elements.length > 0) {
+                    event.elements.forEach(function (elArr) {
+                      if (elArr && elArr.length > 0) {
+                        elArr.forEach(function (el) {
+                          if (el.classList) el.classList.add("abcjs-highlight");
+                        });
+                      }
+                    });
+                  }
+
+                  if (event.midiPitches && event.midiPitches.length > 0) {
+                    noteIndex++;
+                    if (
+                      window.webkit &&
+                      window.webkit.messageHandlers &&
+                      window.webkit.messageHandlers.noteChange
+                    ) {
+                      window.webkit.messageHandlers.noteChange.postMessage({
+                        index: noteIndex,
+                      });
+                    }
+                  }
+                },
+              });
+
+              synth.start();
+              timingCallbacks.start();
+              synthControl = synth;
+            });
+        }
+      }
+
+      function stopPlayback() {
+        if (timingCallbacks) {
+          timingCallbacks.stop();
+          timingCallbacks = null;
+        }
+        if (synthControl) {
+          synthControl.stop();
+          synthControl = null;
+        }
+        cursorEl.style.display = "none";
+        clearHighlight();
+        noteIndex = -1;
+      }
+
+      function highlightNote(idx) {
+        // Manual highlight (when not playing)
+        clearHighlight();
+        if (idx < 0 || !visualObj) return;
+
+        var lines = visualObj.lines;
+        var currentIndex = 0;
+        for (var l = 0; l < lines.length; l++) {
+          var voices = lines[l].staff;
+          if (!voices) continue;
+          for (var s = 0; s < voices.length; s++) {
+            var voiceEntries = voices[s].voices;
+            if (!voiceEntries) continue;
+            for (var v = 0; v < voiceEntries.length; v++) {
+              var elements = voiceEntries[v];
+              for (var e = 0; e < elements.length; e++) {
+                var elem = elements[e];
+                if (elem.el_type === "note" && !elem.rest) {
+                  if (currentIndex === idx) {
+                    var absEls = elem.abselem;
+                    if (absEls && absEls.elemset) {
+                      absEls.elemset.forEach(function (svgEl) {
+                        svgEl.classList.add("abcjs-highlight");
+                      });
+                    }
+                    return;
+                  }
+                  currentIndex++;
+                }
+              }
+            }
+          }
+        }
+      }
+
+      function clearHighlight() {
+        document.querySelectorAll(".abcjs-highlight").forEach(function (el) {
+          el.classList.remove("abcjs-highlight");
+        });
+      }
+    </script>
+  </body>
+</html>

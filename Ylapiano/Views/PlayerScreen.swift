@@ -11,60 +11,54 @@ struct PlayerScreen: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Top: Metronome bar
-            MetronomeBarView(
-                metronome: viewModel.metronome,
-                onEditSong: { viewModel.showingEditSheet = true }
-            )
-            .padding(.horizontal)
-            .padding(.top, 8)
-
-            // Toolbar row
+            // Single compact toolbar row
             toolbarRow
-                .padding(.horizontal)
-                .padding(.vertical, 6)
+                .padding(.horizontal, 12)
+                .padding(.top, 2)
 
-            // Main content: sheet music (top) + piano (bottom), full width
-            VStack(spacing: 0) {
-                // Top area: Sheet Music (full width)
-                VStack(spacing: 0) {
-                    if song.notes.isEmpty {
-                        emptyNotesView
-                    } else {
-                        SheetMusicView(
-                            notes: song.notes,
-                            currentNoteIndex: viewModel.currentNoteIndex,
-                            useSolfege: viewModel.useSolfege
-                        )
+            // Sheet music fills all remaining space
+            if song.notes.isEmpty {
+                emptyNotesView
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ABCMusicView(
+                    abcNotation: song.notes.toABC(title: song.title, timeSignature: "2/4", useSolfege: viewModel.useSolfege),
+                    highlightIndex: viewModel.currentNoteIndex,
+                    isPlaying: viewModel.isPlaying,
+                    bpm: song.bpm,
+                    onNoteChange: { index in
+                        viewModel.currentNoteIndex = index
+                    },
+                    onPlaybackEnd: {
+                        viewModel.stopPlaying()
+                    },
+                    onBeat: {
+                        // Metronome tick handled by JS timing
                     }
-                }
-                .frame(maxWidth: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color(uiColor: .systemBackground))
-                        .shadow(color: .black.opacity(0.05), radius: 4)
                 )
-                .padding(.horizontal, 8)
-
-                // Current note indicator (full width)
-                currentNoteIndicator
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 4)
-
-                // Bottom area: Piano Keyboard (full width)
-                PianoKeyboardView(
-                    useSolfege: viewModel.useSolfege,
-                    highlightedNote: viewModel.pitchDetector.detectedNote,
-                    highlightedOctave: viewModel.pitchDetector.detectedOctave,
-                    expectedNote: viewModel.currentNote,
-                    isCorrect: viewModel.lastDetectionCorrect,
-                    guidedMode: viewModel.guidedMode
-                )
-                .frame(maxWidth: .infinity)
-                .padding(.horizontal, 8)
-                .padding(.bottom, 8)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
 
+            // Current note indicator
+            currentNoteIndicator
+                .padding(.horizontal, 16)
+                .padding(.vertical, 2)
+
+            // Piano pinned to bottom
+            PianoKeyboardView(
+                useSolfege: viewModel.useSolfege,
+                highlightedNote: viewModel.pitchDetector.detectedNote,
+                highlightedOctave: viewModel.pitchDetector.detectedOctave,
+                expectedNote: viewModel.currentNote,
+                isCorrect: viewModel.lastDetectionCorrect,
+                guidedMode: viewModel.guidedMode
+            )
+            .frame(maxWidth: .infinity)
+            .frame(height: 140)
+            .padding(.horizontal, 4)
+        }
+        .ignoresSafeArea(.container, edges: .bottom)
+        .overlay {
             // Feedback overlay
             if let flash = viewModel.feedbackFlash {
                 Rectangle()
@@ -105,35 +99,35 @@ struct PlayerScreen: View {
     // MARK: - Toolbar Row
 
     private var toolbarRow: some View {
-        HStack(spacing: 16) {
-            // Play controls
-            if !song.notes.isEmpty {
-                Button {
-                    if viewModel.isPlaying {
-                        viewModel.stopPlaying()
-                    } else {
-                        viewModel.startPlaying()
-                    }
-                } label: {
-                    Label(
-                        viewModel.isPlaying ? "Stop" : "Start",
-                        systemImage: viewModel.isPlaying ? "stop.fill" : "play.fill"
-                    )
-                    .font(.system(.subheadline, design: .rounded, weight: .semibold))
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(viewModel.isPlaying ? .red : .green)
-
-                if viewModel.isPlaying || viewModel.currentNoteIndex > 0 {
-                    Button {
-                        viewModel.restart()
-                    } label: {
-                        Label("Restart", systemImage: "arrow.counterclockwise")
-                            .font(.system(.subheadline, design: .rounded))
-                    }
-                    .buttonStyle(.bordered)
-                }
+        HStack(spacing: 8) {
+            // Play/Stop
+            Button {
+                if viewModel.isPlaying { viewModel.stopPlaying() }
+                else { viewModel.startPlaying() }
+            } label: {
+                Image(systemName: viewModel.isPlaying ? "stop.fill" : "play.fill")
+                    .font(.body)
             }
+            .buttonStyle(.borderedProminent)
+            .tint(viewModel.isPlaying ? .red : .green)
+
+            // BPM inline
+            Button { if viewModel.metronome.bpm > 40 { viewModel.metronome.bpm -= 5 } } label: {
+                Image(systemName: "minus.circle").font(.body).foregroundStyle(.blue)
+            }.buttonStyle(.plain)
+
+            Text("\(viewModel.metronome.bpm)")
+                .font(.system(.body, design: .rounded, weight: .bold))
+                .monospacedDigit()
+
+            Button { if viewModel.metronome.bpm < 220 { viewModel.metronome.bpm += 5 } } label: {
+                Image(systemName: "plus.circle").font(.body).foregroundStyle(.blue)
+            }.buttonStyle(.plain)
+
+            // Edit
+            Button { viewModel.showingEditSheet = true } label: {
+                Image(systemName: "pencil.circle").font(.body).foregroundStyle(.blue)
+            }.buttonStyle(.plain)
 
             Spacer()
 
@@ -143,39 +137,23 @@ struct PlayerScreen: View {
                 set: { _ in viewModel.toggleNotation() }
             )) {
                 Text(viewModel.useSolfege ? "Do Re Mi" : "C D E")
-                    .font(.system(.caption, design: .rounded, weight: .bold))
+                    .font(.system(.caption2, design: .rounded, weight: .bold))
             }
             .toggleStyle(.switch)
             .fixedSize()
 
-            // Guided mode toggle
-            Button {
-                viewModel.toggleGuided()
-            } label: {
-                Label(
-                    viewModel.guidedMode ? "Guided" : "Free",
-                    systemImage: viewModel.guidedMode ? "hand.point.right.fill" : "hand.point.right"
-                )
-                .font(.system(.caption, design: .rounded, weight: .semibold))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(
-                    Capsule().fill(
-                        viewModel.guidedMode ? .yellow.opacity(0.25) : .gray.opacity(0.15)
-                    )
-                )
-            }
-            .buttonStyle(.plain)
-
-            // Mic status
-            HStack(spacing: 4) {
-                Circle()
-                    .fill(viewModel.pitchDetector.isListening ? .green : .gray)
-                    .frame(width: 8, height: 8)
-                Image(systemName: "mic.fill")
+            // Guided
+            Button { viewModel.toggleGuided() } label: {
+                Image(systemName: viewModel.guidedMode ? "hand.point.right.fill" : "hand.point.right")
                     .font(.caption)
-                    .foregroundStyle(viewModel.pitchDetector.isListening ? .green : .gray)
-            }
+                    .padding(6)
+                    .background(Capsule().fill(viewModel.guidedMode ? .yellow.opacity(0.25) : .gray.opacity(0.15)))
+            }.buttonStyle(.plain)
+
+            // Mic dot
+            Circle()
+                .fill(viewModel.pitchDetector.isListening ? .green : .gray)
+                .frame(width: 8, height: 8)
         }
     }
 

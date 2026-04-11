@@ -34,14 +34,10 @@ final class PlayerViewModel {
         isPlaying = true
         currentNoteIndex = 0
         lastDetectionCorrect = nil
-        metronome.start()
-        pitchDetector.startListening()
     }
 
     func stopPlaying() {
         isPlaying = false
-        metronome.stop()
-        pitchDetector.stopListening()
         lastDetectionCorrect = nil
     }
 

@@ -111,6 +111,55 @@ struct NoteEntry: Identifiable, Codable, Hashable {
     var cdeName: String {
         "\(solfege.cde)\(octave)"
     }
+
+    /// Convert to ABC notation pitch
+    var abcPitch: String {
+        let letter = solfege.cde
+        switch octave {
+        case 3: return letter + ","
+        case 4: return letter
+        case 5: return letter.lowercased()
+        case 6: return letter.lowercased() + "'"
+        default: return letter
+        }
+    }
+
+    /// Convert to ABC notation with duration (relative to L:1/4)
+    var abcString: String {
+        switch duration {
+        case .whole: return abcPitch + "4"
+        case .half: return abcPitch + "2"
+        case .quarter: return abcPitch
+        case .eighth: return abcPitch + "/"
+        }
+    }
+}
+
+extension Array where Element == NoteEntry {
+    /// Convert note array to ABC notation string
+    func toABC(title: String = "", timeSignature: String = "2/4", key: String = "C", useSolfege: Bool = true) -> String {
+        var abc = "X:1\n"
+        if !title.isEmpty { abc += "T:\(title)\n" }
+        abc += "M:\(timeSignature)\nL:1/4\nK:\(key)\n"
+
+        let beatsPerMeasure: Double = timeSignature == "2/4" ? 2.0 : 4.0
+        var currentBeats: Double = 0
+        var noteLine = ""
+        var lyricsLine = "w:"
+
+        for note in self {
+            noteLine += note.abcString + " "
+            lyricsLine += " " + (useSolfege ? note.solfege.rawValue : note.solfege.cde)
+            currentBeats += note.duration.beats
+            if currentBeats >= beatsPerMeasure {
+                noteLine += "| "
+                currentBeats = 0
+            }
+        }
+        if currentBeats > 0 { noteLine += "|" }
+        abc += noteLine + "\n" + lyricsLine + "\n"
+        return abc
+    }
 }
 
 // MARK: - Song (SwiftData model)
