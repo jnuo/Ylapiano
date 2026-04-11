@@ -174,59 +174,66 @@ struct SeedData {
             ]
         )
 
-        // 5. Bim Bom — Catalan rhythm song
-        // Simple alternating pattern, key: C major
+        // 5. Bim Bom (Les Campanes de Salom) — Catalan lap game song
+        // Uses only TWO notes: Sol and Do (confirmed by pedagogical sources)
+        // 2/4 time, gentle rocking pace. "Bim bom, les campanes de Salom"
         let bimBom = Song(
             title: "Bim Bom",
-            bpm: 110,
+            bpm: 85,
             notes: [
-                // "Bim bom" — alternating low-high
-                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                // "Bim bom" — Sol-Do rocking pattern
                 NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
                 NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                // "les campanes"
                 NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
-                // phrase 2
-                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
-                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
-                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
                 NoteEntry(solfege: .Do, octave: 4, duration: .half),
-                // repeat pattern up
-                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                // "de Salom"
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .half),
+                // repeat — "Bim bom"
                 NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
                 NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                // "les campanes"
                 NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
-                // resolve
-                NoteEntry(solfege: .Fa, octave: 4, duration: .quarter),
-                NoteEntry(solfege: .Fa, octave: 4, duration: .quarter),
-                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
-                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .half),
+                // "de Salom"
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
                 NoteEntry(solfege: .Do, octave: 4, duration: .half),
             ]
         )
 
-        // 6. Pon, Titeta, Pon — Catalan hand-clapping song
-        // Rhythmic, repetitive, key: C major
+        // 6. Pon, Titeta, Pon — Catalan chant/lap game
+        // Traditionally a spoken chant ("cantarella sense musica")
+        // Melodized here using Sol-Mi chanting tradition (universal children's call)
         let ponTitetaPon = Song(
             title: "Pon, Titeta, Pon",
             bpm: 100,
             notes: [
-                // "Pon titeta pon" — Sol-Mi rocking pattern
+                // "Pon" — Sol
                 NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
-                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                // "ti-te-ta" — Sol-Mi-Sol
+                NoteEntry(solfege: .Sol, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
-                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
-                // "pon pon pon"
-                NoteEntry(solfege: .Fa, octave: 4, duration: .quarter),
-                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
-                NoteEntry(solfege: .Fa, octave: 4, duration: .quarter),
-                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
-                // repeat
-                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
-                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
-                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
-                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
-                // cadence
-                NoteEntry(solfege: .Re, octave: 4, duration: .half),
+                // "pon" — Mi
+                NoteEntry(solfege: .Mi, octave: 4, duration: .half),
+                // "pon" — Sol
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                // "ti-te-ta" — Sol-Mi-Sol
+                NoteEntry(solfege: .Sol, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                // "pon" — Mi
+                NoteEntry(solfege: .Mi, octave: 4, duration: .half),
+                // "pon" — La (higher for contrast)
+                NoteEntry(solfege: .La, octave: 4, duration: .quarter),
+                // "ti-te-ta" — Sol-Mi-Sol
+                NoteEntry(solfege: .Sol, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                // final "pon" — Do (cadence)
                 NoteEntry(solfege: .Do, octave: 4, duration: .half),
             ]
         )
