@@ -24,49 +24,46 @@ struct PlayerScreen: View {
                 .padding(.horizontal)
                 .padding(.vertical, 6)
 
-            // Main content: sheet music (left) + piano (right)
-            GeometryReader { geo in
-                HStack(spacing: 0) {
-                    // Left panel: Sheet Music
-                    VStack(spacing: 0) {
-                        if song.notes.isEmpty {
-                            emptyNotesView
-                        } else {
-                            SheetMusicView(
-                                notes: song.notes,
-                                currentNoteIndex: viewModel.currentNoteIndex,
-                                useSolfege: viewModel.useSolfege
-                            )
-                        }
-                    }
-                    .frame(width: geo.size.width * 0.55)
-                    .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(Color(uiColor: .systemBackground))
-                            .shadow(color: .black.opacity(0.05), radius: 4)
-                    )
-                    .padding(.leading, 8)
-
-                    // Right panel: Piano Keyboard
-                    VStack(spacing: 8) {
-                        // Current note indicator
-                        currentNoteIndicator
-                            .padding(.horizontal)
-
-                        PianoKeyboardView(
-                            useSolfege: viewModel.useSolfege,
-                            highlightedNote: viewModel.pitchDetector.detectedNote,
-                            highlightedOctave: viewModel.pitchDetector.detectedOctave,
-                            expectedNote: viewModel.currentNote,
-                            isCorrect: viewModel.lastDetectionCorrect,
-                            guidedMode: viewModel.guidedMode
+            // Main content: sheet music (top) + piano (bottom), full width
+            VStack(spacing: 0) {
+                // Top area: Sheet Music (full width)
+                VStack(spacing: 0) {
+                    if song.notes.isEmpty {
+                        emptyNotesView
+                    } else {
+                        SheetMusicView(
+                            notes: song.notes,
+                            currentNoteIndex: viewModel.currentNoteIndex,
+                            useSolfege: viewModel.useSolfege
                         )
                     }
-                    .frame(width: geo.size.width * 0.45)
-                    .padding(.trailing, 8)
                 }
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color(uiColor: .systemBackground))
+                        .shadow(color: .black.opacity(0.05), radius: 4)
+                )
+                .padding(.horizontal, 8)
+
+                // Current note indicator (full width)
+                currentNoteIndicator
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 4)
+
+                // Bottom area: Piano Keyboard (full width)
+                PianoKeyboardView(
+                    useSolfege: viewModel.useSolfege,
+                    highlightedNote: viewModel.pitchDetector.detectedNote,
+                    highlightedOctave: viewModel.pitchDetector.detectedOctave,
+                    expectedNote: viewModel.currentNote,
+                    isCorrect: viewModel.lastDetectionCorrect,
+                    guidedMode: viewModel.guidedMode
+                )
+                .frame(maxWidth: .infinity)
+                .padding(.horizontal, 8)
+                .padding(.bottom, 8)
             }
-            .padding(.bottom, 8)
 
             // Feedback overlay
             if let flash = viewModel.feedbackFlash {
@@ -141,18 +138,15 @@ struct PlayerScreen: View {
             Spacer()
 
             // Notation toggle
-            Button {
-                viewModel.toggleNotation()
-            } label: {
+            Toggle(isOn: Binding(
+                get: { viewModel.useSolfege },
+                set: { _ in viewModel.toggleNotation() }
+            )) {
                 Text(viewModel.useSolfege ? "Do Re Mi" : "C D E")
                     .font(.system(.caption, design: .rounded, weight: .bold))
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule().fill(.blue.opacity(0.15))
-                    )
             }
-            .buttonStyle(.plain)
+            .toggleStyle(.switch)
+            .fixedSize()
 
             // Guided mode toggle
             Button {
