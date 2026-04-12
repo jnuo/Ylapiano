@@ -23,7 +23,6 @@ struct PlayerScreen: View {
             } else {
                 ABCMusicView(
                     abcNotation: song.notes.toABC(title: song.title, timeSignature: "2/4", useSolfege: viewModel.useSolfege, bpm: viewModel.metronome.bpm),
-                    highlightIndex: viewModel.currentNoteIndex,
                     isPlaying: viewModel.isPlaying,
                     bpm: viewModel.metronome.bpm,
                     playNotes: viewModel.playNotes,
@@ -33,9 +32,6 @@ struct PlayerScreen: View {
                     },
                     onPlaybackEnd: {
                         viewModel.stopPlaying()
-                    },
-                    onBeat: {
-                        // Metronome tick handled by JS timing
                     }
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

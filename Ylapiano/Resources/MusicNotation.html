@@ -94,7 +94,6 @@
           svg.appendChild(cursor);
           lastLineY = null;
           noteIndex = -1;
-          lastLineY = null;
           startMetronomeTimer();
         },
         onEvent: function (ev) {
@@ -260,9 +259,6 @@
       var lastPlayMetronome = true;
 
       function setBPM(newBPM) {
-        logToSwift(
-          "setBPM called with " + newBPM + ", synthControl=" + !!synthControl,
-        );
         if (!newBPM) return;
         var wasPlaying = !!synthControl;
         currentBPM = newBPM;
@@ -271,19 +267,6 @@
           startPlayback(newBPM, lastPlayNotes, lastPlayMetronome);
         }
       }
-
-      function logToSwift(msg) {
-        if (
-          window.webkit &&
-          window.webkit.messageHandlers &&
-          window.webkit.messageHandlers.log
-        ) {
-          window.webkit.messageHandlers.log.postMessage(msg);
-        }
-      }
-
-      function highlightNote(idx) {}
-      function clearHighlight() {}
     </script>
   </body>
 </html>

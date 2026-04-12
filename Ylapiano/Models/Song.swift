@@ -104,14 +104,6 @@ struct NoteEntry: Identifiable, Codable, Hashable {
     var octave: Int
     var duration: NoteDuration
 
-    var displayName: String {
-        "\(solfege.rawValue)\(octave)"
-    }
-
-    var cdeName: String {
-        "\(solfege.cde)\(octave)"
-    }
-
     /// Convert to ABC notation pitch
     var abcPitch: String {
         let letter = solfege.cde

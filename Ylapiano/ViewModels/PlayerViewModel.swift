@@ -107,10 +107,6 @@ final class PlayerViewModel {
         useSolfege.toggle()
     }
 
-    func toggleGuided() {
-        guidedMode.toggle()
-    }
-
     func requestMicPermission() {
         pitchDetector.requestPermission()
     }

@@ -3,22 +3,18 @@ import WebKit
 
 struct ABCMusicView: UIViewRepresentable {
     let abcNotation: String
-    let highlightIndex: Int
     let isPlaying: Bool
     let bpm: Int
     let playNotes: Bool
     let playMetronome: Bool
     var onNoteChange: ((Int) -> Void)?
     var onPlaybackEnd: (() -> Void)?
-    var onBeat: (() -> Void)?
 
     func makeUIView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
         let userContent = config.userContentController
         userContent.add(context.coordinator, name: "noteChange")
         userContent.add(context.coordinator, name: "playbackEnd")
-        userContent.add(context.coordinator, name: "beat")
-        userContent.add(context.coordinator, name: "log")
 
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.isOpaque = false
@@ -41,9 +37,7 @@ struct ABCMusicView: UIViewRepresentable {
         let coordinator = context.coordinator
         coordinator.onNoteChange = onNoteChange
         coordinator.onPlaybackEnd = onPlaybackEnd
-        coordinator.onBeat = onBeat
         coordinator.pendingABC = abcNotation
-        coordinator.pendingHighlight = highlightIndex
         coordinator.pendingPlaying = isPlaying
         coordinator.pendingBPM = bpm
         coordinator.pendingPlayNotes = playNotes
@@ -57,14 +51,12 @@ struct ABCMusicView: UIViewRepresentable {
         var webView: WKWebView?
         var isLoaded = false
         var pendingABC: String?
-        var pendingHighlight: Int = -1
         var pendingPlaying = false
         var pendingBPM = 90
         var pendingPlayNotes = true
         var pendingPlayMetronome = false
         var onNoteChange: ((Int) -> Void)?
         var onPlaybackEnd: (() -> Void)?
-        var onBeat: (() -> Void)?
         private var lastABC: String?
         private var lastPlaying = false
         private var lastMetronome = false
@@ -83,12 +75,6 @@ struct ABCMusicView: UIViewRepresentable {
                 }
             case "playbackEnd":
                 DispatchQueue.main.async { self.onPlaybackEnd?() }
-            case "beat":
-                DispatchQueue.main.async { self.onBeat?() }
-            case "log":
-                if let msg = message.body as? String {
-                    NSLog("[ABCJS] \(msg)")
-                }
             default: break
             }
         }
