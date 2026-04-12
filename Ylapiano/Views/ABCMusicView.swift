@@ -4,6 +4,7 @@ import WebKit
 struct ABCMusicView: UIViewRepresentable {
     let abcNotation: String
     let isPlaying: Bool
+    let isPaused: Bool
     let bpm: Int
     let playNotes: Bool
     let playMetronome: Bool
@@ -39,10 +40,18 @@ struct ABCMusicView: UIViewRepresentable {
         coordinator.onPlaybackEnd = onPlaybackEnd
         coordinator.pendingABC = abcNotation
         coordinator.pendingPlaying = isPlaying
+        coordinator.pendingPaused = isPaused
         coordinator.pendingBPM = bpm
         coordinator.pendingPlayNotes = playNotes
         coordinator.pendingPlayMetronome = playMetronome
         coordinator.sendUpdate()
+    }
+
+    static func dismantleUIView(_ webView: WKWebView, coordinator: Coordinator) {
+        let content = webView.configuration.userContentController
+        content.removeScriptMessageHandler(forName: "noteChange")
+        content.removeScriptMessageHandler(forName: "playbackEnd")
+        coordinator.webView = nil
     }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
@@ -52,6 +61,7 @@ struct ABCMusicView: UIViewRepresentable {
         var isLoaded = false
         var pendingABC: String?
         var pendingPlaying = false
+        var pendingPaused = false
         var pendingBPM = 90
         var pendingPlayNotes = true
         var pendingPlayMetronome = false
@@ -59,6 +69,7 @@ struct ABCMusicView: UIViewRepresentable {
         var onPlaybackEnd: (() -> Void)?
         private var lastABC: String?
         private var lastPlaying = false
+        private var lastPaused = false
         private var lastMetronome = false
         private var lastBPM = 90
 
@@ -98,16 +109,32 @@ struct ABCMusicView: UIViewRepresentable {
         private func handlePlayState() {
             guard let webView = webView else { return }
 
-            if pendingPlaying && !lastPlaying {
+            // Start: was not playing/paused, now playing
+            if pendingPlaying && !lastPlaying && !lastPaused {
                 let notesArg = pendingPlayNotes ? "true" : "false"
                 let metroArg = pendingPlayMetronome ? "true" : "false"
                 webView.evaluateJavaScript("startPlayback(\(pendingBPM), \(notesArg), \(metroArg))", completionHandler: nil)
                 lastPlaying = true
                 lastMetronome = pendingPlayMetronome
                 lastBPM = pendingBPM
-            } else if !pendingPlaying && lastPlaying {
+            }
+            // Pause: was playing, now paused (keep synth alive)
+            else if lastPlaying && pendingPaused {
+                webView.evaluateJavaScript("pausePlayback()", completionHandler: nil)
+                lastPlaying = false
+                lastPaused = true
+            }
+            // Resume: was paused, now playing (resume the same synth)
+            else if lastPaused && pendingPlaying {
+                webView.evaluateJavaScript("resumePlayback()", completionHandler: nil)
+                lastPlaying = true
+                lastPaused = false
+            }
+            // Stop: neither playing nor paused
+            else if !pendingPlaying && !pendingPaused && (lastPlaying || lastPaused) {
                 webView.evaluateJavaScript("stopPlayback()", completionHandler: nil)
                 lastPlaying = false
+                lastPaused = false
             }
 
             // Live toggle metronome during playback
@@ -117,7 +144,7 @@ struct ABCMusicView: UIViewRepresentable {
                 lastMetronome = pendingPlayMetronome
             }
 
-            // Live BPM change during playback — warp tempo on the fly
+            // Live BPM change during playback
             if lastPlaying && pendingBPM != lastBPM {
                 webView.evaluateJavaScript("setBPM(\(pendingBPM))", completionHandler: nil)
                 lastBPM = pendingBPM

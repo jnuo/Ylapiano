@@ -242,12 +242,34 @@
       function stopPlayback() {
         stopMetronomeTimer();
         if (synthControl) {
-          synthControl.pause();
-          synthControl.restart();
+          try {
+            synthControl.pause();
+          } catch (e) {}
+          try {
+            synthControl.restart();
+          } catch (e) {}
           synthControl = null;
         }
         var cursor = document.querySelector("#paper svg .abcjs-cursor");
         if (cursor) cursor.remove();
+      }
+
+      function pausePlayback() {
+        stopMetronomeTimer();
+        if (synthControl) {
+          try {
+            synthControl.pause();
+          } catch (e) {}
+        }
+      }
+
+      function resumePlayback() {
+        if (synthControl) {
+          try {
+            synthControl.play();
+          } catch (e) {}
+          if (playMetronomeTick) startMetronomeTimer();
+        }
       }
 
       function setMetronomeEnabled(enabled) {
