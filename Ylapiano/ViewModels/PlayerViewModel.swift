@@ -11,6 +11,11 @@ final class PlayerViewModel {
     var useSolfege = true
     var guidedMode = true
     var isPlaying = false
+    var isPaused = false
+    var playNotes = true
+    var playMetronome = true
+
+    var isActive: Bool { isPlaying || isPaused }
     var lastDetectionCorrect: Bool?
     var showingEditSheet = false
 
@@ -32,12 +37,26 @@ final class PlayerViewModel {
 
     func startPlaying() {
         isPlaying = true
+        isPaused = false
         currentNoteIndex = 0
         lastDetectionCorrect = nil
     }
 
+    func pausePlaying() {
+        guard isPlaying else { return }
+        isPlaying = false
+        isPaused = true
+    }
+
+    func resumePlaying() {
+        guard isPaused else { return }
+        isPaused = false
+        isPlaying = true
+    }
+
     func stopPlaying() {
         isPlaying = false
+        isPaused = false
         lastDetectionCorrect = nil
     }
 

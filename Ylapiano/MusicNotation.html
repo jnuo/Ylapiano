@@ -21,201 +21,269 @@
         padding: 8px;
         position: relative;
       }
-      .abcjs-highlight {
-        fill: #ff6b00 !important;
-        stroke: #ff6b00 !important;
-      }
-      #cursor {
-        position: absolute;
-        width: 2px;
-        background: #ff6b00;
+      #audio-controls {
         display: none;
-        pointer-events: none;
-        z-index: 10;
-        transition:
-          left 0.08s linear,
-          top 0.05s linear;
+      }
+      /* abcjs cursor styling */
+      #paper svg .abcjs-cursor {
+        stroke: #ff6b00;
+        stroke-width: 2px;
+      }
+      /* Solfege labels under notes — make smaller */
+      #paper svg .abcjs-lyric,
+      #paper svg text.abcjs-lyric {
+        font-size: 10px !important;
+      }
+      /* Hide tempo marking (Q: display) */
+      #paper svg .abcjs-tempo {
+        display: none;
       }
     </style>
   </head>
   <body>
     <div id="paper"></div>
-    <div id="cursor"></div>
+    <div id="audio-controls"></div>
     <script>
       var visualObj = null;
-      var timingCallbacks = null;
-      var cursorEl = document.getElementById("cursor");
+      var synthControl = null;
+      var audioCtx = null;
+      var playMetronomeTick = false;
+      var metronomeTimer = null;
       var currentBPM = 90;
-      var noteIndex = -1;
+      var lastLineY = null;
 
       function renderMusic(abcString) {
         visualObj = ABCJS.renderAbc("paper", abcString, {
           add_classes: true,
           responsive: "resize",
           wrap: {
-            minSpacing: 1.5,
-            maxSpacing: 2.5,
+            minSpacing: 1.0,
+            maxSpacing: 1.8,
             preferredMeasuresPerLine: 4,
+            targetNewMeasureRatio: 0.5,
           },
           staffwidth: 500,
           paddingleft: 10,
           paddingright: 10,
           paddingtop: 0,
           paddingbottom: 0,
-          scale: 1.2,
+          scale: 1.0,
         })[0];
       }
 
-      var synthControl = null;
+      // CursorControl: abcjs calls these as it plays
+      // https://paulrosen.github.io/abcjs/audio/synthesized-sound.html#cursorcontrol
+      var cursorControl = {
+        beatSubdivisions: 1,
+        onReady: function () {},
+        onStart: function () {
+          var svg = document.querySelector("#paper svg");
+          if (!svg) return;
+          // Remove any existing cursor
+          var existing = svg.querySelector(".abcjs-cursor");
+          if (existing) existing.remove();
+          var cursor = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "line",
+          );
+          cursor.setAttribute("class", "abcjs-cursor");
+          cursor.setAttributeNS(null, "x1", 0);
+          cursor.setAttributeNS(null, "y1", 0);
+          cursor.setAttributeNS(null, "x2", 0);
+          cursor.setAttributeNS(null, "y2", 0);
+          svg.appendChild(cursor);
+          lastLineY = null;
+          noteIndex = -1;
+          lastLineY = null;
+          startMetronomeTimer();
+        },
+        onEvent: function (ev) {
+          if (ev.measureStart && ev.left === null) return;
+          var cursor = document.querySelector("#paper svg .abcjs-cursor");
+          if (!cursor) return;
+          cursor.setAttribute("x1", ev.left - 2);
+          cursor.setAttribute("x2", ev.left - 2);
+          cursor.setAttribute("y1", ev.top);
+          cursor.setAttribute("y2", ev.top + ev.height);
 
-      function startPlayback(bpm) {
+          // Auto-scroll: snap current line to top when line changes
+          var lineNum = ev.line !== undefined ? ev.line : 0;
+          if (lastLineY === null || lineNum !== lastLineY) {
+            lastLineY = lineNum;
+            // Find topmost element on this line via shared .abcjs-l<N> class
+            var lineEls = document.querySelectorAll(".abcjs-l" + lineNum);
+            var minTop = Infinity;
+            for (var i = 0; i < lineEls.length; i++) {
+              var r = lineEls[i].getBoundingClientRect();
+              if (r.top < minTop) minTop = r.top;
+            }
+            if (minTop !== Infinity) {
+              var scroller =
+                document.scrollingElement || document.documentElement;
+              var currentScroll = scroller.scrollTop || window.scrollY || 0;
+              var targetScroll = currentScroll + minTop - 10;
+              if (targetScroll < 0) targetScroll = 0;
+              scroller.scrollTop = targetScroll;
+              document.documentElement.scrollTop = targetScroll;
+              document.body.scrollTop = targetScroll;
+              window.scrollTo(0, targetScroll);
+            }
+          }
+
+          // Notify Swift of note index (increment counter, skip rests)
+          if (ev.midiPitches && ev.midiPitches.length > 0) {
+            noteIndex++;
+            if (
+              window.webkit &&
+              window.webkit.messageHandlers &&
+              window.webkit.messageHandlers.noteChange
+            ) {
+              window.webkit.messageHandlers.noteChange.postMessage({
+                index: noteIndex,
+              });
+            }
+          }
+        },
+        onFinished: function () {
+          stopMetronomeTimer();
+          var cursor = document.querySelector("#paper svg .abcjs-cursor");
+          if (cursor) cursor.remove();
+          if (
+            window.webkit &&
+            window.webkit.messageHandlers &&
+            window.webkit.messageHandlers.playbackEnd
+          ) {
+            window.webkit.messageHandlers.playbackEnd.postMessage({});
+          }
+        },
+      };
+
+      function startMetronomeTimer() {
+        stopMetronomeTimer();
+        var intervalMs = 60000 / currentBPM;
+        // Play first tick immediately
+        if (playMetronomeTick) playClick();
+        metronomeTimer = setInterval(function () {
+          if (playMetronomeTick) playClick();
+        }, intervalMs);
+      }
+
+      function stopMetronomeTimer() {
+        if (metronomeTimer) {
+          clearInterval(metronomeTimer);
+          metronomeTimer = null;
+        }
+      }
+
+      function playClick() {
+        // Use abcjs's AudioContext — it's already unlocked by user gesture
+        var ctx =
+          ABCJS.synth.activeAudioContext && ABCJS.synth.activeAudioContext();
+        if (!ctx) {
+          if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          }
+          ctx = audioCtx;
+        }
+        if (ctx.state === "suspended") {
+          ctx.resume();
+        }
+        var osc = ctx.createOscillator();
+        var gain = ctx.createGain();
+        osc.type = "square";
+        osc.frequency.value = 1000;
+        gain.gain.setValueAtTime(0.4, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.05);
+      }
+
+      function startPlayback(bpm, playNotes, metronome) {
         if (!visualObj) return;
         stopPlayback();
 
         currentBPM = bpm || 90;
-        noteIndex = -1;
-        cursorEl.style.display = "block";
+        playMetronomeTick = !!metronome;
+        var shouldPlayNotes = playNotes !== false;
+        lastPlayNotes = shouldPlayNotes;
+        lastPlayMetronome = playMetronomeTick;
 
-        if (ABCJS.synth.supportsAudio()) {
-          var synth = new ABCJS.synth.CreateSynth();
-          synth
-            .init({
-              visualObj: visualObj,
-              options: { qpm: currentBPM, program: 0 },
-            })
-            .then(function () {
-              return synth.prime();
-            })
-            .then(function () {
-              // Set up timing callbacks for cursor + highlighting
-              timingCallbacks = new ABCJS.TimingCallbacks(visualObj, {
-                qpm: currentBPM,
-                extraMeasuresAtBeginning: 0,
-                beatCallback: function (beatNumber) {
-                  if (
-                    window.webkit &&
-                    window.webkit.messageHandlers &&
-                    window.webkit.messageHandlers.beat
-                  ) {
-                    window.webkit.messageHandlers.beat.postMessage({
-                      beat: beatNumber,
-                    });
-                  }
-                },
-                eventCallback: function (event) {
-                  if (!event) {
-                    cursorEl.style.display = "none";
-                    clearHighlight();
-                    synth.stop();
-                    if (
-                      window.webkit &&
-                      window.webkit.messageHandlers &&
-                      window.webkit.messageHandlers.playbackEnd
-                    ) {
-                      window.webkit.messageHandlers.playbackEnd.postMessage({});
-                    }
-                    return;
-                  }
+        if (!ABCJS.synth.supportsAudio()) return;
 
-                  var paperEl = document.getElementById("paper");
-                  if (event.left !== undefined && event.top !== undefined) {
-                    cursorEl.style.left =
-                      event.left + paperEl.offsetLeft + "px";
-                    cursorEl.style.top = event.top + paperEl.offsetTop + "px";
-                    cursorEl.style.height = event.height + "px";
+        synthControl = new ABCJS.synth.SynthController();
+        synthControl.load("#audio-controls", cursorControl, {
+          displayLoop: false,
+          displayRestart: false,
+          displayPlay: false,
+          displayProgress: false,
+          displayWarp: false,
+        });
 
-                    var scrollTarget = event.top - 40;
-                    if (scrollTarget < 0) scrollTarget = 0;
-                    window.scrollTo({ top: scrollTarget, behavior: "smooth" });
-                  }
-
-                  clearHighlight();
-                  if (event.elements && event.elements.length > 0) {
-                    event.elements.forEach(function (elArr) {
-                      if (elArr && elArr.length > 0) {
-                        elArr.forEach(function (el) {
-                          if (el.classList) el.classList.add("abcjs-highlight");
-                        });
-                      }
-                    });
-                  }
-
-                  if (event.midiPitches && event.midiPitches.length > 0) {
-                    noteIndex++;
-                    if (
-                      window.webkit &&
-                      window.webkit.messageHandlers &&
-                      window.webkit.messageHandlers.noteChange
-                    ) {
-                      window.webkit.messageHandlers.noteChange.postMessage({
-                        index: noteIndex,
-                      });
-                    }
-                  }
-                },
-              });
-
-              synth.start();
-              timingCallbacks.start();
-              synthControl = synth;
-            });
-        }
+        synthControl
+          .setTune(visualObj, false, {
+            qpm: currentBPM,
+            program: 0,
+            midiTranspose: 0,
+          })
+          .then(function () {
+            // Mute synth if notes disabled (but keep cursor/timing running)
+            if (
+              !shouldPlayNotes &&
+              synthControl.synth &&
+              synthControl.synth.audioContext
+            ) {
+              synthControl.synth.audioContext.suspend();
+            }
+            synthControl.play();
+          });
       }
 
       function stopPlayback() {
-        if (timingCallbacks) {
-          timingCallbacks.stop();
-          timingCallbacks = null;
-        }
+        stopMetronomeTimer();
         if (synthControl) {
-          synthControl.stop();
+          synthControl.pause();
+          synthControl.restart();
           synthControl = null;
         }
-        cursorEl.style.display = "none";
-        clearHighlight();
-        noteIndex = -1;
+        var cursor = document.querySelector("#paper svg .abcjs-cursor");
+        if (cursor) cursor.remove();
       }
 
-      function highlightNote(idx) {
-        // Manual highlight (when not playing)
-        clearHighlight();
-        if (idx < 0 || !visualObj) return;
+      function setMetronomeEnabled(enabled) {
+        playMetronomeTick = !!enabled;
+      }
 
-        var lines = visualObj.lines;
-        var currentIndex = 0;
-        for (var l = 0; l < lines.length; l++) {
-          var voices = lines[l].staff;
-          if (!voices) continue;
-          for (var s = 0; s < voices.length; s++) {
-            var voiceEntries = voices[s].voices;
-            if (!voiceEntries) continue;
-            for (var v = 0; v < voiceEntries.length; v++) {
-              var elements = voiceEntries[v];
-              for (var e = 0; e < elements.length; e++) {
-                var elem = elements[e];
-                if (elem.el_type === "note" && !elem.rest) {
-                  if (currentIndex === idx) {
-                    var absEls = elem.abselem;
-                    if (absEls && absEls.elemset) {
-                      absEls.elemset.forEach(function (svgEl) {
-                        svgEl.classList.add("abcjs-highlight");
-                      });
-                    }
-                    return;
-                  }
-                  currentIndex++;
-                }
-              }
-            }
-          }
+      // Track last playback state so setBPM can restart with same settings
+      var lastPlayNotes = true;
+      var lastPlayMetronome = true;
+
+      function setBPM(newBPM) {
+        logToSwift(
+          "setBPM called with " + newBPM + ", synthControl=" + !!synthControl,
+        );
+        if (!newBPM) return;
+        var wasPlaying = !!synthControl;
+        currentBPM = newBPM;
+        if (wasPlaying) {
+          stopPlayback();
+          startPlayback(newBPM, lastPlayNotes, lastPlayMetronome);
         }
       }
 
-      function clearHighlight() {
-        document.querySelectorAll(".abcjs-highlight").forEach(function (el) {
-          el.classList.remove("abcjs-highlight");
-        });
+      function logToSwift(msg) {
+        if (
+          window.webkit &&
+          window.webkit.messageHandlers &&
+          window.webkit.messageHandlers.log
+        ) {
+          window.webkit.messageHandlers.log.postMessage(msg);
+        }
       }
+
+      function highlightNote(idx) {}
+      function clearHighlight() {}
     </script>
   </body>
 </html>

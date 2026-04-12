@@ -22,7 +22,7 @@ struct SeedData {
         // Pattern: Do(q) Mi(8) Fa(8) | Sol(h) | for each "plim plim plim plim"
         let plimPlim = Song(
             title: "Plim Plim (Salta l'Esquirol)",
-            bpm: 90,
+            bpm: 60,
             notes: [
                 // "Plim plim plim plim" — Do(q) Mi(8) Fa(8) | Sol(h)
                 NoteEntry(solfege: .Do, octave: 4, duration: .quarter),

@@ -6,6 +6,8 @@ struct ABCMusicView: UIViewRepresentable {
     let highlightIndex: Int
     let isPlaying: Bool
     let bpm: Int
+    let playNotes: Bool
+    let playMetronome: Bool
     var onNoteChange: ((Int) -> Void)?
     var onPlaybackEnd: (() -> Void)?
     var onBeat: (() -> Void)?
@@ -16,11 +18,16 @@ struct ABCMusicView: UIViewRepresentable {
         userContent.add(context.coordinator, name: "noteChange")
         userContent.add(context.coordinator, name: "playbackEnd")
         userContent.add(context.coordinator, name: "beat")
+        userContent.add(context.coordinator, name: "log")
 
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.isOpaque = false
         webView.backgroundColor = .clear
         webView.scrollView.backgroundColor = .clear
+        webView.scrollView.isScrollEnabled = true
+        webView.scrollView.bounces = true
+        webView.scrollView.alwaysBounceVertical = true
+        webView.scrollView.showsVerticalScrollIndicator = true
         webView.navigationDelegate = context.coordinator
         context.coordinator.webView = webView
 
@@ -39,6 +46,8 @@ struct ABCMusicView: UIViewRepresentable {
         coordinator.pendingHighlight = highlightIndex
         coordinator.pendingPlaying = isPlaying
         coordinator.pendingBPM = bpm
+        coordinator.pendingPlayNotes = playNotes
+        coordinator.pendingPlayMetronome = playMetronome
         coordinator.sendUpdate()
     }
 
@@ -51,11 +60,15 @@ struct ABCMusicView: UIViewRepresentable {
         var pendingHighlight: Int = -1
         var pendingPlaying = false
         var pendingBPM = 90
+        var pendingPlayNotes = true
+        var pendingPlayMetronome = false
         var onNoteChange: ((Int) -> Void)?
         var onPlaybackEnd: (() -> Void)?
         var onBeat: (() -> Void)?
         private var lastABC: String?
         private var lastPlaying = false
+        private var lastMetronome = false
+        private var lastBPM = 90
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             isLoaded = true
@@ -72,6 +85,10 @@ struct ABCMusicView: UIViewRepresentable {
                 DispatchQueue.main.async { self.onPlaybackEnd?() }
             case "beat":
                 DispatchQueue.main.async { self.onBeat?() }
+            case "log":
+                if let msg = message.body as? String {
+                    NSLog("[ABCJS] \(msg)")
+                }
             default: break
             }
         }
@@ -96,15 +113,28 @@ struct ABCMusicView: UIViewRepresentable {
             guard let webView = webView else { return }
 
             if pendingPlaying && !lastPlaying {
-                webView.evaluateJavaScript("startPlayback(\(pendingBPM))", completionHandler: nil)
+                let notesArg = pendingPlayNotes ? "true" : "false"
+                let metroArg = pendingPlayMetronome ? "true" : "false"
+                webView.evaluateJavaScript("startPlayback(\(pendingBPM), \(notesArg), \(metroArg))", completionHandler: nil)
                 lastPlaying = true
+                lastMetronome = pendingPlayMetronome
+                lastBPM = pendingBPM
             } else if !pendingPlaying && lastPlaying {
                 webView.evaluateJavaScript("stopPlayback()", completionHandler: nil)
                 lastPlaying = false
             }
 
-            if !pendingPlaying {
-                webView.evaluateJavaScript("highlightNote(\(pendingHighlight))", completionHandler: nil)
+            // Live toggle metronome during playback
+            if lastPlaying && pendingPlayMetronome != lastMetronome {
+                let arg = pendingPlayMetronome ? "true" : "false"
+                webView.evaluateJavaScript("setMetronomeEnabled(\(arg))", completionHandler: nil)
+                lastMetronome = pendingPlayMetronome
+            }
+
+            // Live BPM change during playback — warp tempo on the fly
+            if lastPlaying && pendingBPM != lastBPM {
+                webView.evaluateJavaScript("setBPM(\(pendingBPM))", completionHandler: nil)
+                lastBPM = pendingBPM
             }
         }
     }

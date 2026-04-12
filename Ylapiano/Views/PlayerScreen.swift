@@ -22,10 +22,12 @@ struct PlayerScreen: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ABCMusicView(
-                    abcNotation: song.notes.toABC(title: song.title, timeSignature: "2/4", useSolfege: viewModel.useSolfege),
+                    abcNotation: song.notes.toABC(title: song.title, timeSignature: "2/4", useSolfege: viewModel.useSolfege, bpm: viewModel.metronome.bpm),
                     highlightIndex: viewModel.currentNoteIndex,
                     isPlaying: viewModel.isPlaying,
                     bpm: viewModel.metronome.bpm,
+                    playNotes: viewModel.playNotes,
+                    playMetronome: viewModel.playMetronome,
                     onNoteChange: { index in
                         viewModel.currentNoteIndex = index
                     },
@@ -99,62 +101,149 @@ struct PlayerScreen: View {
     // MARK: - Toolbar Row
 
     private var toolbarRow: some View {
-        HStack(spacing: 8) {
-            // Play/Stop
+        HStack(spacing: 14) {
+            // Primary button: Play / Pause / Resume
             Button {
-                if viewModel.isPlaying { viewModel.stopPlaying() }
+                if viewModel.isPlaying { viewModel.pausePlaying() }
+                else if viewModel.isPaused { viewModel.resumePlaying() }
                 else { viewModel.startPlaying() }
             } label: {
-                Image(systemName: viewModel.isPlaying ? "stop.fill" : "play.fill")
-                    .font(.body)
+                HStack(spacing: 6) {
+                    Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
+                    Text(viewModel.isPlaying ? "Pause" : (viewModel.isPaused ? "Resume" : "Play"))
+                        .font(.system(.subheadline, design: .rounded, weight: .semibold))
+                }
+                .frame(minWidth: 90, minHeight: 44)
             }
             .buttonStyle(.borderedProminent)
-            .tint(viewModel.isPlaying ? .red : .green)
+            .tint(viewModel.isPlaying ? .orange : .green)
 
-            // BPM inline
-            Button { if viewModel.metronome.bpm > 40 { viewModel.metronome.bpm -= 5 } } label: {
-                Image(systemName: "minus.circle").font(.body).foregroundStyle(.blue)
-            }.buttonStyle(.plain)
+            // Stop button: only when active
+            if viewModel.isActive {
+                Button {
+                    viewModel.stopPlaying()
+                } label: {
+                    Image(systemName: "stop.fill")
+                        .frame(width: 44, height: 44)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.red)
+            }
 
-            Text("\(viewModel.metronome.bpm)")
-                .font(.system(.body, design: .rounded, weight: .bold))
-                .monospacedDigit()
+            // BPM stepper — clear label, big tap targets
+            HStack(spacing: 4) {
+                Button { if viewModel.metronome.bpm > 40 { viewModel.metronome.bpm -= 5 } } label: {
+                    Image(systemName: "minus")
+                        .font(.system(.body, weight: .bold))
+                        .frame(width: 44, height: 44)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.blue)
 
-            Button { if viewModel.metronome.bpm < 220 { viewModel.metronome.bpm += 5 } } label: {
-                Image(systemName: "plus.circle").font(.body).foregroundStyle(.blue)
-            }.buttonStyle(.plain)
+                Menu {
+                    ForEach([45, 60, 75, 90, 120, 150], id: \.self) { preset in
+                        Button {
+                            viewModel.metronome.bpm = preset
+                        } label: {
+                            if viewModel.metronome.bpm == preset {
+                                Label("\(preset) BPM", systemImage: "checkmark")
+                            } else {
+                                Text("\(preset) BPM")
+                            }
+                        }
+                    }
+                } label: {
+                    VStack(spacing: 0) {
+                        Text("\(viewModel.metronome.bpm)")
+                            .font(.system(.body, design: .rounded, weight: .bold))
+                            .monospacedDigit()
+                            .foregroundStyle(.primary)
+                        Text("BPM")
+                            .font(.system(.caption2, weight: .semibold))
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(width: 50, height: 44)
+                }
+                .buttonStyle(.plain)
 
-            // Edit
-            Button { viewModel.showingEditSheet = true } label: {
-                Image(systemName: "pencil.circle").font(.body).foregroundStyle(.blue)
-            }.buttonStyle(.plain)
+                Button { if viewModel.metronome.bpm < 220 { viewModel.metronome.bpm += 5 } } label: {
+                    Image(systemName: "plus")
+                        .font(.system(.body, weight: .bold))
+                        .frame(width: 44, height: 44)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.blue)
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color(uiColor: .tertiarySystemFill))
+            )
 
             Spacer()
 
-            // Notation toggle
-            Toggle(isOn: Binding(
+            // Sound toggles — labeled pill buttons with obvious on/off state
+            soundToggle(
+                label: "Play Piano",
+                icon: "speaker.wave.2.fill",
+                iconOff: "speaker.slash.fill",
+                isOn: viewModel.playNotes,
+                color: .blue
+            ) { viewModel.playNotes.toggle() }
+
+            soundToggle(
+                label: "Metronome",
+                icon: "metronome.fill",
+                iconOff: "metronome",
+                isOn: viewModel.playMetronome,
+                color: .orange
+            ) { viewModel.playMetronome.toggle() }
+
+            // Notation format — compact segmented
+            Picker("Notation", selection: Binding(
                 get: { viewModel.useSolfege },
                 set: { _ in viewModel.toggleNotation() }
             )) {
-                Text(viewModel.useSolfege ? "Do Re Mi" : "C D E")
-                    .font(.system(.caption2, design: .rounded, weight: .bold))
+                Text("Do Re Mi").tag(true)
+                Text("C D E").tag(false)
             }
-            .toggleStyle(.switch)
-            .fixedSize()
+            .pickerStyle(.segmented)
+            .frame(width: 160)
 
-            // Guided
-            Button { viewModel.toggleGuided() } label: {
-                Image(systemName: viewModel.guidedMode ? "hand.point.right.fill" : "hand.point.right")
-                    .font(.caption)
-                    .padding(6)
-                    .background(Capsule().fill(viewModel.guidedMode ? .yellow.opacity(0.25) : .gray.opacity(0.15)))
-            }.buttonStyle(.plain)
-
-            // Mic dot
-            Circle()
-                .fill(viewModel.pitchDetector.isListening ? .green : .gray)
-                .frame(width: 8, height: 8)
+            // Edit — subtle, last
+            Button { viewModel.showingEditSheet = true } label: {
+                Image(systemName: "pencil")
+                    .font(.system(.body, weight: .semibold))
+                    .frame(width: 44, height: 44)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.secondary)
         }
+    }
+
+    private func soundToggle(
+        label: String,
+        icon: String,
+        iconOff: String,
+        isOn: Bool,
+        color: Color,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: isOn ? icon : iconOff)
+                    .font(.body)
+                Text(label)
+                    .font(.system(.footnote, design: .rounded, weight: .semibold))
+            }
+            .padding(.horizontal, 12)
+            .frame(height: 44)
+            .foregroundStyle(isOn ? .white : color)
+            .background(
+                Capsule()
+                    .fill(isOn ? color : color.opacity(0.12))
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Current Note Indicator

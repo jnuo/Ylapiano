@@ -137,13 +137,14 @@ struct NoteEntry: Identifiable, Codable, Hashable {
 
 extension Array where Element == NoteEntry {
     /// Convert note array to ABC notation string
-    func toABC(title: String = "", timeSignature: String = "2/4", key: String = "C", useSolfege: Bool = true) -> String {
+    func toABC(title: String = "", timeSignature: String = "2/4", key: String = "C", useSolfege: Bool = true, bpm: Int = 90, measuresPerLine: Int = 4) -> String {
+        // Omit T: title — shown in nav bar instead. Keep Q: tempo for playback.
         var abc = "X:1\n"
-        if !title.isEmpty { abc += "T:\(title)\n" }
-        abc += "M:\(timeSignature)\nL:1/4\nK:\(key)\n"
+        abc += "M:\(timeSignature)\nL:1/4\nQ:1/4=\(bpm)\nK:\(key)\n"
 
         let beatsPerMeasure: Double = timeSignature == "2/4" ? 2.0 : 4.0
         var currentBeats: Double = 0
+        var measureCount = 0
         var noteLine = ""
         var lyricsLine = "w:"
 
@@ -152,12 +153,32 @@ extension Array where Element == NoteEntry {
             lyricsLine += " " + (useSolfege ? note.solfege.rawValue : note.solfege.cde)
             currentBeats += note.duration.beats
             if currentBeats >= beatsPerMeasure {
-                noteLine += "| "
+                noteLine += "|"
                 currentBeats = 0
+                measureCount += 1
+                // Force line break in ABC after measuresPerLine bars
+                if measureCount == measuresPerLine {
+                    abc += noteLine + "\n" + lyricsLine + "\n"
+                    noteLine = ""
+                    lyricsLine = "w:"
+                    measureCount = 0
+                } else {
+                    noteLine += " "
+                }
             }
         }
-        if currentBeats > 0 { noteLine += "|" }
-        abc += noteLine + "\n" + lyricsLine + "\n"
+        // Flush remainder
+        if !noteLine.trimmingCharacters(in: .whitespaces).isEmpty {
+            if currentBeats > 0 { noteLine += "|" }
+            abc += noteLine + "\n" + lyricsLine + "\n"
+        }
+        // Append one empty line of rests so the last real line can scroll to top
+        let emptyMeasure: String = timeSignature == "2/4" ? "z2" : "z4"
+        var emptyLine: String = ""
+        for _ in 0..<measuresPerLine {
+            emptyLine += emptyMeasure + " | "
+        }
+        abc += emptyLine + "\n"
         return abc
     }
 }
