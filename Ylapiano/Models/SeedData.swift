@@ -4,43 +4,72 @@ import SwiftData
 struct SeedData {
     static func seedIfNeeded(context: ModelContext) {
         let descriptor = FetchDescriptor<Song>()
-        let count = (try? context.fetchCount(descriptor)) ?? 0
-        guard count == 0 else { return }
+        let existing = (try? context.fetch(descriptor)) ?? []
+        let existingTitles = Set(existing.map { $0.title })
 
-        let songs = createSeedSongs()
-        for song in songs {
-            context.insert(song)
+        for song in createSeedSongs() {
+            if !existingTitles.contains(song.title) {
+                context.insert(song)
+            }
         }
         try? context.save()
     }
 
     static func createSeedSongs() -> [Song] {
+        [plimPlim(), solSolet(), laCastanyera()]
+    }
 
-        // Plim Plim (Salta l'Esquirol) — Traditional Catalan children's song
-        // Key: F major, transposed to C. Time: 2/4. BPM: 90.
-        // Source: xipxap.wordpress.com/2015/12/28/lesquirol/
-        // Pattern: Do(q) Mi(8) Fa(8) | Sol(h) | for each "plim plim plim plim"
-        let plimPlim = Song(
+    // La Castanyera — Traditional Catalan autumn song (simplified)
+    // Simplified: C major, 2/4, only quarter and half notes.
+    // First phrase: "Quan ve el temps de collir castanyes la castanyera"
+    private static func laCastanyera() -> Song {
+        Song(
+            title: "La Castanyera",
+            bpm: 90,
+            notes: [
+                // "Quan ve el temps"
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                // "de co-llir"
+                NoteEntry(solfege: .Fa, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                // "cas-ta-nyes"
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .half),
+                // "la cas-ta-nye-ra"
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Fa, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .half),
+            ]
+        )
+    }
+
+    // Plim Plim (Salta l'Esquirol) — Traditional Catalan children's song
+    // Key: F major, transposed to C. Time: 2/4. BPM: 60.
+    // Source: xipxap.wordpress.com/2015/12/28/lesquirol/
+    private static func plimPlim() -> Song {
+        Song(
             title: "Plim Plim (Salta l'Esquirol)",
             bpm: 60,
             notes: [
-                // "Plim plim plim plim" — Do(q) Mi(8) Fa(8) | Sol(h)
                 NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
                 NoteEntry(solfege: .Mi, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .Fa, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .Sol, octave: 4, duration: .half),
-                // "salta l'esquirol" — La(8) Sol(8) Fa(8) La(8) | Sol(h)
                 NoteEntry(solfege: .La, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .Sol, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .Fa, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .La, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .Sol, octave: 4, duration: .half),
-                // "plim plim plim plim" — Do(q) Mi(8) Fa(8) | Sol(h)
                 NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
                 NoteEntry(solfege: .Mi, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .Fa, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .Sol, octave: 4, duration: .half),
-                // "i depressa puja al tronc" — La(8) Sol(8) La(8) Sol(8) | La(q) Si(q) | Do5(h)
                 NoteEntry(solfege: .La, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .Sol, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .La, octave: 4, duration: .eighth),
@@ -48,23 +77,19 @@ struct SeedData {
                 NoteEntry(solfege: .La, octave: 4, duration: .quarter),
                 NoteEntry(solfege: .Si, octave: 4, duration: .quarter),
                 NoteEntry(solfege: .Do, octave: 5, duration: .half),
-                // "plim plim plim plim" — Do(q) Mi(8) Fa(8) | Sol(h)
                 NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
                 NoteEntry(solfege: .Mi, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .Fa, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .Sol, octave: 4, duration: .half),
-                // "agafa una pinya" — La(8) Sol(8) Fa(8) La(8) | Sol(h)
                 NoteEntry(solfege: .La, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .Sol, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .Fa, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .La, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .Sol, octave: 4, duration: .half),
-                // "plim plim plim plim" — Do(q) Mi(8) Fa(8) | Sol(h)
                 NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
                 NoteEntry(solfege: .Mi, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .Fa, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .Sol, octave: 4, duration: .half),
-                // "i se la menja tot sol" — La(8) Sol(8) La(8) Sol(8) | La(q) Si(q) | Do5(h)
                 NoteEntry(solfege: .La, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .Sol, octave: 4, duration: .eighth),
                 NoteEntry(solfege: .La, octave: 4, duration: .eighth),
@@ -74,7 +99,42 @@ struct SeedData {
                 NoteEntry(solfege: .Do, octave: 5, duration: .half),
             ]
         )
+    }
 
-        return [plimPlim]
+    // Sol Solet — Traditional Catalan children's lullaby-style song
+    // Key: C major, Time: 2/4. Triplets simplified to eighth pairs.
+    // Note: original has eighth-note triplets on "vi-ne'm-a" — transcribed as
+    // two eighths since the app doesn't support triplets.
+    private static func solSolet() -> Song {
+        Song(
+            title: "Sol Solet",
+            bpm: 75,
+            notes: [
+                // "Sol, so-"
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                // "-let vi-ne'm-a"
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .La, octave: 4, duration: .eighth),
+                // "veu-re, vi-ne'm-a"
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .La, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .eighth),
+                // "veu- re"
+                NoteEntry(solfege: .La, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                // Second half: "Sol, so-let vi-ne'm-a veu-re que tinc fred"
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .La, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .half),
+            ]
+        )
     }
 }
