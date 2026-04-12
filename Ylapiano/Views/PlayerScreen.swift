@@ -25,7 +25,7 @@ struct PlayerScreen: View {
                     abcNotation: song.notes.toABC(title: song.title, timeSignature: "2/4", useSolfege: viewModel.useSolfege),
                     highlightIndex: viewModel.currentNoteIndex,
                     isPlaying: viewModel.isPlaying,
-                    bpm: song.bpm,
+                    bpm: viewModel.metronome.bpm,
                     onNoteChange: { index in
                         viewModel.currentNoteIndex = index
                     },
