@@ -1,0 +1,48 @@
+# macOS
+.DS_Store
+
+# Xcode build artifacts
+build/
+build-device/
+DerivedData/
+
+# Xcode user-specific files
+*.xcuserstate
+*.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+*.moved-aside
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Packages/
+Package.pins
+Package.resolved
+
+# CocoaPods
+Pods/
+
+# Carthage
+Carthage/Build/
+Carthage/Checkouts/
+
+# Fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/**/*.png
+fastlane/test_output
+
+# iOS app archives / exports
+*.xcarchive
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Auto-generated workspace (keep project.pbxproj, ignore user state)
+Ylapiano.xcodeproj/project.xcworkspace/xcuserdata/
+Ylapiano.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings
