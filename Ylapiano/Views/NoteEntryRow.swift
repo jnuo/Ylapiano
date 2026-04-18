@@ -38,7 +38,7 @@ struct NoteEntryRow: View {
             // Duration picker
             Picker("Duration", selection: $note.duration) {
                 ForEach(NoteDuration.allCases) { d in
-                    Text(durationLabel(for: d)).tag(d)
+                    Text(d.displayName).tag(d)
                 }
             }
             .pickerStyle(.menu)
@@ -54,14 +54,6 @@ struct NoteEntryRow: View {
             .buttonStyle(.plain)
         }
         .padding(.vertical, 4)
-    }
-
-    private func durationLabel(for d: NoteDuration) -> AttributedString {
-        var s = AttributedString(d.symbol + " " + d.displayName)
-        if let range = s.range(of: d.symbol) {
-            s[range].font = .custom("NotoMusic-Regular", size: 16)
-        }
-        return s
     }
 }
 
