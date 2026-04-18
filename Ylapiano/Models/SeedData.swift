@@ -5,7 +5,7 @@ struct SeedData {
     static func seedIfNeeded(context: ModelContext) {
         let descriptor = FetchDescriptor<Song>()
         let existing = (try? context.fetch(descriptor)) ?? []
-        let existingByTitle = Dictionary(uniqueKeysWithValues: existing.map { ($0.title, $0) })
+        let existingByTitle = Dictionary(existing.map { ($0.title, $0) }, uniquingKeysWith: { first, _ in first })
 
         for seed in createSeedSongs() {
             if let current = existingByTitle[seed.title] {
