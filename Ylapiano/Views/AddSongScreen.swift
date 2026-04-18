@@ -171,7 +171,10 @@ struct AddSongScreen: View {
             existingSong.bpm = bpm
             existingSong.notes = notes
         } else {
-            let song = Song(title: title, bpm: bpm, notes: notes)
+            let descriptor = FetchDescriptor<Song>()
+            let existing = (try? modelContext.fetch(descriptor)) ?? []
+            let nextSortOrder = (existing.map(\.sortOrder).max() ?? -1) + 1
+            let song = Song(title: title, bpm: bpm, notes: notes, sortOrder: nextSortOrder)
             modelContext.insert(song)
         }
         try? modelContext.save()

@@ -10,6 +10,7 @@
 		EA112EAB9027B0A007DF32C5 /* ABCMusicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD5B0BBB0B3A88D01FCEF984 /* ABCMusicView.swift */; };
 		5CA827276D9F72A4E3CED352 /* MusicNotation.html in Resources */ = {isa = PBXBuildFile; fileRef = 95ECB0758B48796D0194CE14 /* MusicNotation.html */; };
 		D9D9DB8B5A55104679BB27D9 /* abcjs-basic-min.js in Resources */ = {isa = PBXBuildFile; fileRef = AD646997735A00E870EDCD9B /* abcjs-basic-min.js */; };
+		AD000020 /* NotoMusic-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AD000021 /* NotoMusic-Regular.ttf */; };
 
 		AA000001 /* YlapianoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000001; };
 		AA000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000002; };
@@ -34,6 +35,7 @@
 		AD5B0BBB0B3A88D01FCEF984 /* ABCMusicView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ABCMusicView.swift; sourceTree = "<group>"; };
 		95ECB0758B48796D0194CE14 /* MusicNotation.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = MusicNotation.html; sourceTree = "<group>"; };
 		AD646997735A00E870EDCD9B /* abcjs-basic-min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "abcjs-basic-min.js"; sourceTree = "<group>"; };
+		AD000021 /* NotoMusic-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "NotoMusic-Regular.ttf"; path = "Resources/Fonts/NotoMusic-Regular.ttf"; sourceTree = "<group>"; };
 
 		AB000000 /* Ylapiano.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ylapiano.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB000001 /* YlapianoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YlapianoApp.swift; sourceTree = "<group>"; };
@@ -88,6 +90,7 @@
 				AB000003 /* Assets.xcassets */,
 				95ECB0758B48796D0194CE14 /* MusicNotation.html */,
 				AD646997735A00E870EDCD9B /* abcjs-basic-min.js */,
+				AD000021 /* NotoMusic-Regular.ttf */,
 			);
 			path = Ylapiano;
 			sourceTree = "<group>";
@@ -205,6 +208,7 @@
 				AA000003 /* Assets.xcassets in Resources */,
 				5CA827276D9F72A4E3CED352 /* MusicNotation.html in Resources */,
 				D9D9DB8B5A55104679BB27D9 /* abcjs-basic-min.js in Resources */,
+				AD000020 /* NotoMusic-Regular.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

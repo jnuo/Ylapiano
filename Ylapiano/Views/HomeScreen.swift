@@ -3,7 +3,7 @@ import SwiftData
 
 struct HomeScreen: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \Song.title) private var songs: [Song]
+    @Query(sort: \Song.sortOrder) private var songs: [Song]
     @State private var showingAddSong = false
     @State private var hasSeeded = false
 

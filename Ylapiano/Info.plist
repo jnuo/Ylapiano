@@ -3,7 +3,11 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleDisplayName</key>
-	<string>Y La Piano</string>
+	<string>y la piano</string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>NotoMusic-Regular.ttf</string>
+	</array>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Y La Piano needs microphone access to listen to the piano and detect which notes you play.</string>
 	<key>UISupportedInterfaceOrientations~ipad</key>

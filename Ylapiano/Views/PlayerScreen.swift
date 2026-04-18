@@ -53,7 +53,7 @@ struct PlayerScreen: View {
                 guidedMode: viewModel.guidedMode
             )
             .frame(maxWidth: .infinity)
-            .frame(height: 140)
+            .frame(height: 210)
             .padding(.horizontal, 4)
         }
         .ignoresSafeArea(.container, edges: .bottom)
@@ -258,7 +258,7 @@ struct PlayerScreen: View {
                         .foregroundStyle(.orange)
 
                     Text(note.duration.symbol)
-                        .font(.title2)
+                        .font(.custom("NotoMusic-Regular", size: 22))
 
                     Spacer()
 

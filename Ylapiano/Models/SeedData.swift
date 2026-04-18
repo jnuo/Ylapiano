@@ -5,18 +5,24 @@ struct SeedData {
     static func seedIfNeeded(context: ModelContext) {
         let descriptor = FetchDescriptor<Song>()
         let existing = (try? context.fetch(descriptor)) ?? []
-        let existingTitles = Set(existing.map { $0.title })
+        let existingByTitle = Dictionary(uniqueKeysWithValues: existing.map { ($0.title, $0) })
 
-        for song in createSeedSongs() {
-            if !existingTitles.contains(song.title) {
-                context.insert(song)
+        for seed in createSeedSongs() {
+            if let current = existingByTitle[seed.title] {
+                current.sortOrder = seed.sortOrder
+            } else {
+                context.insert(seed)
             }
         }
         try? context.save()
     }
 
     static func createSeedSongs() -> [Song] {
-        [plimPlim(), solSolet(), laCastanyera()]
+        let songs = [plimPlim(), laCastanyera(), solSolet()]
+        for (index, song) in songs.enumerated() {
+            song.sortOrder = index
+        }
+        return songs
     }
 
     // La Castanyera — Traditional Catalan autumn song (simplified)

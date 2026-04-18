@@ -183,6 +183,7 @@ final class Song {
     var title: String
     var bpm: Int
     var notesData: Data
+    var sortOrder: Int = 0
 
     var notes: [NoteEntry] {
         get {
@@ -193,10 +194,11 @@ final class Song {
         }
     }
 
-    init(id: UUID = UUID(), title: String, bpm: Int, notes: [NoteEntry] = []) {
+    init(id: UUID = UUID(), title: String, bpm: Int, notes: [NoteEntry] = [], sortOrder: Int = 0) {
         self.id = id
         self.title = title
         self.bpm = bpm
         self.notesData = (try? JSONEncoder().encode(notes)) ?? Data()
+        self.sortOrder = sortOrder
     }
 }

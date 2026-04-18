@@ -225,16 +225,9 @@
             qpm: currentBPM,
             program: 0,
             midiTranspose: 0,
+            soundFontVolumeMultiplier: shouldPlayNotes ? 1 : 0,
           })
           .then(function () {
-            // Mute synth if notes disabled (but keep cursor/timing running)
-            if (
-              !shouldPlayNotes &&
-              synthControl.synth &&
-              synthControl.synth.audioContext
-            ) {
-              synthControl.synth.audioContext.suspend();
-            }
             synthControl.play();
           });
       }
