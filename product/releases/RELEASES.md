@@ -1,5 +1,16 @@
 # Release Notes
 
+## v1.1.3 (build 3) — 2026-05-13
+
+### Features
+
+- Squirrel mascot at the piano shipped as the new app icon (cropped tight so iOS's rounded mask doesn't shrink the visible subject) (#3)
+- Standalone transparent-background `Mascot` image set bundled for upcoming HomeScreen / onboarding / celebration-card use (#3)
+
+### Bug Fixes
+
+- Sheet music notation rendered invisibly on physical iPads in dark mode (black SVG on black background). `MusicNotation.html` now forces a light color scheme with explicit cream `#FFF7EC` panel and deep ink `#2B2D42` text — light-mode behavior unchanged (#3)
+
 ## v1.1.2 (build 2) — 2026-05-13
 
 ### Features
