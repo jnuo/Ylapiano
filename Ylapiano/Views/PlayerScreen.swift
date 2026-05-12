@@ -3,7 +3,10 @@ import SwiftUI
 struct PlayerScreen: View {
     let song: Song
     @State private var viewModel: PlayerViewModel
-    @StateObject private var sampler = PianoSampler()
+    /// Sampler is owned by `YlapianoApp` so its `AVAudioEngine` outlives any
+    /// single song screen — we don't want the engine and its session config
+    /// to tear down every time the user pops back to `HomeScreen`.
+    @EnvironmentObject private var sampler: PianoSampler
 
     init(song: Song) {
         self.song = song
@@ -55,7 +58,7 @@ struct PlayerScreen: View {
                 expectedNote: viewModel.isActive ? viewModel.currentNote : nil,
                 isCorrect: viewModel.lastDetectionCorrect,
                 guidedMode: viewModel.guidedMode,
-                onKeyTap: { midi in sampler.play(midiNote: midi) }
+                onKeyTap: { pitch in sampler.play(pitch) }
             )
             .frame(maxWidth: .infinity)
             .frame(height: 210)

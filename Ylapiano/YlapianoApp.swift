@@ -19,9 +19,16 @@ struct YlapianoApp: App {
         }
     }()
 
+    /// One `PianoSampler` for the whole app — its `AVAudioEngine` boots once,
+    /// configures the shared `AVAudioSession` once, and stays alive across
+    /// every navigation. Avoids restart latency and the engine-vs-engine
+    /// session race we'd get if each `PlayerScreen` owned its own.
+    @StateObject private var sampler = PianoSampler()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(sampler)
         }
         .modelContainer(sharedModelContainer)
     }

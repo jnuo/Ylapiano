@@ -30,6 +30,8 @@
 		AA000016 /* SeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000016; };
 		AA000017 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000018; };
 		AA000018 /* AudioClock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000019 /* AudioClock.swift */; };
+		AA00PT01 /* Pitch.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00PT01 /* Pitch.swift */; };
+		AA00AS01 /* AudioSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00AS01 /* AudioSession.swift */; };
 		AA00PS01 /* PianoSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00PS01 /* PianoSampler.swift */; };
 		AA000019 /* SpikeScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000020 /* SpikeScene.swift */; };
 		AA000020 /* SpikeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000021 /* SpikeView.swift */; };
@@ -61,6 +63,8 @@
 		AB000017 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AB000018 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		AB000019 /* AudioClock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioClock.swift; sourceTree = "<group>"; };
+		AB00PT01 /* Pitch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pitch.swift; sourceTree = "<group>"; };
+		AB00AS01 /* AudioSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSession.swift; sourceTree = "<group>"; };
 		AB00PS01 /* PianoSampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PianoSampler.swift; sourceTree = "<group>"; };
 		AB000020 /* SpikeScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeScene.swift; sourceTree = "<group>"; };
 		AB000021 /* SpikeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeView.swift; sourceTree = "<group>"; };
@@ -153,6 +157,8 @@
 				AB000010 /* Metronome.swift */,
 				AB000011 /* PitchDetector.swift */,
 				AB000019 /* AudioClock.swift */,
+				AB00PT01 /* Pitch.swift */,
+				AB00AS01 /* AudioSession.swift */,
 				AB00PS01 /* PianoSampler.swift */,
 			);
 			path = Audio;
@@ -256,6 +262,8 @@
 				AA000016 /* SeedData.swift in Sources */,
 				AA000017 /* OnboardingView.swift in Sources */,
 				AA000018 /* AudioClock.swift in Sources */,
+				AA00PT01 /* Pitch.swift in Sources */,
+				AA00AS01 /* AudioSession.swift in Sources */,
 				AA00PS01 /* PianoSampler.swift in Sources */,
 				AA000019 /* SpikeScene.swift in Sources */,
 				AA000020 /* SpikeView.swift in Sources */,

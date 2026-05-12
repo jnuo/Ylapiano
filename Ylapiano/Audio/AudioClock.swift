@@ -23,24 +23,8 @@ final class AudioClock: ObservableObject {
     @Published private(set) var lastError: String?
 
     init() {
-        configureSession()
+        AudioSession.configurePlayback()
         startEngine()
-    }
-
-    private func configureSession() {
-        #if os(iOS) || os(visionOS) || os(tvOS)
-        let session = AVAudioSession.sharedInstance()
-        do {
-            try session.setCategory(.playback, mode: .default, options: [.mixWithOthers])
-            try session.setPreferredSampleRate(48_000)
-            try session.setPreferredIOBufferDuration(0.005)
-            try session.setActive(true)
-        } catch {
-            lastError = "Session config failed: \(error.localizedDescription)"
-            print("[AudioClock] \(lastError ?? "")")
-        }
-        #endif
-        // macOS uses CoreAudio HAL directly — no AVAudioSession analog.
     }
 
     private func startEngine() {

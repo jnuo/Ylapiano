@@ -60,6 +60,8 @@ struct HomeScreen: View {
         }
         .navigationTitle("Ylapiano")
         .toolbar {
+            #if DEBUG
+            // Sync-spike entry point is a dev tool — never ship in Release.
             ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     showingSpike = true
@@ -68,6 +70,7 @@ struct HomeScreen: View {
                         .accessibilityLabel("Sync spike")
                 }
             }
+            #endif
         }
         .navigationDestination(for: Song.self) { song in
             PlayerScreen(song: song)
@@ -75,9 +78,11 @@ struct HomeScreen: View {
         .sheet(isPresented: $showingAddSong) {
             AddSongScreen()
         }
+        #if DEBUG
         .fullScreenCover(isPresented: $showingSpike) {
             SpikeView()
         }
+        #endif
         .onAppear {
             if !hasSeeded {
                 SeedData.seedIfNeeded(context: modelContext)
