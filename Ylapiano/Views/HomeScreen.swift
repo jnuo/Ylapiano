@@ -5,6 +5,7 @@ struct HomeScreen: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Song.sortOrder) private var songs: [Song]
     @State private var showingAddSong = false
+    @State private var showingSpike = false
     @State private var hasSeeded = false
 
     private let columns = [
@@ -58,12 +59,30 @@ struct HomeScreen: View {
             .padding()
         }
         .navigationTitle("Ylapiano")
+        .toolbar {
+            #if DEBUG
+            // Sync-spike entry point is a dev tool — never ship in Release.
+            ToolbarItem(placement: .topBarTrailing) {
+                Button {
+                    showingSpike = true
+                } label: {
+                    Image(systemName: "testtube.2")
+                        .accessibilityLabel("Sync spike")
+                }
+            }
+            #endif
+        }
         .navigationDestination(for: Song.self) { song in
             PlayerScreen(song: song)
         }
         .sheet(isPresented: $showingAddSong) {
             AddSongScreen()
         }
+        #if DEBUG
+        .fullScreenCover(isPresented: $showingSpike) {
+            SpikeView()
+        }
+        #endif
         .onAppear {
             if !hasSeeded {
                 SeedData.seedIfNeeded(context: modelContext)

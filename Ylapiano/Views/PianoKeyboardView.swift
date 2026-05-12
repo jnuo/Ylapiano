@@ -7,11 +7,20 @@ struct PianoKeyboardView: View {
     let expectedNote: NoteEntry?
     let isCorrect: Bool?
     let guidedMode: Bool
+    /// Called when the user taps a key. Receives a typed `Pitch` so callers
+    /// (sampler, future MIDI input, falling-notes scene) share one currency
+    /// instead of bare MIDI integers. Default no-op keeps existing call
+    /// sites compiling.
+    var onKeyTap: (Pitch) -> Void = { _ in }
 
     // 3 octaves: C3-B5
     private let startOctave = 3
     private let octaveCount = 3
     private let blackKeyHeightRatio: CGFloat = 0.6
+
+    /// MIDI numbers currently in their brief "just tapped" visual state.
+    /// Each entry is removed automatically ~180 ms after insertion.
+    @State private var pressedKeys: Set<UInt8> = []
 
     private var whiteKeys: [(Solfege, Int)] {
         var keys: [(Solfege, Int)] = []
@@ -58,9 +67,11 @@ struct PianoKeyboardView: View {
     // MARK: - White Key
 
     private func whiteKeyView(note: Solfege, octave: Int, keyWidth: CGFloat, keyHeight: CGFloat) -> some View {
+        let pitch = Pitch(solfege: note, octave: octave)
         let isHighlighted = highlightedNote == note && highlightedOctave == octave
         let isExpected = guidedMode && expectedNote?.solfege == note && expectedNote?.octave == octave
         let matchesExpectedPitch = highlightedNote == note // Match regardless of octave for young learners
+        let isPressed = pressedKeys.contains(pitch.midi)
 
         let backgroundColor: Color = {
             if isHighlighted {
@@ -69,6 +80,7 @@ struct PianoKeyboardView: View {
                 }
                 return matchesExpectedPitch ? Color.green.opacity(0.7) : Color.red.opacity(0.7)
             }
+            if isPressed { return Color(white: 0.82) }
             if isExpected && !isHighlighted {
                 return Color.yellow.opacity(0.35)
             }
@@ -109,7 +121,11 @@ struct PianoKeyboardView: View {
                     .allowsHitTesting(false)
             }
         }
-        .animation(.easeInOut(duration: 0.15), value: isHighlighted)
+        .scaleEffect(isPressed ? 0.96 : 1.0)
+        .contentShape(Rectangle())
+        .onTapGesture { strike(pitch) }
+        .animation(.easeInOut(duration: 0.12), value: isHighlighted)
+        .animation(.spring(response: 0.18, dampingFraction: 0.7), value: isPressed)
     }
 
     // MARK: - Black Keys
@@ -120,7 +136,9 @@ struct PianoKeyboardView: View {
                 if index < whiteKeys.count - 1 {
                     let solfegeIndex = Solfege.allCases.firstIndex(of: key.0)!
                     if blackKeyIndices.contains(solfegeIndex) {
-                        blackKeyPlaceholder(bkWidth: bkWidth, bkHeight: bkHeight, whiteKeyWidth: keyWidth)
+                        // Sharp = white key's MIDI + 1 semitone (C → C#, D → D#, …)
+                        let sharpPitch = Pitch(midi: UInt8(key.0.midiNote(octave: key.1) + 1))
+                        blackKeyPlaceholder(pitch: sharpPitch, bkWidth: bkWidth, bkHeight: bkHeight, whiteKeyWidth: keyWidth)
                     } else {
                         Color.clear
                             .frame(width: keyWidth, height: 0)
@@ -131,13 +149,28 @@ struct PianoKeyboardView: View {
         .offset(x: keyWidth * 0.65)
     }
 
-    private func blackKeyPlaceholder(bkWidth: CGFloat, bkHeight: CGFloat, whiteKeyWidth: CGFloat) -> some View {
-        Rectangle()
-            .fill(Color(white: 0.15))
+    private func blackKeyPlaceholder(pitch: Pitch, bkWidth: CGFloat, bkHeight: CGFloat, whiteKeyWidth: CGFloat) -> some View {
+        let isPressed = pressedKeys.contains(pitch.midi)
+        return Rectangle()
+            .fill(Color(white: isPressed ? 0.32 : 0.15))
             .frame(width: bkWidth, height: bkHeight)
             .clipShape(RoundedRectangle(cornerRadius: 4))
             .shadow(color: .black.opacity(0.4), radius: 3, x: 0, y: 3)
             .padding(.horizontal, (whiteKeyWidth - bkWidth) / 2)
+            .scaleEffect(isPressed ? 0.95 : 1.0)
+            .contentShape(Rectangle())
+            .onTapGesture { strike(pitch) }
+            .animation(.spring(response: 0.18, dampingFraction: 0.7), value: isPressed)
+    }
+
+    /// Fire the audio callback and flash the pressed state for ~180 ms.
+    private func strike(_ pitch: Pitch) {
+        onKeyTap(pitch)
+        pressedKeys.insert(pitch.midi)
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 180_000_000)
+            pressedKeys.remove(pitch.midi)
+        }
     }
 }
 
