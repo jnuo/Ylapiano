@@ -30,6 +30,7 @@
 		AA000016 /* SeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000016; };
 		AA000017 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000018; };
 		AA000018 /* AudioClock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000019 /* AudioClock.swift */; };
+		AA00PS01 /* PianoSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00PS01 /* PianoSampler.swift */; };
 		AA000019 /* SpikeScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000020 /* SpikeScene.swift */; };
 		AA000020 /* SpikeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000021 /* SpikeView.swift */; };
 /* End PBXBuildFile section */
@@ -60,6 +61,7 @@
 		AB000017 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AB000018 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		AB000019 /* AudioClock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioClock.swift; sourceTree = "<group>"; };
+		AB00PS01 /* PianoSampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PianoSampler.swift; sourceTree = "<group>"; };
 		AB000020 /* SpikeScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeScene.swift; sourceTree = "<group>"; };
 		AB000021 /* SpikeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -151,6 +153,7 @@
 				AB000010 /* Metronome.swift */,
 				AB000011 /* PitchDetector.swift */,
 				AB000019 /* AudioClock.swift */,
+				AB00PS01 /* PianoSampler.swift */,
 			);
 			path = Audio;
 			sourceTree = "<group>";
@@ -253,6 +256,7 @@
 				AA000016 /* SeedData.swift in Sources */,
 				AA000017 /* OnboardingView.swift in Sources */,
 				AA000018 /* AudioClock.swift in Sources */,
+				AA00PS01 /* PianoSampler.swift in Sources */,
 				AA000019 /* SpikeScene.swift in Sources */,
 				AA000020 /* SpikeView.swift in Sources */,
 				EA112EAB9027B0A007DF32C5 /* ABCMusicView.swift in Sources */,
@@ -338,7 +342,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"Ylapiano/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -351,7 +355,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ylapiano.app;
 				DEVELOPMENT_TEAM = KCGWW7KQBD;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -369,7 +373,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_ASSET_PATHS = "\"Ylapiano/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -382,7 +386,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ylapiano.app;
 				DEVELOPMENT_TEAM = KCGWW7KQBD;
 				PRODUCT_NAME = "$(TARGET_NAME)";

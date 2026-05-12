@@ -18,12 +18,260 @@ struct SeedData {
     }
 
     static func createSeedSongs() -> [Song] {
-        let songs = [plimPlim(), laCastanyera(), solSolet()]
+        // PLAN.md v1 repertoire first, then the original Catalan tunes that
+        // shipped before the falling-notes pivot. Order on the home screen
+        // matches this array.
+        let songs = [
+            hotCrossBuns(),
+            maryHadALittleLamb(),
+            twinkleTwinkleLittleStar(),
+            oldMacDonald(),
+            frereJacques(),
+            denizsLullaby(),
+            plimPlim(),
+            laCastanyera(),
+            solSolet()
+        ]
         for (index, song) in songs.enumerated() {
             song.sortOrder = index
         }
         return songs
     }
+
+    // MARK: - PLAN.md v1 Repertoire
+
+    /// Hot Cross Buns — classic 3-note teaching tune (Mi-Re-Do).
+    /// Key C major, 2/4, 80 BPM. RH only.
+    private static func hotCrossBuns() -> Song {
+        Song(
+            title: "Hot Cross Buns",
+            bpm: 80,
+            notes: [
+                // "Hot cross buns"
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .half),
+                // "Hot cross buns"
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .half),
+                // "One a penny, two a penny"
+                NoteEntry(solfege: .Do, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Do, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Do, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Do, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Re, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Re, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Re, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Re, octave: 4, duration: .eighth),
+                // "Hot cross buns"
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .half),
+            ]
+        )
+    }
+
+    /// Mary Had a Little Lamb — full first verse. C major, 2/4, 90 BPM.
+    private static func maryHadALittleLamb() -> Song {
+        Song(
+            title: "Mary Had a Little Lamb",
+            bpm: 90,
+            notes: [
+                // "Ma-ry had a"
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                // "lit-tle lamb"
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .half),
+                // "lit-tle lamb"
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .half),
+                // "lit-tle lamb"
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .half),
+                // "Ma-ry had a lit-tle lamb"
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                // "Whose fleece was white as snow"
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .whole),
+            ]
+        )
+    }
+
+    /// Twinkle Twinkle Little Star — full first verse. C major, 2/4, 80 BPM.
+    private static func twinkleTwinkleLittleStar() -> Song {
+        Song(
+            title: "Twinkle Twinkle Little Star",
+            bpm: 80,
+            notes: [
+                // "Twin-kle twin-kle"
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                // "lit-tle star"
+                NoteEntry(solfege: .La, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .La, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .half),
+                // "How I won-der"
+                NoteEntry(solfege: .Fa, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Fa, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                // "what you are"
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .half),
+                // "Up a-bove the world so high"
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Fa, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Fa, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .half),
+                // "Like a dia-mond in the sky"
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Fa, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Fa, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .half),
+            ]
+        )
+    }
+
+    /// Old MacDonald — verse + E-I-E-I-O refrain (one round). C major, 2/4, 100 BPM.
+    private static func oldMacDonald() -> Song {
+        Song(
+            title: "Old MacDonald",
+            bpm: 100,
+            notes: [
+                // "Old Mac-Don-ald had a"
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 3, duration: .quarter),
+                NoteEntry(solfege: .La, octave: 3, duration: .quarter),
+                NoteEntry(solfege: .La, octave: 3, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 3, duration: .half),
+                // "E-I-E-I-O"
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .half),
+                // "And on that farm he had a"
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 3, duration: .quarter),
+                NoteEntry(solfege: .La, octave: 3, duration: .quarter),
+                NoteEntry(solfege: .La, octave: 3, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 3, duration: .half),
+                // "E-I-E-I-O"
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .half),
+            ]
+        )
+    }
+
+    /// Frère Jacques — round in C major, 2/4, 90 BPM. Ends on a low Sol3 → Do4
+    /// "bell" pattern that exercises the bottom of the 3-octave range.
+    private static func frereJacques() -> Song {
+        Song(
+            title: "Frère Jacques",
+            bpm: 90,
+            notes: [
+                // "Frè-re Jac-ques" ×2
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                // "Dor-mez vous?" ×2
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Fa, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .half),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Fa, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .half),
+                // "Son-nez les ma-ti-nes" ×2
+                NoteEntry(solfege: .Sol, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .La, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Fa, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .La, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Fa, octave: 4, duration: .eighth),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                // "Ding dang dong" ×2
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 3, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .half),
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 3, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .half),
+            ]
+        )
+    }
+
+    /// Deniz's Lullaby — original placeholder composition in C major, 2/4, 60 BPM.
+    /// Simple descending pentatonic-flavored lullaby. Replace with the real
+    /// Deniz melody once written.
+    private static func denizsLullaby() -> Song {
+        Song(
+            title: "Deniz's Lullaby",
+            bpm: 60,
+            notes: [
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .half),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Do, octave: 4, duration: .half),
+                NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .La, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Sol, octave: 4, duration: .half),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .half),
+                NoteEntry(solfege: .Fa, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
+                NoteEntry(solfege: .Re, octave: 4, duration: .half),
+                NoteEntry(solfege: .Do, octave: 4, duration: .whole),
+            ]
+        )
+    }
+
+    // MARK: - Pre-v1 Catalan Tunes (kept for continuity)
 
     // La Castanyera — Traditional Catalan autumn song (simplified)
     // Simplified: C major, 2/4, only quarter and half notes.

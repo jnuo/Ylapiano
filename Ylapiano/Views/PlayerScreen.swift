@@ -3,6 +3,7 @@ import SwiftUI
 struct PlayerScreen: View {
     let song: Song
     @State private var viewModel: PlayerViewModel
+    @StateObject private var sampler = PianoSampler()
 
     init(song: Song) {
         self.song = song
@@ -48,9 +49,13 @@ struct PlayerScreen: View {
                 useSolfege: viewModel.useSolfege,
                 highlightedNote: viewModel.pitchDetector.detectedNote,
                 highlightedOctave: viewModel.pitchDetector.detectedOctave,
-                expectedNote: viewModel.currentNote,
+                // Only hint the "expected" key while a song is actively playing;
+                // otherwise the yellow glow sits on whatever note the cursor
+                // last landed on and looks like a stuck UI bug.
+                expectedNote: viewModel.isActive ? viewModel.currentNote : nil,
                 isCorrect: viewModel.lastDetectionCorrect,
-                guidedMode: viewModel.guidedMode
+                guidedMode: viewModel.guidedMode,
+                onKeyTap: { midi in sampler.play(midiNote: midi) }
             )
             .frame(maxWidth: .infinity)
             .frame(height: 210)
