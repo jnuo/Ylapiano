@@ -7,13 +7,20 @@
     />
     <script src="abcjs-basic-min.js"></script>
     <style>
+      /* Force light scheme so iOS dark mode doesn't bleed black through the
+         transparent WKWebView background, hiding the SVG notation. The sheet
+         music always renders as deep ink on cream regardless of system theme. */
+      :root {
+        color-scheme: light;
+      }
       * {
         margin: 0;
         padding: 0;
         box-sizing: border-box;
       }
       body {
-        background: transparent;
+        background: #fff7ec;
+        color: #2b2d42;
         font-family: -apple-system, sans-serif;
       }
       #paper {
