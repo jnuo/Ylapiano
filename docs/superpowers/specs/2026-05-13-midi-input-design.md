@@ -126,11 +126,10 @@ Rejected alternative: cache at neutral velocity, scale per-strike via
 `AVAudioPlayerNode.volume`. `playerNode.volume` parameter-ramps over ~10ms,
 which causes audible velocity smearing on fast repeated strikes.
 
-### Modified: `Ylapiano/Audio/AudioSession.swift` (~1 line)
+### `Ylapiano/Audio/AudioSession.swift` — no change needed
 
-Add `session.setPreferredIOBufferDuration(0.005)` to `configurePlayback()`.
-Drops the audio I/O buffer from the default ~10ms to ~5ms, cutting the end-
-to-end MIDI-to-sound latency budget into ~7–9ms typical.
+`configurePlayback()` already sets `setPreferredIOBufferDuration(0.005)` at
+`AudioSession.swift:21`. Latency budget is already taken care of.
 
 ### Modified: `Ylapiano/YlapianoApp.swift` (~3 lines)
 
@@ -147,9 +146,9 @@ CoreMIDI client for the app's lifetime (CoreMIDI dislikes multiple clients).
   - `pressedKeys.insert(pitch.midi)`
   - Forward to existing falling-notes hit detection
   - For tap callers (no note-off ever arrives): schedule
-    `pressedKeys.remove(pitch.midi)` after ~100ms via
-    `DispatchQueue.main.asyncAfter`, matching the existing visual-press
-    timing in `PianoKeyboardView.strike(_:)` at `PianoKeyboardView.swift:172-176`
+    `pressedKeys.remove(pitch.midi)` after 180ms via a detached `Task` (or
+    `DispatchQueue.main.asyncAfter`), matching the existing visual-press
+    timing in `PianoKeyboardView.strike(_:)` at `PianoKeyboardView.swift:170-177`
 - Add `func handleKeyReleased(_ pitch: Pitch)` for MIDI note-off (cancels
   the pending auto-release if any, removes pitch from `pressedKeys`; sampler
   decay continues naturally)
@@ -158,21 +157,28 @@ CoreMIDI client for the app's lifetime (CoreMIDI dislikes multiple clients).
   note-off → `handleKeyReleased`), `.noteOff` (→ `handleKeyReleased`).
   This is the single call site `PlayerScreen`'s consumer task uses.
 
-### Modified: `Ylapiano/Views/PianoKeyboardView.swift` (~5 lines)
+### Modified: `Ylapiano/Views/PianoKeyboardView.swift` (~10 lines)
 
-Change `@State private var pressedKeys: Set<UInt8>` to a `@Binding`. Add
-`pressedKeys: Binding<Set<UInt8>>` parameter. Caller now owns the state.
-Internal `strike(_:)` helper is replaced by the caller's
-`handleKeyPressed` callback.
+Delete the internal `@State private var pressedKeys: Set<UInt8>` and the
+`strike(_:)` helper. Add a plain `let pressedKeys: Set<UInt8>` parameter.
+Tap gestures now call `onKeyTap(pitch)` directly without the local mutation
+or the 180ms auto-release task. The caller (`PlayerScreen` →
+`PlayerViewModel.handleKeyPressed`) owns the insert + auto-release.
+
+No `@Binding` is needed because the view never mutates `pressedKeys` — it
+only reads. `@Observable` on `PlayerViewModel` makes SwiftUI re-render the
+keyboard when the set changes upstream. This keeps the view purely
+presentational.
 
 ### Modified: `Ylapiano/Views/PlayerScreen.swift` (~25 lines)
 
 - Inject `@EnvironmentObject private var midi: MIDIInput`
-- Attach `.task { for await ev in midi.eventStream { vm.handleMIDIEvent(ev) } }`
-  on the body
-- Pass `$vm.pressedKeys` to `PianoKeyboardView`
-- Tap-gesture callback on the keyboard now calls `vm.handleKeyPressed(...)`
-  with a fixed velocity instead of mutating local state
+- Attach `.task { for await ev in midi.eventStream { viewModel.handleMIDIEvent(ev) } }`
+  to the body
+- Pass `pressedKeys: viewModel.pressedKeys` to `PianoKeyboardView` (plain value,
+  not a Binding — see PianoKeyboardView change above)
+- Change `onKeyTap: { pitch in sampler.play(pitch) }` at `PlayerScreen.swift:94`
+  to `onKeyTap: { pitch in viewModel.handleKeyPressed(pitch) }`
 - Add the connection-status glyph (SF Symbol `pianokeys`) bound to
   `midi.isConnected` — gray when false, coral when true. No animation.
   Hosted in the existing top bar at `PlayerScreen.swift:161` (toolbarRow).
@@ -304,10 +310,9 @@ sends on ch 2/3/4.
 
 1. Add MIDIKit SPM dependency to `Ylapiano.xcodeproj`
 2. Write `MIDIInput.swift` and wire it into `YlapianoApp.swift`
-3. Modify `AudioSession.swift` for the 5ms I/O buffer
-4. Refactor `PianoSampler.swift` cache key
-5. Lift `pressedKeys` out of `PianoKeyboardView` to `PlayerViewModel`,
+3. Refactor `PianoSampler.swift` cache key
+4. Lift `pressedKeys` out of `PianoKeyboardView` to `PlayerViewModel`,
    update PianoKeyboardView to take a `@Binding`
-6. Wire `PlayerScreen` consumer task + add toolbar glyph
-7. Add glyph to `HomeScreen` toolbar
-8. Manual test with PSS-A50 + iPad
+5. Wire `PlayerScreen` consumer task + add toolbar glyph
+6. Add glyph to `HomeScreen` toolbar
+7. Manual test with PSS-A50 + iPad
