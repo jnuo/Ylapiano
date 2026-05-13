@@ -38,6 +38,7 @@
 		AA00FNS1 /* FallingNotesScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00FNS1 /* FallingNotesScene.swift */; };
 		AA00FNV1 /* FallingNotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00FNV1 /* FallingNotesView.swift */; };
 		AA000020 /* SpikeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000021 /* SpikeView.swift */; };
+		B00000030000000000000003 /* SwiftMIDIIO in Frameworks */ = {isa = PBXBuildFile; productRef = B00000020000000000000002 /* SwiftMIDIIO */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -81,6 +82,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B00000030000000000000003 /* SwiftMIDIIO in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -197,6 +199,9 @@
 			dependencies = (
 			);
 			name = Ylapiano;
+			packageProductDependencies = (
+				B00000020000000000000002 /* SwiftMIDIIO */,
+			);
 			productName = Ylapiano;
 			productReference = AB000000 /* Ylapiano.app */;
 			productType = "com.apple.product-type.application";
@@ -226,6 +231,9 @@
 				Base,
 			);
 			mainGroup = AD000001;
+			packageReferences = (
+				B00000010000000000000001 /* XCRemoteSwiftPackageReference "swift-midi-io" */,
+			);
 			productRefGroup = AD000003 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -419,6 +427,25 @@
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B00000010000000000000001 /* XCRemoteSwiftPackageReference "swift-midi-io" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/orchetect/swift-midi-io";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B00000020000000000000002 /* SwiftMIDIIO */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B00000010000000000000001 /* XCRemoteSwiftPackageReference "swift-midi-io" */;
+			productName = SwiftMIDIIO;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 	};
 	rootObject = AE000000 /* Project object */;
