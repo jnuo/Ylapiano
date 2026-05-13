@@ -59,7 +59,7 @@ Yamaha PSS-A50 (or any USB MIDI device)
         ↓ USB
 MIDIKit.MIDIManager (background CoreMIDI thread, auto-connects .allOutputs)
         ↓ receiveHandler closure
-MIDIInput (@MainActor ObservableObject, app-scoped via @StateObject)
+MIDIBridge (@MainActor ObservableObject, app-scoped via @StateObject)
    • filters to .noteOn / .noteOff
    • yields to a single stored AsyncStream<MIDIEvent>
                   (bufferingPolicy: .bufferingNewest(32))
@@ -80,9 +80,9 @@ for any input source (tap, MIDI, future pitch detection).
 
 ## File-by-file plan
 
-### New: `Ylapiano/Audio/MIDIInput.swift` (~50 lines)
+### New: `Ylapiano/Audio/MIDIBridge.swift` (~50 lines)
 
-`@MainActor final class MIDIInput: ObservableObject`. Naming matches the
+`@MainActor final class MIDIBridge: ObservableObject`. Naming matches the
 codebase convention (`PianoSampler`, `PitchDetector`, `Metronome`,
 `AudioClock` — single noun, no `Service` / `Manager` suffix).
 
@@ -133,7 +133,7 @@ which causes audible velocity smearing on fast repeated strikes.
 
 ### Modified: `Ylapiano/YlapianoApp.swift` (~3 lines)
 
-Add `@StateObject private var midi = MIDIInput()` and
+Add `@StateObject private var midi = MIDIBridge()` and
 `.environmentObject(midi)` next to the existing sampler. App-scoped — one
 CoreMIDI client for the app's lifetime (CoreMIDI dislikes multiple clients).
 
@@ -172,7 +172,7 @@ presentational.
 
 ### Modified: `Ylapiano/Views/PlayerScreen.swift` (~25 lines)
 
-- Inject `@EnvironmentObject private var midi: MIDIInput`
+- Inject `@EnvironmentObject private var midi: MIDIBridge`
 - Attach `.task { for await ev in midi.eventStream { viewModel.handleMIDIEvent(ev) } }`
   to the body
 - Pass `pressedKeys: viewModel.pressedKeys` to `PianoKeyboardView` (plain value,
@@ -195,7 +195,7 @@ verify the keyboard connection from the home screen before entering a song.
        ↓
 MIDIKit.notificationHandler fires .added on main
        ↓
-MIDIInput.isConnected = true       — @Published updates
+MIDIBridge.isConnected = true       — @Published updates
        ↓
 SwiftUI re-renders glyph as coral (PlayerScreen + HomeScreen toolbars)
 
@@ -219,7 +219,7 @@ hitDetection(pitch, atTime: ...)   — falling-notes scoring runs
        ↓
 MIDIKit.notificationHandler fires .removed on main
        ↓
-MIDIInput.isConnected = false
+MIDIBridge.isConnected = false
        ↓
 Glyph turns gray. Taps continue to work. App does not pause or alert.
 ```
@@ -230,7 +230,7 @@ Glyph turns gray. Taps continue to work. App does not pause or alert.
   control). The receiver closure must do nothing other than filter and yield
   to the continuation. `AsyncStream` continuations are documented `Sendable`
   and thread-safe.
-- `MIDIInput` itself is `@MainActor` — its `isConnected` mutations from
+- `MIDIBridge` itself is `@MainActor` — its `isConnected` mutations from
   MIDIKit's `notificationHandler` will need an explicit
   `DispatchQueue.main.async { [weak self] in … }` if the handler fires off
   main (matching the `PitchDetector.swift:32,90,100` pattern).
@@ -265,7 +265,7 @@ sends on ch 2/3/4.
 - **No device connected at launch** → `isConnected` stays false, glyph stays
   gray, taps work as today. No error path.
 - **MIDIKit fails to start the manager** (extremely unlikely) → log via
-  `print("[MIDIInput] init failed: \(error)")` matching existing logging
+  `print("[MIDIBridge] init failed: \(error)")` matching existing logging
   style at `PianoSampler.swift:61`. App continues tap-only.
 - **Device disconnects mid-song** → glyph turns gray; song continues; taps
   still work. Kid can finish on-screen. No alert, no pause, no banner.
@@ -290,16 +290,16 @@ sends on ch 2/3/4.
 | Risk                                                                | Mitigation                                                                                                                                                     |
 | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Velocity smearing from `playerNode.volume` ramp                     | Use bucketed cache instead — rejected the volume-scaling alternative                                                                                           |
-| AsyncStream continuation leak on view re-appear                     | Single stored stream in `MIDIInput.init`; bounded buffer policy                                                                                                |
+| AsyncStream continuation leak on view re-appear                     | Single stored stream in `MIDIBridge.init`; bounded buffer policy                                                                                                |
 | Receiver closure touching shared mutable state from CoreMIDI thread | Closure only filters + yields; no other state mutated there                                                                                                    |
-| AudioSession contention with existing `Metronome` setCategory call  | Out of scope for this spec but flagged — `Metronome.swift:28-30` ignores `AudioSession.swift:11-27` already; do not propagate that anti-pattern in `MIDIInput` |
+| AudioSession contention with existing `Metronome` setCategory call  | Out of scope for this spec but flagged — `Metronome.swift:28-30` ignores `AudioSession.swift:11-27` already; do not propagate that anti-pattern in `MIDIBridge` |
 | Mid-song disconnect leaves kid tapping a dead keyboard              | Glyph state change is the cheapest honest signal until the banner ships in v1.1                                                                                |
 
 ## Anti-patterns explicitly avoided
 
 - No direct `AVAudioSession.setCategory` / `setActive` calls — route through
   `AudioSession`
-- No second `AVAudioEngine` instance — `MIDIInput` doesn't need an engine
+- No second `AVAudioEngine` instance — `MIDIBridge` doesn't need an engine
 - No wall-clock `Timer.scheduledTimer` for event timing — events flow with
   the audio engine's render clock through the existing sampler
 - No `Service` / `Manager` / `Controller` suffix in the type name —
@@ -309,7 +309,7 @@ sends on ch 2/3/4.
 ## Implementation order (for the plan that follows)
 
 1. Add MIDIKit SPM dependency to `Ylapiano.xcodeproj`
-2. Write `MIDIInput.swift` and wire it into `YlapianoApp.swift`
+2. Write `MIDIBridge.swift` and wire it into `YlapianoApp.swift`
 3. Refactor `PianoSampler.swift` cache key
 4. Lift `pressedKeys` out of `PianoKeyboardView` to `PlayerViewModel`,
    update PianoKeyboardView to take a `@Binding`

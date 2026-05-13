@@ -4,9 +4,9 @@
 
 **Goal:** USB-MIDI keyboard input (initial target: Yamaha PSS-A50) plays through Ylapiano with full equivalence to on-screen taps — audio, visual press, and falling-notes game scoring all triggered by external key presses, with auto-detection of plug/unplug.
 
-**Architecture:** A `@MainActor ObservableObject` named `MIDIInput` wraps MIDIKit's `MIDIManager`, auto-connects to all USB MIDI sources, filters to note-on/note-off events, and exposes them as a single bounded `AsyncStream<MIDIKit.MIDIEvent>`. `PlayerScreen.body` consumes the stream via `.task` and dispatches into `PlayerViewModel.handleMIDIEvent`, which routes through the same `handleKeyPressed` / `handleKeyReleased` methods that taps now use. `pressedKeys` is lifted from `PianoKeyboardView` to `PlayerViewModel` so both input sources converge on one source of truth.
+**Architecture:** A `@MainActor ObservableObject` named `MIDIBridge` wraps MIDIKit's `MIDIManager`, auto-connects to all USB MIDI sources, filters to note-on/note-off events, and exposes them as a single bounded `AsyncStream<MIDIKit.MIDIEvent>`. `PlayerScreen.body` consumes the stream via `.task` and dispatches into `PlayerViewModel.handleMIDIEvent`, which routes through the same `handleKeyPressed` / `handleKeyReleased` methods that taps now use. `pressedKeys` is lifted from `PianoKeyboardView` to `PlayerViewModel` so both input sources converge on one source of truth.
 
-**Tech Stack:** Swift 5.9+, SwiftUI, iOS 17+, `@Observable` (`PlayerViewModel`) + `ObservableObject` (`PianoSampler`, new `MIDIInput`), AVFoundation (existing sampler), MIDIKit / `swift-midi-io` v1.1.0+ (new SPM dependency).
+**Tech Stack:** Swift 5.9+, SwiftUI, iOS 17+, `@Observable` (`PlayerViewModel`) + `ObservableObject` (`PianoSampler`, new `MIDIBridge`), AVFoundation (existing sampler), MIDIKit / `swift-midi-io` v1.1.0+ (new SPM dependency).
 
 **Companion spec:** [`docs/superpowers/specs/2026-05-13-midi-input-design.md`](../specs/2026-05-13-midi-input-design.md). Read it before starting — it contains the rationale for every architectural choice in this plan.
 
@@ -18,12 +18,12 @@
 
 | Path                                        | Action     | Responsibility                                                                                                                              |
 | ------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Ylapiano/Audio/MIDIInput.swift`            | **Create** | MIDIKit wrapper. Owns `MIDIManager`, filters events, exposes `eventStream` + `isConnected`.                                                 |
-| `Ylapiano/YlapianoApp.swift`                | Modify     | Construct `MIDIInput` at app launch and inject via `.environmentObject`.                                                                    |
+| `Ylapiano/Audio/MIDIBridge.swift`            | **Create** | MIDIKit wrapper. Owns `MIDIManager`, filters events, exposes `eventStream` + `isConnected`.                                                 |
+| `Ylapiano/YlapianoApp.swift`                | Modify     | Construct `MIDIBridge` at app launch and inject via `.environmentObject`.                                                                    |
 | `Ylapiano/Audio/PianoSampler.swift`         | Modify     | Change `toneCache` key from `UInt8` (pitch) to `(UInt8, Int)` (pitch, velocityBucket) so each strike's velocity actually affects amplitude. |
 | `Ylapiano/ViewModels/PlayerViewModel.swift` | Modify     | Add `pressedKeys: Set<UInt8>` + `handleKeyPressed` / `handleKeyReleased` / `handleMIDIEvent` — unified input-handling surface.              |
 | `Ylapiano/Views/PianoKeyboardView.swift`    | Modify     | Delete internal `@State pressedKeys` + `strike(_:)`. Take `pressedKeys` as a plain `let` parameter.                                         |
-| `Ylapiano/Views/PlayerScreen.swift`         | Modify     | Inject `MIDIInput`, attach consumer `.task`, route taps through `viewModel.handleKeyPressed`, add toolbar connection glyph.                 |
+| `Ylapiano/Views/PlayerScreen.swift`         | Modify     | Inject `MIDIBridge`, attach consumer `.task`, route taps through `viewModel.handleKeyPressed`, add toolbar connection glyph.                 |
 | `Ylapiano/Views/HomeScreen.swift`           | Modify     | Add the same toolbar connection glyph for setup verification before entering a song.                                                        |
 
 No test target is added — the codebase has none today, the filter+dispatch logic is trivial, and adding a single test file for one module would bit-rot (per pattern-recognition agent's finding).
@@ -102,7 +102,7 @@ git commit -m "$(cat <<'EOF'
 deps: add MIDIKit (swift-midi-io v1.1.0+) for USB MIDI input
 
 Class-compliant USB MIDI listening with hot-plug, MIT licensed.
-Used by the new MIDIInput service in the next commit.
+Used by the new MIDIBridge service in the next commit.
 
 Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
 EOF
@@ -113,15 +113,15 @@ Expected: one commit message confirming the package files are tracked. `git stat
 
 ---
 
-## Task 2: Create the `MIDIInput` service
+## Task 2: Create the `MIDIBridge` service
 
 **Files:**
 
-- Create: `Ylapiano/Audio/MIDIInput.swift`
+- Create: `Ylapiano/Audio/MIDIBridge.swift`
 
 - [ ] **Step 2.1:** Create the new file with the full implementation.
 
-Create `/Users/onurovali/Documents/code/ylapiano/Ylapiano/Audio/MIDIInput.swift` containing:
+Create `/Users/onurovali/Documents/code/ylapiano/Ylapiano/Audio/MIDIBridge.swift` containing:
 
 ```swift
 import Foundation
@@ -150,7 +150,7 @@ import SwiftMIDIIO
 /// **only** note-on (vel > 0), note-on-vel-0 (running-status note-off form),
 /// and note-off. Everything else is silently dropped.
 @MainActor
-final class MIDIInput: ObservableObject {
+final class MIDIBridge: ObservableObject {
     /// True whenever at least one MIDI source is currently connected. Bound
     /// to the top-bar glyph so parents can see at a glance whether the
     /// keyboard is talking to the iPad.
@@ -187,7 +187,7 @@ final class MIDIInput: ObservableObject {
             try manager.start()
             try addInputConnection()
         } catch {
-            print("[MIDIInput] init failed: \(error.localizedDescription)")
+            print("[MIDIBridge] init failed: \(error.localizedDescription)")
         }
 
         manager.notificationHandler = { [weak self] notification in
@@ -247,7 +247,7 @@ final class MIDIInput: ObservableObject {
         let hasSource = !manager.endpoints.outputs.isEmpty
         if hasSource != isConnected {
             isConnected = hasSource
-            print("[MIDIInput] isConnected → \(hasSource), sources: \(manager.endpoints.outputs.map(\.displayName))")
+            print("[MIDIBridge] isConnected → \(hasSource), sources: \(manager.endpoints.outputs.map(\.displayName))")
         }
     }
 }
@@ -267,9 +267,9 @@ Run:
 
 ```bash
 cd /Users/onurovali/Documents/code/ylapiano
-git add Ylapiano/Audio/MIDIInput.swift
+git add Ylapiano/Audio/MIDIBridge.swift
 git commit -m "$(cat <<'EOF'
-feat: MIDIInput service wrapping MIDIKit
+feat: MIDIBridge service wrapping MIDIKit
 
 Auto-connects to all USB MIDI sources, filters to note-on/note-off only,
 publishes events via a bounded AsyncStream. isConnected tracks whether
@@ -284,7 +284,7 @@ Expected: commit succeeds; `git status` returns clean.
 
 ---
 
-## Task 3: Wire `MIDIInput` into `YlapianoApp`
+## Task 3: Wire `MIDIBridge` into `YlapianoApp`
 
 **Files:**
 
@@ -298,7 +298,7 @@ Open `/Users/onurovali/Documents/code/ylapiano/Ylapiano/YlapianoApp.swift`. Afte
     /// App-scoped MIDI input — one `MIDIManager` for the app's lifetime
     /// (CoreMIDI dislikes multiple clients). Auto-connects USB devices on
     /// hot-plug; consumed by `PlayerScreen` and the connection-status glyph.
-    @StateObject private var midi = MIDIInput()
+    @StateObject private var midi = MIDIBridge()
 ```
 
 Then in the `body` (around the existing `.environmentObject(sampler)` at line 31), add a second injection:
@@ -318,7 +318,7 @@ Expected: `Build Succeeded`. Then `⌘R` to run on an iPad Simulator. Open the X
 Expected console output on first launch:
 
 ```
-[MIDIInput] isConnected → false, sources: []
+[MIDIBridge] isConnected → false, sources: []
 [PianoSampler] synth engine started @ 48 kHz, 8 voices
 ```
 
@@ -326,7 +326,7 @@ Expected console output on first launch:
 
 - [ ] **Step 3.3:** (Optional smoke test) Plug your Yamaha PSS-A50 into the Mac via USB while the Simulator is running. Watch the Xcode console.
 
-Expected: `[MIDIInput] isConnected → true, sources: ["Digital Keyboard"]` (or similar device name) appears within ~1 second of plugging.
+Expected: `[MIDIBridge] isConnected → true, sources: ["Digital Keyboard"]` (or similar device name) appears within ~1 second of plugging.
 
 If nothing appears, the Simulator may not share CoreMIDI on your macOS version. Skip this smoke test — we'll re-verify on the physical iPad after Task 7.
 
@@ -336,7 +336,7 @@ If nothing appears, the Simulator may not share CoreMIDI on your macOS version. 
 cd /Users/onurovali/Documents/code/ylapiano
 git add Ylapiano/YlapianoApp.swift
 git commit -m "$(cat <<'EOF'
-feat: wire MIDIInput into YlapianoApp environment
+feat: wire MIDIBridge into YlapianoApp environment
 
 App-scoped @StateObject mirrors how PianoSampler is owned — one MIDI
 client for the app's lifetime, injected via .environmentObject for
@@ -624,20 +624,20 @@ Finally, update the `#Preview` block at the bottom (lines 180-193) to pass `pres
 
 ---
 
-## Task 6: Wire `MIDIInput` consumer into `PlayerScreen`
+## Task 6: Wire `MIDIBridge` consumer into `PlayerScreen`
 
 **Files:**
 
 - Modify: `Ylapiano/Views/PlayerScreen.swift`
 
-- [ ] **Step 6.1:** Inject `MIDIInput`.
+- [ ] **Step 6.1:** Inject `MIDIBridge`.
 
 In `/Users/onurovali/Documents/code/ylapiano/Ylapiano/Views/PlayerScreen.swift`, after the existing `@EnvironmentObject private var sampler: PianoSampler` at line 10, add:
 
 ```swift
     /// MIDI input service injected from `YlapianoApp`. The `.task` modifier
     /// below subscribes to its event stream while this screen is on screen.
-    @EnvironmentObject private var midi: MIDIInput
+    @EnvironmentObject private var midi: MIDIBridge
 ```
 
 - [ ] **Step 6.2:** Add the MIDIKit import.
@@ -710,7 +710,7 @@ Insert immediately AFTER it:
 
 ```swift
         .task {
-            // Subscribe to the MIDIInput service for the lifetime of this
+            // Subscribe to the MIDIBridge service for the lifetime of this
             // screen. `.task` automatically cancels the iteration when the
             // view disappears, which drains the bounded AsyncStream cleanly.
             for await event in midi.eventStream {
@@ -745,7 +745,7 @@ Press `⌘B`. Expected: `Build Succeeded`. (This is the first build since Task 5
 
 If you get errors, the most common are:
 
-- `Cannot find 'MIDIInput' in scope` → the `import SwiftMIDIIO` is missing or `MIDIInput.swift` failed to compile in Task 2.
+- `Cannot find 'MIDIBridge' in scope` → the `import SwiftMIDIIO` is missing or `MIDIBridge.swift` failed to compile in Task 2.
 - `Missing argument for parameter 'pressedKeys'` → the `#Preview` blocks in `PianoKeyboardView.swift` or other call sites still don't pass it. Grep for `PianoKeyboardView(` and update each.
 - `'MIDIEvent' has no member 'note'` → MIDIKit's note-event payload accessor changed; in the package source, look up the current property name (probably still `payload.note.number.uInt8Value` in v1.1, but verify).
 
@@ -757,7 +757,7 @@ Expected:
 - The piano keyboard renders as before.
 - The toolbar shows a gray `pianokeys` icon between the BPM controls and the sound toggles.
 - Tapping a piano key plays a piano tone (same as before).
-- Console logs show `[PianoSampler] synth engine started` and `[MIDIInput] isConnected → false`.
+- Console logs show `[PianoSampler] synth engine started` and `[MIDIBridge] isConnected → false`.
 
 - [ ] **Step 6.7:** Commit Tasks 5 + 6 together.
 
@@ -775,7 +775,7 @@ PlayerViewModel owns pressedKeys, the 180ms auto-release timer, and the
 unified handleKeyPressed / handleKeyReleased / handleMIDIEvent entry
 points.
 
-PlayerScreen subscribes to MIDIInput.eventStream via .task and dispatches
+PlayerScreen subscribes to MIDIBridge.eventStream via .task and dispatches
 each note-on/off through the same handler taps use. The toolbar gains a
 small gray/coral piano-keys glyph that flips on connection state.
 
@@ -797,7 +797,7 @@ Expected: clean commit; build still passes.
 
 - Modify: `Ylapiano/Views/HomeScreen.swift`
 
-- [ ] **Step 7.1:** Inject `MIDIInput`.
+- [ ] **Step 7.1:** Inject `MIDIBridge`.
 
 In `/Users/onurovali/Documents/code/ylapiano/Ylapiano/Views/HomeScreen.swift`, after the existing `@Query` line:
 
@@ -812,7 +812,7 @@ Add (around line 7):
     /// MIDI status injected from `YlapianoApp`. Parents glance at the
     /// toolbar glyph to confirm the keyboard is alive before picking a
     /// song.
-    @EnvironmentObject private var midi: MIDIInput
+    @EnvironmentObject private var midi: MIDIBridge
 ```
 
 - [ ] **Step 7.2:** Add a leading toolbar item for the glyph.
@@ -889,7 +889,7 @@ USB micro-B → USB-C cable (or → Lightning if you have an older iPad, via the
 Expected (within ~1 second):
 
 - The HomeScreen toolbar glyph turns coral.
-- Xcode console (still connected for debugging) shows `[MIDIInput] isConnected → true, sources: ["Digital Keyboard"]` or similar.
+- Xcode console (still connected for debugging) shows `[MIDIBridge] isConnected → true, sources: ["Digital Keyboard"]` or similar.
 
 - [ ] **Step 8.3:** Open any song, press keys on the PSS-A50.
 
@@ -914,7 +914,7 @@ Expected:
 - The toolbar glyph turns gray within ~1 second.
 - Audio that was already playing decays naturally — no crash, no glitch.
 - Tapping the on-screen keys still works.
-- Console shows `[MIDIInput] isConnected → false, sources: []`.
+- Console shows `[MIDIBridge] isConnected → false, sources: []`.
 
 - [ ] **Step 8.6:** Reconnect and verify auto-recovery.
 
@@ -960,7 +960,7 @@ Adds USB MIDI input to Ylapiano. Plug a class-compliant USB MIDI keyboard
 state, and falling-notes scoring all respond identically to tapping the
 on-screen keys.
 
-- New `MIDIInput` service wraps MIDIKit, auto-connects all USB sources,
+- New `MIDIBridge` service wraps MIDIKit, auto-connects all USB sources,
   exposes a bounded `AsyncStream<MIDIEvent>` filtered to note-on/note-off.
 - `PianoSampler` cache keyed by `(pitch, velocityBucket)` so velocity
   actually varies amplitude per strike (previously baked into first-used
@@ -1017,7 +1017,7 @@ If something tempts you toward any of the above, leave it for the next PR.
 **Spec coverage:** Each section of the spec maps to one or more tasks above:
 
 - Library choice (MIDIKit) → Task 1
-- `MIDIInput.swift` design → Task 2
+- `MIDIBridge.swift` design → Task 2
 - App-scoped lifecycle → Task 3
 - Velocity bucket cache → Task 4
 - Lifted `pressedKeys` + unified handlers → Task 5
