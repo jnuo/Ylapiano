@@ -13,9 +13,12 @@ struct PianoKeyboardView: View {
     /// sites compiling.
     var onKeyTap: (Pitch) -> Void = { _ in }
 
-    // 3 octaves: C3-B5
-    private let startOctave = 3
-    private let octaveCount = 3
+    // Layout (octave range, key count) lives in `KeyboardLayout` so the
+    // falling-notes scene's lane grid stays in sync without a magic-number
+    // duplicate. Default is 2 octaves C3 → C5 (15 white keys).
+    private let layout = KeyboardLayout.default
+    private var startOctave: Int { layout.startOctave }
+    private var octaveCount: Int { layout.octaveCount }
     private let blackKeyHeightRatio: CGFloat = 0.6
 
     /// MIDI numbers currently in their brief "just tapped" visual state.

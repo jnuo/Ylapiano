@@ -1,4 +1,5 @@
 import SwiftUI
+import AudioToolbox
 
 struct PlayerScreen: View {
     let song: Song
@@ -7,6 +8,17 @@ struct PlayerScreen: View {
     /// single song screen — we don't want the engine and its session config
     /// to tear down every time the user pops back to `HomeScreen`.
     @EnvironmentObject private var sampler: PianoSampler
+
+    /// Which top-panel view the user has chosen: the existing ABC sheet music
+    /// (default) or the new Sprint 3 falling-notes lane.
+    @State private var displayMode: DisplayMode = .sheetMusic
+    private enum DisplayMode { case sheetMusic, fallingNotes }
+
+    /// 3-2-1-Go pre-roll. Non-`nil` means the overlay is on screen; while it
+    /// is, the metronome and falling-notes scene stay paused so the kid has
+    /// time to put their hand on the first key. Falls back to plain start
+    /// when resuming from a pause — the count-in is only for fresh starts.
+    @State private var countdownText: String? = nil
 
     init(song: Song) {
         self.song = song
@@ -20,32 +32,53 @@ struct PlayerScreen: View {
                 .padding(.horizontal, 12)
                 .padding(.top, 2)
 
-            // Sheet music fills all remaining space
+            // Top panel: either the ABC sheet music or the falling-notes lane.
+            // ABCMusicView always renders (it drives the metronome / playback
+            // cursor), so when falling-notes mode is on we stack it underneath
+            // at zero opacity rather than removing it from the tree.
             if song.notes.isEmpty {
                 emptyNotesView
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
-                ABCMusicView(
-                    abcNotation: song.notes.toABC(title: song.title, timeSignature: "2/4", useSolfege: viewModel.useSolfege, bpm: viewModel.metronome.bpm),
-                    isPlaying: viewModel.isPlaying,
-                    isPaused: viewModel.isPaused,
-                    bpm: viewModel.metronome.bpm,
-                    playNotes: viewModel.playNotes,
-                    playMetronome: viewModel.playMetronome,
-                    onNoteChange: { index in
-                        viewModel.currentNoteIndex = index
-                    },
-                    onPlaybackEnd: {
-                        viewModel.stopPlaying()
+                ZStack {
+                    ABCMusicView(
+                        abcNotation: song.notes.toABC(title: song.title, timeSignature: "2/4", useSolfege: viewModel.useSolfege, bpm: viewModel.metronome.bpm),
+                        isPlaying: viewModel.isPlaying,
+                        isPaused: viewModel.isPaused,
+                        bpm: viewModel.metronome.bpm,
+                        playNotes: viewModel.playNotes,
+                        playMetronome: viewModel.playMetronome,
+                        onNoteChange: { index in
+                            viewModel.currentNoteIndex = index
+                        },
+                        onPlaybackEnd: {
+                            viewModel.stopPlaying()
+                        }
+                    )
+                    .opacity(displayMode == .sheetMusic ? 1 : 0)
+
+                    if displayMode == .fallingNotes {
+                        FallingNotesView(
+                            song: song,
+                            playStartedAt: viewModel.playStartedAt,
+                            accumulatedBeforePause: viewModel.accumulatedBeforePause,
+                            bpm: viewModel.metronome.bpm
+                        )
                     }
-                )
+                }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
 
-            // Current note indicator
-            currentNoteIndicator
-                .padding(.horizontal, 16)
-                .padding(.vertical, 2)
+            // Current note indicator — only in sheet-music mode. In
+            // falling-notes mode it would sit between the scene and the
+            // keyboard, breaking the eye's expectation that a falling note
+            // lands exactly at the top of its target key (and the yellow
+            // key highlight already shows which note is current).
+            if displayMode == .sheetMusic {
+                currentNoteIndicator
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 2)
+            }
 
             // Piano pinned to bottom
             PianoKeyboardView(
@@ -66,6 +99,23 @@ struct PlayerScreen: View {
         }
         .ignoresSafeArea(.container, edges: .bottom)
         .overlay {
+            // Count-in overlay (3 → 2 → 1 → Go) — big rounded numerals
+            // layered on top of whichever panel is showing.
+            if let text = countdownText {
+                ZStack {
+                    Color.black.opacity(0.28).ignoresSafeArea()
+                    Text(text)
+                        .font(.system(size: 220, weight: .heavy, design: .rounded))
+                        .foregroundStyle(.white)
+                        .shadow(color: .black.opacity(0.35), radius: 10, y: 4)
+                        .transition(.scale(scale: 1.4).combined(with: .opacity))
+                        .id(text)
+                }
+                .allowsHitTesting(false)
+            }
+        }
+        .animation(.spring(response: 0.32, dampingFraction: 0.68), value: countdownText)
+        .overlay {
             // Feedback overlay
             if let flash = viewModel.feedbackFlash {
                 Rectangle()
@@ -77,9 +127,12 @@ struct PlayerScreen: View {
         }
         .navigationTitle(song.title)
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-            viewModel.requestMicPermission()
-        }
+        // Mic permission used to be auto-requested here for the legacy
+        // listen-and-detect pitch flow. The new tap-to-play + sampler flow
+        // doesn't need mic at all, and on Mac Catalyst the permission round
+        // trip is unreliable enough to leave the overlay stuck on first run.
+        // When we re-introduce a "Listen mode" the request will fire on the
+        // toggle, not on view appear.
         .onDisappear {
             viewModel.stopPlaying()
         }
@@ -107,11 +160,12 @@ struct PlayerScreen: View {
 
     private var toolbarRow: some View {
         HStack(spacing: 14) {
-            // Primary button: Play / Pause / Resume
+            // Primary button: Play / Pause / Resume.  Fresh starts get a
+            // count-in; resumes do not.
             Button {
                 if viewModel.isPlaying { viewModel.pausePlaying() }
                 else if viewModel.isPaused { viewModel.resumePlaying() }
-                else { viewModel.startPlaying() }
+                else if countdownText == nil { startWithCountdown() }
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
@@ -214,6 +268,14 @@ struct PlayerScreen: View {
             .pickerStyle(.segmented)
             .frame(width: 160)
 
+            // Display mode — sheet music vs. falling-notes game lane
+            Picker("Display", selection: $displayMode) {
+                Image(systemName: "music.note.list").tag(DisplayMode.sheetMusic)
+                Image(systemName: "rectangle.stack.fill").tag(DisplayMode.fallingNotes)
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 110)
+
             // Edit — subtle, last
             Button { viewModel.showingEditSheet = true } label: {
                 Image(systemName: "pencil")
@@ -222,6 +284,29 @@ struct PlayerScreen: View {
             }
             .buttonStyle(.plain)
             .foregroundStyle(.secondary)
+        }
+    }
+
+    /// 4-beat count-in at the song's tempo. Plays a system "tock" on each
+    /// number so anyone joining on a real keyboard can sync. Tempo-scaled —
+    /// at 60 BPM the prep is 4 s, at 120 BPM it's 2 s.
+    private func startWithCountdown() {
+        let bpm = max(viewModel.metronome.bpm, 30)
+        let beatNs = UInt64(60_000_000_000 / bpm)
+        countdownText = "3"
+        AudioServicesPlaySystemSound(1104)
+        Task { @MainActor in
+            for n in [2, 1] {
+                try? await Task.sleep(nanoseconds: beatNs)
+                countdownText = "\(n)"
+                AudioServicesPlaySystemSound(1104)
+            }
+            try? await Task.sleep(nanoseconds: beatNs)
+            countdownText = "Go!"
+            AudioServicesPlaySystemSound(1104)
+            try? await Task.sleep(nanoseconds: beatNs / 2)
+            countdownText = nil
+            viewModel.startPlaying()
         }
     }
 

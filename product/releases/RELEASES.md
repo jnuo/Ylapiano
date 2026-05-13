@@ -1,5 +1,25 @@
 # Release Notes
 
+## v1.2.4 (build 4) — 2026-05-13
+
+### Features
+
+- Falling-notes game mode: a toolbar toggle in PlayerScreen swaps the ABC sheet music for a SpriteKit lane where coral rectangles scroll down 15 columns aligned 1:1 with the white keys below. The bottom of each rectangle meets a red hit line directly above the key the kid needs to press at that beat (#4)
+- 3-2-1-Go count-in at the song's tempo on first Play — big rounded numerals + audio tocks so anyone on a real piano can sync (#4)
+- 2-octave on-screen keyboard (C3 → C5, 15 white keys) — chunkier touch targets while still covering every pitch in the v1 seed songs (#4)
+
+### Bug Fixes
+
+- Falling notes stay in sync after pause / resume cycles (previously the scene's own clock drifted forward by the pause duration) (#4)
+- Switching display modes mid-song no longer resets the falling-notes scene to t=0 (#4)
+- Tempo changes during playback now re-pace AND re-size the falling-note rectangles correctly (#4)
+- Removed eager microphone-permission prompt when opening a song; the legacy pitch-detection flow isn't needed in tap-to-play and was leaving Mac Catalyst test builds with a stuck "permission denied" overlay (#4)
+
+### Other
+
+- New `KeyboardLayout` struct as the single source of truth for the keyboard's octave range and white-key count, shared by `PianoKeyboardView` and `FallingNotesScene` so they can't silently drift apart (#4)
+- `PlayerViewModel` exposes a single `elapsedSeconds` clock (computed from a `playStartedAt: Date?` + `accumulatedBeforePause: TimeInterval` pair) for any view that needs to render in song-time; anchors are `private(set)` so the pause-then-bank invariant can only be maintained internally (#4)
+
 ## v1.1.3 (build 3) — 2026-05-13
 
 ### Features

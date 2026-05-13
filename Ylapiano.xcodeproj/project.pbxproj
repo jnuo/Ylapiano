@@ -34,6 +34,9 @@
 		AA00AS01 /* AudioSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00AS01 /* AudioSession.swift */; };
 		AA00PS01 /* PianoSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00PS01 /* PianoSampler.swift */; };
 		AA000019 /* SpikeScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000020 /* SpikeScene.swift */; };
+		AA00KL01 /* KeyboardLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00KL01 /* KeyboardLayout.swift */; };
+		AA00FNS1 /* FallingNotesScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00FNS1 /* FallingNotesScene.swift */; };
+		AA00FNV1 /* FallingNotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00FNV1 /* FallingNotesView.swift */; };
 		AA000020 /* SpikeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000021 /* SpikeView.swift */; };
 /* End PBXBuildFile section */
 
@@ -67,6 +70,9 @@
 		AB00AS01 /* AudioSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSession.swift; sourceTree = "<group>"; };
 		AB00PS01 /* PianoSampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PianoSampler.swift; sourceTree = "<group>"; };
 		AB000020 /* SpikeScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeScene.swift; sourceTree = "<group>"; };
+		AB00KL01 /* KeyboardLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardLayout.swift; sourceTree = "<group>"; };
+		AB00FNS1 /* FallingNotesScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FallingNotesScene.swift; sourceTree = "<group>"; };
+		AB00FNV1 /* FallingNotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FallingNotesView.swift; sourceTree = "<group>"; };
 		AB000021 /* SpikeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -168,6 +174,9 @@
 			isa = PBXGroup;
 			children = (
 				AB000020 /* SpikeScene.swift */,
+				AB00KL01 /* KeyboardLayout.swift */,
+				AB00FNS1 /* FallingNotesScene.swift */,
+				AB00FNV1 /* FallingNotesView.swift */,
 			);
 			path = Game;
 			sourceTree = "<group>";
@@ -266,6 +275,9 @@
 				AA00AS01 /* AudioSession.swift in Sources */,
 				AA00PS01 /* PianoSampler.swift in Sources */,
 				AA000019 /* SpikeScene.swift in Sources */,
+				AA00KL01 /* KeyboardLayout.swift in Sources */,
+				AA00FNS1 /* FallingNotesScene.swift in Sources */,
+				AA00FNV1 /* FallingNotesView.swift in Sources */,
 				AA000020 /* SpikeView.swift in Sources */,
 				EA112EAB9027B0A007DF32C5 /* ABCMusicView.swift in Sources */,
 			);
@@ -350,7 +362,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_ASSET_PATHS = "\"Ylapiano/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -363,7 +375,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.3;
+				MARKETING_VERSION = 1.2.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ylapiano.app;
 				DEVELOPMENT_TEAM = KCGWW7KQBD;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -381,7 +393,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_ASSET_PATHS = "\"Ylapiano/Preview Content\"";
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -394,7 +406,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.1.3;
+				MARKETING_VERSION = 1.2.4;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ylapiano.app;
 				DEVELOPMENT_TEAM = KCGWW7KQBD;
 				PRODUCT_NAME = "$(TARGET_NAME)";
