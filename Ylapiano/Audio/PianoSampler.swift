@@ -34,7 +34,22 @@ final class PianoSampler: ObservableObject {
     /// can target it directly. Cleared as voices fall out of their ring
     /// window or get re-used.
     private var voiceByPitch: [UInt8: Int] = [:]
-    private var toneCache: [UInt8: AVAudioPCMBuffer] = [:]
+    /// Cache keyed by `(pitch, velocityBucket)`. Each velocity 0–127 maps
+    /// to one of 8 buckets (`velocity / 16`), so striking the same key at
+    /// noticeably different velocities now actually renders different
+    /// amplitudes. With 8 buckets × ~25 in-range pitches × ~72 KB per buffer
+    /// ≈ 14 MB worst case — trivial on iPad.
+    ///
+    /// **Rejected alternative**: cache at neutral velocity, scale per-strike
+    /// via `AVAudioPlayerNode.volume`. `playerNode.volume` parameter-ramps
+    /// over ~10 ms, audibly smearing velocity on fast repeated strikes.
+    private var toneCache: [CacheKey: AVAudioPCMBuffer] = [:]
+
+    /// Cache key — pitch + a coarse velocity bucket (8 buckets covering 1–127).
+    private struct CacheKey: Hashable {
+        let pitch: UInt8
+        let velocityBucket: Int
+    }
 
     @Published private(set) var status: String = "init"
     @Published private(set) var isReady = false
@@ -69,8 +84,9 @@ final class PianoSampler: ObservableObject {
     /// decay tail; if every voice is still ringing it steals the oldest.
     func play(_ pitch: Pitch, velocity: UInt8 = 100) {
         guard isReady else { return }
-        let buffer = toneCache[pitch.midi] ?? renderTone(pitch: pitch, velocity: velocity)
-        toneCache[pitch.midi] = buffer
+        let key = CacheKey(pitch: pitch.midi, velocityBucket: Int(velocity) / 16)
+        let buffer = toneCache[key] ?? renderTone(pitch: pitch, velocity: velocity)
+        toneCache[key] = buffer
 
         let voiceIndex = pickVoice()
         let voice = voices[voiceIndex]
