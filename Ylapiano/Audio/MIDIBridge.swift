@@ -24,11 +24,14 @@ import SwiftMIDIIO
 /// **only** note-on (vel > 0), note-on-vel-0 (running-status note-off form),
 /// and note-off. Everything else is silently dropped.
 @MainActor
-final class MIDIInput: ObservableObject {
+final class MIDIBridge: ObservableObject {
     @Published private(set) var isConnected: Bool = false
+    @Published private(set) var lastError: String?
 
     let eventStream: AsyncStream<MIDIEvent>
 
+    // App-scoped manager; no manual teardown needed — `MIDIManager` cleans
+    // itself up on its own deinit.
     private let manager: MIDIManager
     private let continuation: AsyncStream<MIDIEvent>.Continuation
 
@@ -50,10 +53,10 @@ final class MIDIInput: ObservableObject {
         // The receiver closure runs on a CoreMIDI background thread. Only
         // filter + yield to the (thread-safe) continuation — never touch
         // main-actor state from here.
-        let cap = continuation
+        let sink = continuation
         let receiver: MIDIReceiver = .events { events, _, _ in
             for event in events where Self.shouldForward(event) {
-                cap.yield(event)
+                sink.yield(event)
             }
         }
 
@@ -62,21 +65,22 @@ final class MIDIInput: ObservableObject {
             try manager.addInputConnection(
                 to: .allOutputs,
                 tag: Self.inputTag,
+                // `.default()` is a no-op filter — fine here because we don't
+                // create virtual outputs that would need to be excluded.
                 filter: .default(),
                 receiver: receiver
             )
         } catch {
-            print("[MIDIInput] init failed: \(error.localizedDescription)")
+            print("[MIDIBridge] init failed: \(error.localizedDescription)")
+            self.lastError = error.localizedDescription
         }
 
-        // MIDIManager dispatches notifications onto the main queue, but
-        // `notificationHandler` is typed as `@Sendable` (non-isolated). Hop
-        // explicitly to the main actor before mutating `isConnected` so the
-        // compiler is happy regardless of where the callback originates.
+        // `notificationHandler` is typed as a `@Sendable` closure — hop to
+        // `@MainActor` defensively before mutating `@Published` state.
         manager.notificationHandler = { [weak self] notification in
             switch notification {
             case .added, .removed, .setupChanged:
-                Task { @MainActor [weak self] in
+                Task { @MainActor in
                     self?.refreshConnectedState()
                 }
             default:
@@ -101,7 +105,7 @@ final class MIDIInput: ObservableObject {
         let hasSource = !outputs.isEmpty
         if hasSource != isConnected {
             isConnected = hasSource
-            print("[MIDIInput] isConnected → \(hasSource), sources: \(outputs.map(\.displayName))")
+            print("[MIDIBridge] isConnected → \(hasSource), sources: \(outputs.map(\.displayName))")
         }
     }
 }

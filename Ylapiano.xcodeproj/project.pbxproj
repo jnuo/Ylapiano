@@ -33,7 +33,7 @@
 		AA00PT01 /* Pitch.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00PT01 /* Pitch.swift */; };
 		AA00AS01 /* AudioSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00AS01 /* AudioSession.swift */; };
 		AA00PS01 /* PianoSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00PS01 /* PianoSampler.swift */; };
-		AA00MI01 /* MIDIInput.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00MI01 /* MIDIInput.swift */; };
+		AA00MI01 /* MIDIBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00MI01 /* MIDIBridge.swift */; };
 		AA000019 /* SpikeScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000020 /* SpikeScene.swift */; };
 		AA00KL01 /* KeyboardLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00KL01 /* KeyboardLayout.swift */; };
 		AA00FNS1 /* FallingNotesScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00FNS1 /* FallingNotesScene.swift */; };
@@ -71,7 +71,7 @@
 		AB00PT01 /* Pitch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pitch.swift; sourceTree = "<group>"; };
 		AB00AS01 /* AudioSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSession.swift; sourceTree = "<group>"; };
 		AB00PS01 /* PianoSampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PianoSampler.swift; sourceTree = "<group>"; };
-		AB00MI01 /* MIDIInput.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIInput.swift; sourceTree = "<group>"; };
+		AB00MI01 /* MIDIBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIBridge.swift; sourceTree = "<group>"; };
 		AB000020 /* SpikeScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeScene.swift; sourceTree = "<group>"; };
 		AB00KL01 /* KeyboardLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardLayout.swift; sourceTree = "<group>"; };
 		AB00FNS1 /* FallingNotesScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FallingNotesScene.swift; sourceTree = "<group>"; };
@@ -170,7 +170,7 @@
 				AB00PT01 /* Pitch.swift */,
 				AB00AS01 /* AudioSession.swift */,
 				AB00PS01 /* PianoSampler.swift */,
-				AB00MI01 /* MIDIInput.swift */,
+				AB00MI01 /* MIDIBridge.swift */,
 			);
 			path = Audio;
 			sourceTree = "<group>";
@@ -285,7 +285,7 @@
 				AA00PT01 /* Pitch.swift in Sources */,
 				AA00AS01 /* AudioSession.swift in Sources */,
 				AA00PS01 /* PianoSampler.swift in Sources */,
-				AA00MI01 /* MIDIInput.swift in Sources */,
+				AA00MI01 /* MIDIBridge.swift in Sources */,
 				AA000019 /* SpikeScene.swift in Sources */,
 				AA00KL01 /* KeyboardLayout.swift in Sources */,
 				AA00FNS1 /* FallingNotesScene.swift in Sources */,
