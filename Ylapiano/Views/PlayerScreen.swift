@@ -1,5 +1,6 @@
 import SwiftUI
 import AudioToolbox
+import SwiftMIDIIO
 
 struct PlayerScreen: View {
     let song: Song
@@ -8,6 +9,10 @@ struct PlayerScreen: View {
     /// single song screen — we don't want the engine and its session config
     /// to tear down every time the user pops back to `HomeScreen`.
     @EnvironmentObject private var sampler: PianoSampler
+
+    /// MIDI input service injected from `YlapianoApp`. The `.task` modifier
+    /// below subscribes to its event stream while this screen is on screen.
+    @EnvironmentObject private var midi: MIDIBridge
 
     /// Which top-panel view the user has chosen: the existing ABC sheet music
     /// (default) or the new Sprint 3 falling-notes lane.
@@ -91,13 +96,24 @@ struct PlayerScreen: View {
                 expectedNote: viewModel.isActive ? viewModel.currentNote : nil,
                 isCorrect: viewModel.lastDetectionCorrect,
                 guidedMode: viewModel.guidedMode,
-                onKeyTap: { pitch in sampler.play(pitch) }
+                onKeyTap: { pitch in
+                    viewModel.handleKeyPressed(pitch, sampler: sampler)
+                },
+                pressedKeys: viewModel.pressedKeys
             )
             .frame(maxWidth: .infinity)
             .frame(height: 210)
             .padding(.horizontal, 4)
         }
         .ignoresSafeArea(.container, edges: .bottom)
+        .task {
+            // Subscribe to the MIDIBridge for the lifetime of this
+            // screen. `.task` automatically cancels the iteration when the
+            // view disappears, which drains the bounded AsyncStream cleanly.
+            for await event in midi.eventStream {
+                viewModel.handleMIDIEvent(event, sampler: sampler)
+            }
+        }
         .overlay {
             // Count-in overlay (3 → 2 → 1 → Go) — big rounded numerals
             // layered on top of whichever panel is showing.
@@ -239,6 +255,16 @@ struct PlayerScreen: View {
             )
 
             Spacer()
+
+            // MIDI connection indicator — gray when no keyboard is
+            // connected, coral when at least one USB MIDI source is alive.
+            // No animation per Sprint 2 minimum-viable scope; the full
+            // banner + chime + character look-up ships in v1.1.
+            Image(systemName: "pianokeys")
+                .font(.system(.title3))
+                .foregroundStyle(midi.isConnected ? Color(red: 0.84, green: 0.16, blue: 0.16) : .gray)
+                .accessibilityLabel(midi.isConnected ? "MIDI keyboard connected" : "No MIDI keyboard connected")
+                .frame(width: 36, height: 44)
 
             // Sound toggles — labeled pill buttons with obvious on/off state
             soundToggle(

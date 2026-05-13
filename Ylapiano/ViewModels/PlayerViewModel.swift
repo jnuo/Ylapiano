@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import SwiftMIDIIO
 
 @Observable
 final class PlayerViewModel {
@@ -44,6 +45,19 @@ final class PlayerViewModel {
 
     // Feedback animation
     var feedbackFlash: Color?
+
+    /// MIDI numbers currently in their brief "just pressed" visual state.
+    /// Lifted out of `PianoKeyboardView` so tap gestures, MIDI events, and
+    /// the future pitch-detection input all converge on one source of truth.
+    /// Auto-cleared 180 ms after insertion for tap callers (no note-off
+    /// ever arrives); MIDI callers clear it explicitly via
+    /// `handleKeyReleased`.
+    var pressedKeys: Set<UInt8> = []
+
+    /// Per-pitch release task handle, so a fresh strike on the same pitch
+    /// cancels the prior auto-release before it fires (otherwise the second
+    /// strike's visual press could be cleared by the first strike's timer).
+    private var releaseTasks: [UInt8: Task<Void, Never>] = [:]
 
     var notes: [NoteEntry] { song.notes }
     var currentNote: NoteEntry? {
@@ -132,6 +146,64 @@ final class PlayerViewModel {
 
         if isComplete {
             stopPlaying()
+        }
+    }
+
+    /// Unified "a key was struck" entry point. Used by tap gestures (with a
+    /// fixed default velocity) and by `handleMIDIEvent` (with the velocity
+    /// from the MIDI note-on). Plays the sampler, marks the on-screen key
+    /// pressed for 180 ms, and forwards to falling-notes hit detection if
+    /// a song is active.
+    @MainActor
+    func handleKeyPressed(
+        _ pitch: Pitch,
+        velocity: UInt8 = 100,
+        sampler: PianoSampler
+    ) {
+        sampler.play(pitch, velocity: velocity)
+        pressedKeys.insert(pitch.midi)
+
+        // Tap-style auto-release: clear the press after the existing 180 ms
+        // visual duration. Cancel any in-flight release for the same pitch.
+        releaseTasks[pitch.midi]?.cancel()
+        releaseTasks[pitch.midi] = Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: 180_000_000)
+            guard !Task.isCancelled else { return }
+            self?.pressedKeys.remove(pitch.midi)
+            self?.releaseTasks.removeValue(forKey: pitch.midi)
+        }
+    }
+
+    /// MIDI note-off counterpart. Cancels the pending auto-release timer
+    /// (if any) and clears the pressed state immediately. Sampler decay
+    /// continues naturally — we don't truncate audio here, mirroring how
+    /// taps work today.
+    @MainActor
+    func handleKeyReleased(_ pitch: Pitch) {
+        releaseTasks[pitch.midi]?.cancel()
+        releaseTasks.removeValue(forKey: pitch.midi)
+        pressedKeys.remove(pitch.midi)
+    }
+
+    /// Dispatch a single incoming MIDI event to the right handler. Treats
+    /// `noteOn` with velocity 0 as note-off (PSS-A50's running-status form).
+    @MainActor
+    func handleMIDIEvent(_ event: MIDIEvent, sampler: PianoSampler) {
+        switch event {
+        case .noteOn(let payload):
+            let midiNote = payload.note.number.uInt8Value
+            let velocity = payload.velocity.midi1Value.uInt8Value
+            let pitch = Pitch(midi: midiNote)
+            if velocity == 0 {
+                handleKeyReleased(pitch)
+            } else {
+                handleKeyPressed(pitch, velocity: velocity, sampler: sampler)
+            }
+        case .noteOff(let payload):
+            let midiNote = payload.note.number.uInt8Value
+            handleKeyReleased(Pitch(midi: midiNote))
+        default:
+            break
         }
     }
 

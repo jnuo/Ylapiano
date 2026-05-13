@@ -21,9 +21,13 @@ struct PianoKeyboardView: View {
     private var octaveCount: Int { layout.octaveCount }
     private let blackKeyHeightRatio: CGFloat = 0.6
 
-    /// MIDI numbers currently in their brief "just tapped" visual state.
-    /// Each entry is removed automatically ~180 ms after insertion.
-    @State private var pressedKeys: Set<UInt8> = []
+    /// MIDI numbers currently in their pressed visual state. Owned by the
+    /// caller (`PlayerViewModel`) so tap gestures and external MIDI input
+    /// share one source of truth. Plain `let` is correct — this view only
+    /// reads the set; mutations flow upstream through `onKeyTap` callbacks
+    /// and `@Observable` re-renders the keyboard when the upstream set
+    /// changes.
+    let pressedKeys: Set<UInt8>
 
     private var whiteKeys: [(Solfege, Int)] {
         var keys: [(Solfege, Int)] = []
@@ -126,7 +130,7 @@ struct PianoKeyboardView: View {
         }
         .scaleEffect(isPressed ? 0.96 : 1.0)
         .contentShape(Rectangle())
-        .onTapGesture { strike(pitch) }
+        .onTapGesture { onKeyTap(pitch) }
         .animation(.easeInOut(duration: 0.12), value: isHighlighted)
         .animation(.spring(response: 0.18, dampingFraction: 0.7), value: isPressed)
     }
@@ -162,19 +166,10 @@ struct PianoKeyboardView: View {
             .padding(.horizontal, (whiteKeyWidth - bkWidth) / 2)
             .scaleEffect(isPressed ? 0.95 : 1.0)
             .contentShape(Rectangle())
-            .onTapGesture { strike(pitch) }
+            .onTapGesture { onKeyTap(pitch) }
             .animation(.spring(response: 0.18, dampingFraction: 0.7), value: isPressed)
     }
 
-    /// Fire the audio callback and flash the pressed state for ~180 ms.
-    private func strike(_ pitch: Pitch) {
-        onKeyTap(pitch)
-        pressedKeys.insert(pitch.midi)
-        Task { @MainActor in
-            try? await Task.sleep(nanoseconds: 180_000_000)
-            pressedKeys.remove(pitch.midi)
-        }
-    }
 }
 
 #Preview {
@@ -184,7 +179,8 @@ struct PianoKeyboardView: View {
         highlightedOctave: 4,
         expectedNote: NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
         isCorrect: true,
-        guidedMode: true
+        guidedMode: true,
+        pressedKeys: []
     )
     .frame(maxWidth: .infinity)
     .frame(height: 160)
