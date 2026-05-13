@@ -80,10 +80,10 @@ In Xcode:
 3. Press Return. Xcode resolves the package.
 4. Set the Dependency Rule to `Up to Next Major Version` starting at `1.1.0`.
 5. Click `Add Package`.
-6. In the products picker, check the box next to `MIDIKitIO` (this is the I/O module — the only one we need). Target should be `Ylapiano`.
+6. In the products picker, check the box next to `SwiftMIDIIO` (this is the I/O module — the only one we need). Target should be `Ylapiano`.
 7. Click `Add Package`.
 
-Expected: the left navigator's `Package Dependencies` section now shows `swift-midi-io`. Build settings for the `Ylapiano` target list `MIDIKitIO` under Frameworks, Libraries, and Embedded Content.
+Expected: the left navigator's `Package Dependencies` section now shows `swift-midi-io`. Build settings for the `Ylapiano` target list `SwiftMIDIIO` under Frameworks, Libraries, and Embedded Content.
 
 - [ ] **Step 1.3:** Verify the dependency builds.
 
@@ -125,7 +125,7 @@ Create `/Users/onurovali/Documents/code/ylapiano/Ylapiano/Audio/MIDIInput.swift`
 
 ```swift
 import Foundation
-import MIDIKitIO
+import SwiftMIDIIO
 
 /// Listens for USB MIDI input and forwards note-on/note-off events through
 /// an `AsyncStream`. Owns one app-scoped `MIDIManager` so all incoming USB
@@ -257,9 +257,9 @@ final class MIDIInput: ObservableObject {
 
 In Xcode press `⌘B`.
 
-Expected: `Build Succeeded`. If the compiler doesn't see `MIDIKitIO`, the package wasn't linked to the target — go back to Task 1 Step 1.2 and ensure the `MIDIKitIO` library product is checked for the `Ylapiano` target.
+Expected: `Build Succeeded`. If the compiler doesn't see `SwiftMIDIIO`, the package wasn't linked to the target — go back to Task 1 Step 1.2 and ensure the `SwiftMIDIIO` library product is checked for the `Ylapiano` target.
 
-If MIDIKit's API differs from `addInputConnection(to:tag:filter:receiver:)` in the version Xcode resolved (the package occasionally tweaks signatures between minor versions), open the package source in Xcode's navigator (`Package Dependencies` → `swift-midi-io` → `Sources/MIDIKitIO/MIDIManager/MIDIManager Managed Connections.swift`) and adapt the call to match the latest signature for the same effect: "add an input that auto-connects to every output endpoint in the system, with a receiver that delivers parsed `MIDIEvent` arrays."
+If MIDIKit's API differs from `addInputConnection(to:tag:filter:receiver:)` in the version Xcode resolved (the package occasionally tweaks signatures between minor versions), open the package source in Xcode's navigator (`Package Dependencies` → `swift-midi-io` → `Sources/SwiftMIDIIO/MIDIManager/MIDIManager Managed Connections.swift`) and adapt the call to match the latest signature for the same effect: "add an input that auto-connects to every output endpoint in the system, with a receiver that delivers parsed `MIDIEvent` arrays."
 
 - [ ] **Step 2.3:** Commit.
 
@@ -547,10 +547,10 @@ Becomes:
 ```swift
 import Foundation
 import SwiftUI
-import MIDIKitIO
+import SwiftMIDIIO
 ```
 
-(`MIDIKitIO` re-exports the `MIDIEvent` enum and its `MIDINote` / velocity accessor properties used above.)
+(`SwiftMIDIIO` re-exports the `MIDIEvent` enum and its `MIDINote` / velocity accessor properties used above.)
 
 - [ ] **Step 5.2:** Strip the lifted state out of `PianoKeyboardView`.
 
@@ -654,7 +654,7 @@ Becomes:
 ```swift
 import SwiftUI
 import AudioToolbox
-import MIDIKitIO
+import SwiftMIDIIO
 ```
 
 - [ ] **Step 6.3:** Update the `PianoKeyboardView` call site to pass `pressedKeys` and route taps through the view model.
@@ -745,7 +745,7 @@ Press `⌘B`. Expected: `Build Succeeded`. (This is the first build since Task 5
 
 If you get errors, the most common are:
 
-- `Cannot find 'MIDIInput' in scope` → the `import MIDIKitIO` is missing or `MIDIInput.swift` failed to compile in Task 2.
+- `Cannot find 'MIDIInput' in scope` → the `import SwiftMIDIIO` is missing or `MIDIInput.swift` failed to compile in Task 2.
 - `Missing argument for parameter 'pressedKeys'` → the `#Preview` blocks in `PianoKeyboardView.swift` or other call sites still don't pass it. Grep for `PianoKeyboardView(` and update each.
 - `'MIDIEvent' has no member 'note'` → MIDIKit's note-event payload accessor changed; in the package source, look up the current property name (probably still `payload.note.number.uInt8Value` in v1.1, but verify).
 
