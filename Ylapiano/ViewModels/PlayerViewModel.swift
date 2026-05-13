@@ -15,6 +15,29 @@ final class PlayerViewModel {
     var playNotes = true
     var playMetronome = true
 
+    /// Single source of truth for "how many seconds of *play time* have
+    /// accumulated since this song's first Play." Composed of:
+    ///  • `accumulatedBeforePause` — total play time banked from prior play /
+    ///    pause cycles (frozen while paused).
+    ///  • `playStartedAt` — wall-clock moment of the current play interval, or
+    ///    `nil` while paused / stopped.
+    /// `elapsedSeconds = accumulatedBeforePause + (now - playStartedAt)`. The
+    /// falling-notes scene reads from here every frame so mid-song mode
+    /// switches stay in sync with abcjs / the metronome.
+    ///
+    /// Both anchors are `private(set)` so the invariant ("accumulator banks
+    /// before playStartedAt is cleared") can only be maintained inside the
+    /// pause / resume / stop methods below.
+    private(set) var playStartedAt: Date?
+    private(set) var accumulatedBeforePause: TimeInterval = 0
+
+    var elapsedSeconds: TimeInterval {
+        if let started = playStartedAt {
+            return accumulatedBeforePause + Date().timeIntervalSince(started)
+        }
+        return accumulatedBeforePause
+    }
+
     var isActive: Bool { isPlaying || isPaused }
     var lastDetectionCorrect: Bool?
     var showingEditSheet = false
@@ -40,10 +63,16 @@ final class PlayerViewModel {
         isPaused = false
         currentNoteIndex = 0
         lastDetectionCorrect = nil
+        accumulatedBeforePause = 0
+        playStartedAt = Date()
     }
 
     func pausePlaying() {
         guard isPlaying else { return }
+        if let started = playStartedAt {
+            accumulatedBeforePause += Date().timeIntervalSince(started)
+        }
+        playStartedAt = nil
         isPlaying = false
         isPaused = true
     }
@@ -52,12 +81,15 @@ final class PlayerViewModel {
         guard isPaused else { return }
         isPaused = false
         isPlaying = true
+        playStartedAt = Date()
     }
 
     func stopPlaying() {
         isPlaying = false
         isPaused = false
         lastDetectionCorrect = nil
+        playStartedAt = nil
+        accumulatedBeforePause = 0
     }
 
     func restart() {

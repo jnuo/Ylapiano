@@ -40,4 +40,25 @@ struct Pitch: Hashable, Sendable {
         let semitone = Int(midi) % 12
         return [1, 3, 6, 8, 10].contains(semitone)
     }
+
+    /// Column index (0-based) of this pitch on a white-keys-only keyboard that
+    /// starts at `startOctave`'s C and spans `octaveCount` full octaves plus
+    /// one trailing top-C — the layout `PianoKeyboardView` already renders.
+    /// Returns `nil` for sharps or pitches outside the rendered range so the
+    /// falling-notes scene can simply skip them.
+    ///
+    /// Indexing: for `octaveCount = 2` lanes are 0…14 (15 keys total),
+    /// where 0 = startOctave-C and 14 = top-C. The bound is inclusive
+    /// because `octaveCount * 7` is the index of the trailing top-C, not
+    /// the count of keys.
+    func whiteKeyLane(startOctave: Int = 3, octaveCount: Int = 2) -> Int? {
+        // Within an octave: C=0, D=1, E=2, F=3, G=4, A=5, B=6; sharps = nil.
+        let semitoneToWhite: [Int?] = [0, nil, 1, nil, 2, 3, nil, 4, nil, 5, nil, 6]
+        let semitone = Int(midi) % 12
+        guard let whiteWithinOctave = semitoneToWhite[semitone] else { return nil }
+        let lane = (octave - startOctave) * 7 + whiteWithinOctave
+        let lastLaneIndex = octaveCount * 7   // index of the trailing top-C
+        guard lane >= 0, lane <= lastLaneIndex else { return nil }
+        return lane
+    }
 }
