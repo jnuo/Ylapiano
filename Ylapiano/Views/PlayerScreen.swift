@@ -156,6 +156,11 @@ struct PlayerScreen: View {
             // Distinct pitches only; tap velocity defaults to 100.
             let pitches = Set(song.notes.map { Pitch(solfege: $0.solfege, octave: $0.octave) })
             sampler.prewarm(Array(pitches))
+            viewModel.fallingNotesActive = (displayMode == .fallingNotes)
+        }
+        .onChange(of: displayMode) { _, newMode in
+            // Only judge taps as hits while the falling-notes panel is showing.
+            viewModel.fallingNotesActive = (newMode == .fallingNotes)
         }
         .onDisappear {
             viewModel.stopPlaying()

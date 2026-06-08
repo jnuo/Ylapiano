@@ -46,6 +46,21 @@ final class PlayerViewModel {
     // Feedback animation
     var feedbackFlash: Color?
 
+    // MARK: - Falling-notes hit detection (juice slice)
+
+    /// Judges taps against the song's falling-note schedule. Built once per
+    /// song; reset on each fresh play.
+    let hitJudge: HitJudge
+    /// Most recent press outcome — the juice layer reads this to fire the
+    /// PERFECT / HIT / MISS feedback. `nil` until the first judged press.
+    var lastJudgment: HitJudgment?
+    /// Consecutive PERFECT/HIT streak. Resets to 0 on a MISS (a broken combo
+    /// just stops growing — it never punishes). Drives the escalating combo juice.
+    var comboCount = 0
+    /// True only while the falling-notes panel is the active mode, so taps in
+    /// sheet-music mode aren't judged and notes aren't consumed.
+    var fallingNotesActive = false
+
     /// MIDI numbers currently in their brief "just pressed" visual state.
     /// Lifted out of `PianoKeyboardView` so tap gestures, MIDI events, and
     /// the future pitch-detection input all converge on one source of truth.
@@ -70,6 +85,7 @@ final class PlayerViewModel {
         self.song = song
         self.metronome = Metronome(bpm: song.bpm)
         self.pitchDetector = PitchDetector()
+        self.hitJudge = HitJudge(song: song)
     }
 
     func startPlaying() {
@@ -79,6 +95,7 @@ final class PlayerViewModel {
         lastDetectionCorrect = nil
         accumulatedBeforePause = 0
         playStartedAt = Date()
+        resetHitState()
     }
 
     func pausePlaying() {
@@ -104,6 +121,15 @@ final class PlayerViewModel {
         lastDetectionCorrect = nil
         playStartedAt = nil
         accumulatedBeforePause = 0
+        resetHitState()
+    }
+
+    /// Clear hit-detection state for a fresh play / replay: notes become
+    /// hittable again, combo + tally reset.
+    private func resetHitState() {
+        hitJudge.reset()
+        comboCount = 0
+        lastJudgment = nil
     }
 
     func restart() {
@@ -172,6 +198,29 @@ final class PlayerViewModel {
             self?.pressedKeys.remove(pitch.midi)
             self?.releaseTasks.removeValue(forKey: pitch.midi)
         }
+
+        // Falling-notes hit detection. Only judge while the game panel is the
+        // active mode and playing, so sheet-music taps don't consume notes.
+        // Right key is required for a celebration; timing only separates
+        // PERFECT from HIT. The visual + audio juice consume `lastJudgment`.
+        guard fallingNotesActive, isPlaying else { return }
+        applyJudgment(hitJudge.judge(
+            pitch: pitch,
+            elapsedSeconds: elapsedSeconds,
+            bpm: metronome.bpm
+        ))
+    }
+
+    /// Fold a press outcome into combo state and expose it for the juice
+    /// layer. Logs the running right/miss tally — the mashing-vs-learning
+    /// curve the playtest protocol reads straight off the console.
+    private func applyJudgment(_ judgment: HitJudgment) {
+        lastJudgment = judgment
+        switch judgment {
+        case .perfect, .hit: comboCount += 1
+        case .miss: comboCount = 0
+        }
+        print("[HitJudge] \(judgment) · right=\(hitJudge.rightTaps) miss=\(hitJudge.missTaps) combo=\(comboCount)")
     }
 
     /// MIDI note-off counterpart. Cancels the pending auto-release timer
@@ -213,5 +262,102 @@ final class PlayerViewModel {
 
     func requestMicPermission() {
         pitchDetector.requestPermission()
+    }
+}
+
+// MARK: - Hit detection
+
+/// Outcome of a key press judged against the falling-note schedule.
+enum HitJudgment: Equatable {
+    case perfect   // right key, |Δ| ≤ 250 ms
+    case hit       // right key, |Δ| ≤ 600 ms
+    case miss      // wrong key, or no note in the window
+}
+
+/// Judges key presses against a song's falling-note schedule — pure timing
+/// logic, no rendering. The note→key map is the lesson, so a **wrong key is
+/// always a MISS**; timing only separates PERFECT from HIT. Each note is
+/// consumable once, so mashing one correct key can't rack up repeat hits —
+/// the integrity the playtest's "deliberate right-key" metric depends on.
+///
+/// Windows are deliberately enormous for ages 5–7 (adult rhythm games run
+/// ±30–50 ms). Spec: `docs/superpowers/specs/2026-06-08-hit-event-spec.md`.
+///
+/// Co-located in this file (rather than its own) because the Xcode project
+/// uses manual file references; extract when batching a file add.
+final class HitJudge {
+    enum Window {
+        static let perfectMs = 250.0
+        static let hitMs = 600.0
+    }
+
+    /// One strike opportunity: a note's ideal hit moment (in beats from t=0)
+    /// and the white-key lane it belongs to.
+    private struct ScheduledHit {
+        let hitBeat: Double
+        let lane: Int
+    }
+
+    private let layout: KeyboardLayout
+    private let hits: [ScheduledHit]
+    private var consumed: Set<Int> = []
+
+    /// Right vs missed tap tally for the mashing-vs-learning curve (Mei's
+    /// metric). `rightTaps` rises only on a real PERFECT/HIT; `missTaps`
+    /// covers wrong-key and mistimed presses alike.
+    private(set) var rightTaps = 0
+    private(set) var missTaps = 0
+
+    init(song: Song, layout: KeyboardLayout = .default) {
+        self.layout = layout
+        var cumulativeBeats = 0.0
+        var built: [ScheduledHit] = []
+        for note in song.notes {
+            let hitBeat = cumulativeBeats
+            cumulativeBeats += note.duration.beats
+            let pitch = Pitch(solfege: note.solfege, octave: note.octave)
+            guard let lane = layout.laneIndex(for: pitch) else { continue }
+            built.append(ScheduledHit(hitBeat: hitBeat, lane: lane))
+        }
+        hits = built
+    }
+
+    /// Judge a press `elapsedSeconds` into the song at the current `bpm`.
+    /// Beats are converted to ms with the live bpm (matching the scene), so
+    /// tempo changes stay consistent. Consumes the matched note.
+    func judge(pitch: Pitch, elapsedSeconds: TimeInterval, bpm: Int) -> HitJudgment {
+        let beatDuration = 60.0 / Double(max(bpm, 30))
+        let nowBeats = elapsedSeconds / beatDuration
+
+        guard let lane = layout.laneIndex(for: pitch) else {
+            missTaps += 1            // sharp / out of range — no note can match
+            return .miss
+        }
+
+        var bestIndex: Int?
+        var bestDeltaMs = Double.greatestFiniteMagnitude
+        for (index, hit) in hits.enumerated()
+        where hit.lane == lane && !consumed.contains(index) {
+            let deltaMs = abs((hit.hitBeat - nowBeats) * beatDuration) * 1000
+            if deltaMs < bestDeltaMs {
+                bestDeltaMs = deltaMs
+                bestIndex = index
+            }
+        }
+
+        guard let index = bestIndex, bestDeltaMs <= Window.hitMs else {
+            missTaps += 1
+            return .miss
+        }
+        consumed.insert(index)
+        rightTaps += 1
+        return bestDeltaMs <= Window.perfectMs ? .perfect : .hit
+    }
+
+    /// Clear consumption + tally for a fresh play / replay.
+    func reset() {
+        consumed.removeAll()
+        rightTaps = 0
+        missTaps = 0
     }
 }

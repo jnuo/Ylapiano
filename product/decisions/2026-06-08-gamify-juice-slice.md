@@ -61,13 +61,16 @@ definition (Mei) all locked. Ready to build, with a measurable success target.
 
 ## Next — implementation
 
-1. **Derisk (Marco):** pre-warm tone cache · consolidate the two `AVAudioEngine`s
-   · measure `outputLatency` on a 60Hz iPad (green if wired/speaker < ~30ms).
-2. **Wire hit-detection:** press → which key + nearest note's ms-to-line →
-   PERFECT / HIT / MISS (right-key always required). Log right/wrong taps so the
-   playtest can measure the wrong-key curve (mashing vs learning).
-3. **Wire juice:** PERFECT/HIT/MISS visuals + combo in `FallingNotesScene`;
-   celesta sparkle (octave-up, pentatonic combo) in the sampler.
+1. ✅ **Derisk (Marco):** pre-warm cache + latency probe done; engine
+   consolidation verified unnecessary. _Remaining: read the latency line on a
+   real 60Hz iPad (kill-gate: wired/speaker < ~30ms)._
+2. ✅ **Hit-detection:** `HitJudge` (in `PlayerViewModel.swift`) — press → lane +
+   nearest note's ms-to-line → PERFECT/HIT/MISS, right-key required, notes
+   consumed once. Right/miss/combo tally logged to console (Mei's mashing curve).
+   Logic only — no visuals yet.
+3. **Wire juice (next):** PERFECT/HIT/MISS visuals + combo in `FallingNotesScene`
+   (reads `viewModel.lastJudgment`); celesta sparkle (octave-up, pentatonic
+   combo) in the sampler.
 4. **Recruit (parallel):** line up 5 age-5 kids + signed consent NOW — lead time.
 5. **Playtest (Mei):** pass = ≥4/5 deliberate right-key + grin + calm-on-miss,
    ≥3/5 unprompted day-3 reopen. Fail = mashing ("tap fast") → fix note→key visual.
