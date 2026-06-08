@@ -18,6 +18,9 @@ existing falling-notes mode. Prove the _feel_ before scoring/progression.
 | 7   | **Miss is never punished**; wrong key still sounds, just no party                              | Defne/Diego | Frustration = uninstall by morning                                               |
 | 8   | **No character needed** — procedural juice on shapes (no Spine/Aiko block)                     | Diego       | Slice ships without art pipeline                                                 |
 | 9   | **Reduced-motion + WCAG 2.3.1 from day one** (≤3 flashes/sec)                                  | Diego       | Apple §1.3 kids reject ceiling; non-negotiable                                   |
+| 10  | **Reward sparkle = celesta pitched octave-up of the played note**; combo steps a pentatonic    | Khalid      | The kid plays a real note — sparkle must be consonant; pentatonic can't clash    |
+| 11  | **Sparkle −9 to −12 dB under the piano note; −18 LUFS master; fatigue test governs**           | Khalid      | Fires every note, 100s/session — must survive the parent's mute finger           |
+| 12  | **No haptics** (iPads have no Taptic Engine); `.playback` session OK (it's an instrument)      | Khalid      | Honest hardware reality; piano should sound even on silent, like GarageBand      |
 
 ## Derisk before building the juice (Marco)
 
@@ -45,9 +48,19 @@ instrument teacher").
 - Tech & scope lock → `docs/superpowers/decisions/2026-06-08-gamify-juice-slice-tech.md`
 - Hit-event spec (numbers) → `docs/superpowers/specs/2026-06-08-hit-event-spec.md`
 - Hit-juice spec (motion) → `docs/superpowers/specs/2026-06-08-hit-juice-spec.md`
+- Hit-audio spec (sound) → `docs/superpowers/specs/2026-06-08-hit-audio-spec.md`
 
-## Next
+## Status
 
-- Khalid: hit chime at pop-peak (~70ms after press), pitch rises with combo.
-- Then implement: derisk (Marco) → wire juice (PERFECT/HIT/MISS + combo) in
-  SpriteKit → playtest with a 5yo.
+Committee design phase **complete** — scope (Anya), tech (Marco), hit-event
+(Defne), motion (Diego), audio (Khalid) all locked. Ready to build.
+
+## Next — implementation
+
+1. **Derisk (Marco):** pre-warm tone cache · consolidate the two `AVAudioEngine`s
+   · measure `outputLatency` on a 60Hz iPad (green if wired/speaker < ~30ms).
+2. **Wire hit-detection:** press → which key + nearest note's ms-to-line →
+   PERFECT / HIT / MISS (right-key always required for a celebration).
+3. **Wire juice:** PERFECT/HIT/MISS visuals + combo in `FallingNotesScene`;
+   celesta sparkle (octave-up, pentatonic combo) in the sampler.
+4. **Playtest (Mei):** a 5yo presses the right key, grins, reopens day 3.
