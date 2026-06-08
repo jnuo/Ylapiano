@@ -107,10 +107,11 @@ struct PlayerScreen: View {
         }
         .ignoresSafeArea(.container, edges: .bottom)
         .task {
-            // Subscribe to the MIDIBridge for the lifetime of this
-            // screen. `.task` automatically cancels the iteration when the
-            // view disappears, which drains the bounded AsyncStream cleanly.
-            for await event in midi.eventStream {
+            // One stream per screen appearance. `.task` cancels the iteration
+            // when the view disappears, which terminates this consumer's
+            // stream and unregisters it from the bridge's fan-out — so the
+            // next screen gets a fresh, working subscription.
+            for await event in midi.events() {
                 viewModel.handleMIDIEvent(event, sampler: sampler)
             }
         }
