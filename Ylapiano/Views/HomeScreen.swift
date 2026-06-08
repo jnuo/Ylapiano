@@ -4,6 +4,10 @@ import SwiftData
 struct HomeScreen: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Song.sortOrder) private var songs: [Song]
+    /// MIDI status injected from `YlapianoApp`. Parents glance at the
+    /// toolbar glyph to confirm the keyboard is alive before picking a
+    /// song.
+    @EnvironmentObject private var midi: MIDIBridge
     @State private var showingAddSong = false
     @State private var showingSpike = false
     @State private var hasSeeded = false
@@ -60,6 +64,15 @@ struct HomeScreen: View {
         }
         .navigationTitle("Ylapiano")
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                // Same coral-when-connected glyph as PlayerScreen — gives
+                // parents a single, consistent connection status indicator.
+                Image(systemName: "pianokeys")
+                    .font(.system(.title3))
+                    .foregroundStyle(midi.isConnected ? Color(red: 0.84, green: 0.16, blue: 0.16) : .gray)
+                    .accessibilityLabel(midi.isConnected ? "MIDI keyboard connected" : "No MIDI keyboard connected")
+            }
+
             #if DEBUG
             // Sync-spike entry point is a dev tool — never ship in Release.
             ToolbarItem(placement: .topBarTrailing) {
