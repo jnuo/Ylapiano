@@ -7,47 +7,42 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		EA112EAB9027B0A007DF32C5 /* ABCMusicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD5B0BBB0B3A88D01FCEF984 /* ABCMusicView.swift */; };
 		5CA827276D9F72A4E3CED352 /* MusicNotation.html in Resources */ = {isa = PBXBuildFile; fileRef = 95ECB0758B48796D0194CE14 /* MusicNotation.html */; };
-		D9D9DB8B5A55104679BB27D9 /* abcjs-basic-min.js in Resources */ = {isa = PBXBuildFile; fileRef = AD646997735A00E870EDCD9B /* abcjs-basic-min.js */; };
-		AD000020 /* NotoMusic-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AD000021 /* NotoMusic-Regular.ttf */; };
-
-		AA000001 /* YlapianoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000001; };
-		AA000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000002; };
-		AA000003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB000003; };
-		AA000004 /* Song.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000004; };
-		AA000005 /* HomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000005; };
-		AA000006 /* AddSongScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000006; };
-		AA000007 /* PlayerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000007; };
-		AA000008 /* SheetMusicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000008; };
-		AA000009 /* PianoKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000009; };
-		AA000010 /* Metronome.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000010; };
-		AA000011 /* PitchDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000011; };
-		AA000012 /* MetronomeBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000012; };
-		AA000013 /* SongCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000013; };
-		AA000014 /* PlayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000014; };
-		AA000015 /* NoteEntryRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000015; };
-		AA000016 /* SeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000016; };
-		AA000017 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000018; };
+		AA000001 /* YlapianoApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000001 /* YlapianoApp.swift */; };
+		AA000002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000002 /* ContentView.swift */; };
+		AA000003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AB000003 /* Assets.xcassets */; };
+		AA000004 /* Song.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000004 /* Song.swift */; };
+		AA000005 /* HomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000005 /* HomeScreen.swift */; };
+		AA000006 /* AddSongScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000006 /* AddSongScreen.swift */; };
+		AA000007 /* PlayerScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000007 /* PlayerScreen.swift */; };
+		AA000008 /* SheetMusicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000008 /* SheetMusicView.swift */; };
+		AA000009 /* PianoKeyboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000009 /* PianoKeyboardView.swift */; };
+		AA000010 /* Metronome.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000010 /* Metronome.swift */; };
+		AA000011 /* PitchDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000011 /* PitchDetector.swift */; };
+		AA000012 /* MetronomeBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000012 /* MetronomeBarView.swift */; };
+		AA000013 /* SongCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000013 /* SongCardView.swift */; };
+		AA000014 /* PlayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000014 /* PlayerViewModel.swift */; };
+		AA000015 /* NoteEntryRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000015 /* NoteEntryRow.swift */; };
+		AA000016 /* SeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000016 /* SeedData.swift */; };
+		AA000017 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000018 /* OnboardingView.swift */; };
 		AA000018 /* AudioClock.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000019 /* AudioClock.swift */; };
-		AA00PT01 /* Pitch.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00PT01 /* Pitch.swift */; };
-		AA00AS01 /* AudioSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00AS01 /* AudioSession.swift */; };
-		AA00PS01 /* PianoSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00PS01 /* PianoSampler.swift */; };
-		AA00MI01 /* MIDIBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00MI01 /* MIDIBridge.swift */; };
 		AA000019 /* SpikeScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000020 /* SpikeScene.swift */; };
-		AA00KL01 /* KeyboardLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00KL01 /* KeyboardLayout.swift */; };
+		AA000020 /* SpikeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000021 /* SpikeView.swift */; };
+		AA00AS01 /* AudioSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00AS01 /* AudioSession.swift */; };
 		AA00FNS1 /* FallingNotesScene.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00FNS1 /* FallingNotesScene.swift */; };
 		AA00FNV1 /* FallingNotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00FNV1 /* FallingNotesView.swift */; };
-		AA000020 /* SpikeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000021 /* SpikeView.swift */; };
+		AA00KL01 /* KeyboardLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00KL01 /* KeyboardLayout.swift */; };
+		AA00MI01 /* MIDIBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00MI01 /* MIDIBridge.swift */; };
+		AA00PS01 /* PianoSampler.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00PS01 /* PianoSampler.swift */; };
+		AA00PT01 /* Pitch.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00PT01 /* Pitch.swift */; };
+		AD000020 /* NotoMusic-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AD000021 /* NotoMusic-Regular.ttf */; };
 		B00000030000000000000003 /* SwiftMIDIIO in Frameworks */ = {isa = PBXBuildFile; productRef = B00000020000000000000002 /* SwiftMIDIIO */; };
+		D9D9DB8B5A55104679BB27D9 /* abcjs-basic-min.js in Resources */ = {isa = PBXBuildFile; fileRef = AD646997735A00E870EDCD9B /* abcjs-basic-min.js */; };
+		EA112EAB9027B0A007DF32C5 /* ABCMusicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD5B0BBB0B3A88D01FCEF984 /* ABCMusicView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		AD5B0BBB0B3A88D01FCEF984 /* ABCMusicView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ABCMusicView.swift; sourceTree = "<group>"; };
 		95ECB0758B48796D0194CE14 /* MusicNotation.html */ = {isa = PBXFileReference; lastKnownFileType = text.html; path = MusicNotation.html; sourceTree = "<group>"; };
-		AD646997735A00E870EDCD9B /* abcjs-basic-min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "abcjs-basic-min.js"; sourceTree = "<group>"; };
-		AD000021 /* NotoMusic-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "NotoMusic-Regular.ttf"; path = "Resources/Fonts/NotoMusic-Regular.ttf"; sourceTree = "<group>"; };
-
 		AB000000 /* Ylapiano.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ylapiano.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		AB000001 /* YlapianoApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = YlapianoApp.swift; sourceTree = "<group>"; };
 		AB000002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -68,15 +63,18 @@
 		AB000017 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		AB000018 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		AB000019 /* AudioClock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioClock.swift; sourceTree = "<group>"; };
-		AB00PT01 /* Pitch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pitch.swift; sourceTree = "<group>"; };
-		AB00AS01 /* AudioSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSession.swift; sourceTree = "<group>"; };
-		AB00PS01 /* PianoSampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PianoSampler.swift; sourceTree = "<group>"; };
-		AB00MI01 /* MIDIBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIBridge.swift; sourceTree = "<group>"; };
 		AB000020 /* SpikeScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeScene.swift; sourceTree = "<group>"; };
-		AB00KL01 /* KeyboardLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardLayout.swift; sourceTree = "<group>"; };
+		AB000021 /* SpikeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeView.swift; sourceTree = "<group>"; };
+		AB00AS01 /* AudioSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSession.swift; sourceTree = "<group>"; };
 		AB00FNS1 /* FallingNotesScene.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FallingNotesScene.swift; sourceTree = "<group>"; };
 		AB00FNV1 /* FallingNotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FallingNotesView.swift; sourceTree = "<group>"; };
-		AB000021 /* SpikeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeView.swift; sourceTree = "<group>"; };
+		AB00KL01 /* KeyboardLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardLayout.swift; sourceTree = "<group>"; };
+		AB00MI01 /* MIDIBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MIDIBridge.swift; sourceTree = "<group>"; };
+		AB00PS01 /* PianoSampler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PianoSampler.swift; sourceTree = "<group>"; };
+		AB00PT01 /* Pitch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Pitch.swift; sourceTree = "<group>"; };
+		AD000021 /* NotoMusic-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "NotoMusic-Regular.ttf"; path = "Resources/Fonts/NotoMusic-Regular.ttf"; sourceTree = "<group>"; };
+		AD5B0BBB0B3A88D01FCEF984 /* ABCMusicView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ABCMusicView.swift; sourceTree = "<group>"; };
+		AD646997735A00E870EDCD9B /* abcjs-basic-min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "abcjs-basic-min.js"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -191,7 +189,7 @@
 /* Begin PBXNativeTarget section */
 		AE000001 /* Ylapiano */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AF000003;
+			buildConfigurationList = AF000003 /* Build configuration list for PBXNativeTarget "Ylapiano" */;
 			buildPhases = (
 				AE000002 /* Sources */,
 				AC000001 /* Frameworks */,
@@ -224,7 +222,7 @@
 					};
 				};
 			};
-			buildConfigurationList = AF000001;
+			buildConfigurationList = AF000001 /* Build configuration list for PBXProject "Ylapiano" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -298,24 +296,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
-		AF000001 /* Build configuration list for PBXProject */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				AF000004 /* Debug */,
-				AF000005 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		AF000003 /* Build configuration list for PBXNativeTarget */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				AF000006 /* Debug */,
-				AF000007 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		AF000004 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -374,22 +354,26 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"Ylapiano/Preview Content\"";
+				DEVELOPMENT_TEAM = K6QC8Q3253;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Ylapiano/Info.plist;
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Ylapiano needs microphone access to listen to the piano and detect which notes you play.";
+				INFOPLIST_KEY_CFBundleDisplayName = "y la piano";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.educational-games";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Y La Piano needs microphone access to listen to the piano and detect which notes you play.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarHidden = NO;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.4;
+				MARKETING_VERSION = 1.3.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ylapiano.app;
-				DEVELOPMENT_TEAM = KCGWW7KQBD;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -405,22 +389,26 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_ASSET_PATHS = "\"Ylapiano/Preview Content\"";
+				DEVELOPMENT_TEAM = K6QC8Q3253;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Ylapiano/Info.plist;
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Ylapiano needs microphone access to listen to the piano and detect which notes you play.";
+				INFOPLIST_KEY_CFBundleDisplayName = "y la piano";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.educational-games";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Y La Piano needs microphone access to listen to the piano and detect which notes you play.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UIStatusBarHidden = NO;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2.4;
+				MARKETING_VERSION = 1.3.5;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ylapiano.app;
-				DEVELOPMENT_TEAM = KCGWW7KQBD;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
 				SUPPORTS_MACCATALYST = NO;
@@ -431,6 +419,27 @@
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		AF000001 /* Build configuration list for PBXProject "Ylapiano" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AF000004 /* Debug */,
+				AF000005 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AF000003 /* Build configuration list for PBXNativeTarget "Ylapiano" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AF000006 /* Debug */,
+				AF000007 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
 		B00000010000000000000001 /* XCRemoteSwiftPackageReference "swift-midi-io" */ = {
@@ -450,7 +459,6 @@
 			productName = SwiftMIDIIO;
 		};
 /* End XCSwiftPackageProductDependency section */
-
 	};
 	rootObject = AE000000 /* Project object */;
 }
