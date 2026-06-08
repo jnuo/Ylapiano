@@ -1,5 +1,21 @@
 # Release Notes
 
+## v1.3.5 (build 5) — 2026-06-08
+
+### Features
+
+- USB MIDI keyboard input (Sprint 2 minimum viable): a class-compliant USB MIDI keyboard (target: Yamaha PSS-A50) plays through the app with full parity to on-screen taps — audio, visual key-press, and falling-notes scoring all route through one unified entry point. Hot-plug auto-detection; a coral `pianokeys` glyph in the `PlayerScreen` and `HomeScreen` toolbars shows live connection status (#5)
+- MIDI velocity now varies playback amplitude — `PianoSampler` caches tones per `(pitch, velocityBucket)` across 8 buckets so a soft press sounds softer than a hard one (#5)
+
+### Bug Fixes
+
+- MIDI input survives navigating away from a song and back: the event transport now hands each screen its own stream via a thread-safe fan-out, instead of a single shared `AsyncStream` that only supported one iteration for the app's lifetime (would have silently killed MIDI after the first song) (#5)
+
+### Other
+
+- Switched code signing to the personal Apple developer account; added the educational app category and a full-screen single-scene manifest; migrated display-name / mic-usage / orientation keys from `Info.plist` into Xcode build settings (#5)
+- `pressedKeys` lifted from `PianoKeyboardView` to `PlayerViewModel` so taps and MIDI converge on one source of truth (`handleKeyPressed` / `handleKeyReleased` / `handleMIDIEvent`) (#5)
+
 ## v1.2.4 (build 4) — 2026-05-13
 
 ### Features
