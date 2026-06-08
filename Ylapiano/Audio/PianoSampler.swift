@@ -74,6 +74,16 @@ final class PianoSampler: ObservableObject {
             isReady = true
             status = "synth · \(voices.count)-voice (drop Salamander_C5_Light.sf2 to upgrade)"
             print("[PianoSampler] synth engine started @ 48 kHz, \(voices.count) voices")
+            #if os(iOS)
+            // Real audio-path latency on THIS device + route. Marco's derisk
+            // kill-gate: wired / built-in speaker should read < ~30 ms. Read it
+            // from the Xcode console on a 60 Hz iPad, on speaker + wired + BT.
+            let session = AVAudioSession.sharedInstance()
+            print(String(
+                format: "[PianoSampler] audio path — outputLatency=%.1f ms · ioBuffer=%.1f ms · sampleRate=%.0f Hz",
+                session.outputLatency * 1000, session.ioBufferDuration * 1000, session.sampleRate
+            ))
+            #endif
         } catch {
             status = "engine start failed: \(error.localizedDescription)"
             print("[PianoSampler] \(status)")
@@ -85,7 +95,7 @@ final class PianoSampler: ObservableObject {
     func play(_ pitch: Pitch, velocity: UInt8 = 100) {
         guard isReady else { return }
         let key = CacheKey(pitch: pitch.midi, velocityBucket: Int(velocity) / 16)
-        let buffer = toneCache[key] ?? renderTone(pitch: pitch, velocity: velocity)
+        let buffer = toneCache[key] ?? Self.renderTone(pitch: pitch, velocity: velocity)
         toneCache[key] = buffer
 
         let voiceIndex = pickVoice()
@@ -113,6 +123,22 @@ final class PianoSampler: ObservableObject {
         voiceByPitch.removeValue(forKey: pitch.midi)
     }
 
+    /// Pre-render and cache tones for `pitches` so the FIRST strike of each note
+    /// during play doesn't synthesize a ~72k-sample buffer inline on the main
+    /// actor — an audible first-touch hitch on exactly the first impression.
+    /// Call when a song loads; the cost is paid before the kid plays (e.g.
+    /// during the count-in), never mid-performance.
+    func prewarm(_ pitches: [Pitch], velocity: UInt8 = 100) {
+        guard isReady else { return }
+        let bucket = Int(velocity) / 16
+        for pitch in pitches {
+            let key = CacheKey(pitch: pitch.midi, velocityBucket: bucket)
+            if toneCache[key] == nil {
+                toneCache[key] = Self.renderTone(pitch: pitch, velocity: velocity)
+            }
+        }
+    }
+
     /// Pick the next voice. Strategy: first idle voice (whose decay tail has
     /// finished), else the voice struck longest ago.
     private func pickVoice() -> Int {
@@ -125,8 +151,10 @@ final class PianoSampler: ObservableObject {
     }
 
     /// Additive synthesis: fundamental + 3 harmonics, exponential decay
-    /// envelope (~1 s tail), 5 ms attack ramp to suppress clicks.
-    private func renderTone(pitch: Pitch, velocity: UInt8) -> AVAudioPCMBuffer {
+    /// envelope (~1 s tail), 5 ms attack ramp to suppress clicks. Pure (no
+    /// instance state) so `prewarm` and `play` can both render without touching
+    /// `self` — keeps it cheap to call ahead of time.
+    private static func renderTone(pitch: Pitch, velocity: UInt8) -> AVAudioPCMBuffer {
         let sampleRate = 48_000.0
         let frameCount = AVAudioFrameCount(Self.voiceRingTime * sampleRate)
         let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!

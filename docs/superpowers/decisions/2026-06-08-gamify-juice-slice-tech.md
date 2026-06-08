@@ -44,13 +44,21 @@ the _feel_ fast without ballooning, and without creating rework later?
 
 1. **Pre-warm the tone cache** — kill the first-strike inline synthesis spike
    (`PianoSampler.play` renders a 72k-sample buffer on the main actor on first
-   `(pitch,velocity)`).
-2. **Consolidate the two `AVAudioEngine`s** — `AudioClock` runs a _silent_
-   engine for timing; `PianoSampler` runs a _separate_ engine for sound. The
-   falling-notes clock is not the engine making the sound. Make the sampler's
-   engine the clock, or measure the drift and accept for the slice.
+   `(pitch,velocity)`). [done — `PianoSampler.prewarm(_:)`, called from
+   `PlayerScreen.onAppear` for the song's distinct pitches; `renderTone` is now
+   a pure `static func`.]
+2. ~~Consolidate the two `AVAudioEngine`s.~~ **NOT NEEDED for this slice
+   (verified 2026-06-08).** Investigation showed `AudioClock`'s silent engine is
+   used ONLY by `SpikeScene`/`SpikeView` (the Sprint-0 sync demo). The real
+   `FallingNotesScene` runs off `Date()` (wall clock via `playStartedAt`), not
+   the audio render clock — and this slice has no backing music track for the
+   scroll to drift against (the kid's taps ARE the music). So there are not two
+   engines fighting over the rhythm clock in the production path. Revisit only
+   if/when a backing/play-along track is added (a later slice). [done — code
+   left untouched]
 3. **Measure `outputLatency` + `ioBufferDuration`** on a real 60Hz iPad, three
    routes: built-in speaker, wired, Bluetooth. Print it; don't theorize it.
+   [done — `PianoSampler.setupEngine()` prints it on launch; read on device.]
 
 ## Kill criteria (when we know we picked wrong)
 

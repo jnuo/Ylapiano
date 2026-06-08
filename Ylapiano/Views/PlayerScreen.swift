@@ -150,6 +150,13 @@ struct PlayerScreen: View {
         // trip is unreliable enough to leave the overlay stuck on first run.
         // When we re-introduce a "Listen mode" the request will fire on the
         // toggle, not on view appear.
+        .onAppear {
+            // Pre-render this song's tones so the first strike of each note
+            // doesn't synthesize a buffer inline mid-play (first-touch hitch).
+            // Distinct pitches only; tap velocity defaults to 100.
+            let pitches = Set(song.notes.map { Pitch(solfege: $0.solfege, octave: $0.octave) })
+            sampler.prewarm(Array(pitches))
+        }
         .onDisappear {
             viewModel.stopPlaying()
         }
