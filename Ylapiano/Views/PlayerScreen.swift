@@ -100,10 +100,13 @@ struct PlayerScreen: View {
                 useSolfege: viewModel.useSolfege,
                 highlightedNote: viewModel.pitchDetector.detectedNote,
                 highlightedOctave: viewModel.pitchDetector.detectedOctave,
-                // Only hint the "expected" key while a song is actively playing;
-                // otherwise the yellow glow sits on whatever note the cursor
-                // last landed on and looks like a stuck UI bug.
-                expectedNote: viewModel.isActive ? viewModel.currentNote : nil,
+                // Yellow key-glow guidance is driven by the abcjs cursor, which
+                // has no lead-in — so in falling-notes mode it runs ~4 beats
+                // ahead of the bars (two guides, two clocks). The bars ARE the
+                // guide there; suppress the glow. (Synced key-glow returns as the
+                // mastery-ladder rung-1/2 guidance, driven off the bars' clock.)
+                // Sheet-music mode keeps the glow as before.
+                expectedNote: (displayMode == .sheetMusic && viewModel.isActive) ? viewModel.currentNote : nil,
                 isCorrect: viewModel.lastDetectionCorrect,
                 guidedMode: viewModel.guidedMode,
                 onKeyTap: { pitch in
@@ -513,42 +516,69 @@ struct PlayerScreen: View {
     }
 }
 
-/// End-of-song result. The squirrel mascot bounces in, stars pop in one by
-/// one (filled = earned, always ≥1 — never a frown, never a number), and a big
-/// round button replays. Swap the mascot image for an OpenArt-generated pose /
-/// animation later — it's one asset. Art direction is Aiko's call, the
-/// celebration choreography Diego's; this is the working frame for both.
+/// End-of-song result — a celebration, not a static card. The squirrel reacts,
+/// the earned stars pop in ONE AT A TIME, and a perfect 3/3 fires a sparkle
+/// burst + a mascot wiggle. The mascot pose swaps per result: drop an
+/// OpenArt-generated **"MascotCheer"** (thumbs-up / high-five squirrel) into
+/// Assets and it shows for 3 stars — falls back to the normal "Mascot" until
+/// then. Stars never drop below 1; never a frown. Honors Reduce Motion.
 private struct SongResultView: View {
     let stars: Int
     let onReplay: () -> Void
 
-    @State private var appear = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    @State private var card = false        // card + mascot enter
+    @State private var revealed = 0        // earned stars shown so far
+    @State private var celebrate = false   // 3/3 sparkle burst
+    @State private var burst: CGFloat = 0  // 0→1 drives the burst outward
+    @State private var wiggle = false      // mascot reaction on a perfect run
+
+    private let gold = Color(red: 1.0, green: 0.78, blue: 0.20)
+    private var perfect: Bool { stars >= 3 }
+
+    /// 3/3 swaps to a cheer pose if that asset exists; otherwise the default
+    /// squirrel — so it works today and upgrades the moment the art lands.
+    private var mascotImage: UIImage {
+        let name = perfect ? "MascotCheer" : "Mascot"
+        return UIImage(named: name) ?? UIImage(named: "Mascot") ?? UIImage()
+    }
 
     var body: some View {
         ZStack {
             Color.black.opacity(0.4).ignoresSafeArea()
 
             VStack(spacing: 24) {
-                Image("Mascot")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 160, height: 160)
-                    .scaleEffect(appear ? 1 : 0.4)
-                    .rotationEffect(.degrees(appear ? 0 : -8))
+                ZStack {
+                    if celebrate {
+                        ForEach(0..<10, id: \.self) { i in
+                            let angle = Double(i) / 10 * 2 * .pi
+                            Image(systemName: "sparkle")
+                                .font(.system(size: 20))
+                                .foregroundStyle(gold)
+                                .offset(x: cos(angle) * 95 * burst, y: sin(angle) * 95 * burst)
+                                .opacity(Double(1 - burst))
+                                .scaleEffect(0.3 + burst)
+                        }
+                    }
+                    Image(uiImage: mascotImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 170, height: 170)
+                        .scaleEffect(card ? (celebrate ? 1.08 : 1) : 0.4)
+                        .rotationEffect(.degrees(wiggle ? 5 : (card ? 0 : -8)))
+                }
 
-                HStack(spacing: 16) {
+                HStack(spacing: 18) {
                     ForEach(0..<3, id: \.self) { index in
-                        Image(systemName: index < stars ? "star.fill" : "star")
-                            .font(.system(size: 52))
-                            .foregroundStyle(index < stars
-                                ? Color(red: 1.0, green: 0.78, blue: 0.20)
-                                : Color.white.opacity(0.4))
-                            .scaleEffect(appear ? 1 : 0.1)
-                            .animation(
-                                .spring(response: 0.4, dampingFraction: 0.55)
-                                    .delay(0.15 + Double(index) * 0.12),
-                                value: appear
-                            )
+                        let earned = index < stars
+                        let shown = index < revealed
+                        Image(systemName: earned ? "star.fill" : "star")
+                            .font(.system(size: 56))
+                            .foregroundStyle(earned ? gold : Color.white.opacity(0.35))
+                            .scaleEffect(earned ? (shown ? 1 : 0.1) : 1)
+                            .opacity(earned ? (shown ? 1 : 0) : 0.6)
+                            .rotationEffect(.degrees(earned && !shown ? -40 : 0))
                     }
                 }
 
@@ -561,16 +591,37 @@ private struct SongResultView: View {
                         .shadow(radius: 8, y: 4)
                 }
                 .accessibilityLabel("Play again")
-                .scaleEffect(appear ? 1 : 0.5)
+                .scaleEffect(card ? 1 : 0.5)
             }
             .padding(40)
             .background(RoundedRectangle(cornerRadius: 28).fill(.ultraThinMaterial))
             .padding(40)
-            .scaleEffect(appear ? 1 : 0.85)
+            .scaleEffect(card ? 1 : 0.85)
         }
-        .onAppear {
-            withAnimation(.spring(response: 0.45, dampingFraction: 0.6)) { appear = true }
+        .task { await runSequence() }
+    }
+
+    @MainActor
+    private func runSequence() async {
+        guard !reduceMotion else {
+            card = true
+            revealed = stars
+            celebrate = perfect
+            burst = 0           // no motion burst in reduced mode
+            return
         }
+        withAnimation(.spring(response: 0.45, dampingFraction: 0.6)) { card = true }
+        try? await Task.sleep(for: .milliseconds(320))
+        // Reveal earned stars one at a time — pop, beat, pop, beat.
+        for i in 1...max(stars, 1) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.45)) { revealed = i }
+            try? await Task.sleep(for: .milliseconds(340))
+        }
+        guard perfect else { return }
+        // Perfect run: sparkle burst + a happy wiggle.
+        celebrate = true
+        withAnimation(.easeOut(duration: 0.7)) { burst = 1 }
+        withAnimation(.easeInOut(duration: 0.12).repeatCount(6, autoreverses: true)) { wiggle = true }
     }
 }
 
