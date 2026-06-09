@@ -72,6 +72,36 @@ final class PlayerViewModel {
     private(set) var resultStars = 0
     private(set) var resultRight = 0
     private(set) var resultTotal = 0
+    /// Notes never landed this play — the "practice these" set the result screen
+    /// shows as gentle key chips. Empty on a clean run (no dead-end screen).
+    private(set) var resultMissed: [Solfege] = []
+
+    // MARK: - Mastery ladder
+
+    /// Which rung of the single-song ladder the player is on (0-based). Same
+    /// song every rung; tempo + guidance + timing window scale. Held in memory
+    /// for the sitting — persisting best-rung across launches is backlog.
+    private(set) var rungIndex = 0
+    var currentRung: Rung { MasteryLadder.rungs[rungIndex] }
+    var isTopRung: Bool { rungIndex >= MasteryLadder.rungs.count - 1 }
+    /// True only at the result screen when the player earned the climb: a clean
+    /// 3-star run with a rung still above. Climbing is always the player's choice.
+    var canClimb: Bool { songFinished && resultStars >= 3 && !isTopRung }
+    /// What the next rung changes, for the climb button. Losing the glow is the
+    /// headline ("Lights off!"); otherwise it's always faster.
+    var climbLabel: String {
+        guard !isTopRung else { return "" }
+        let next = MasteryLadder.rungs[rungIndex + 1]
+        if next.guidance == .none, currentRung.guidance != .none { return "Lights off!" }
+        return "Faster!"
+    }
+
+    /// The key the keyboard should glow as "play this next", driven off the
+    /// SAME shared clock as the falling blocks (`elapsedSeconds` + lead-in), so
+    /// the glow can never drift from the bars. `nil` when guidance is off
+    /// (rung 4) or nothing is due. Refreshed by `guidanceTimer` while playing.
+    private(set) var guidanceNote: NoteEntry?
+    private var guidanceTimer: Timer?
 
     /// MIDI numbers currently in their brief "just pressed" visual state.
     /// Lifted out of `PianoKeyboardView` so tap gestures, MIDI events, and
@@ -98,9 +128,22 @@ final class PlayerViewModel {
         self.metronome = Metronome(bpm: song.bpm)
         self.pitchDetector = PitchDetector()
         self.hitJudge = HitJudge(song: song)
+        applyRung()   // open on rung 1's tempo / guidance / windows
+    }
+
+    /// Push the current rung's three knobs into the live systems: tempo →
+    /// metronome (and thence the scene + sheet), guidance → keyboard glow,
+    /// timing → hit windows. Called at init and before every fresh play, never
+    /// mid-song.
+    private func applyRung() {
+        let rung = currentRung
+        metronome.bpm = rung.bpm
+        guidedMode = rung.guidance != .none
+        hitJudge.setWindows(hitMs: rung.hitMs, perfectMs: rung.perfectMs)
     }
 
     func startPlaying() {
+        applyRung()
         isPlaying = true
         isPaused = false
         currentNoteIndex = 0
@@ -108,6 +151,7 @@ final class PlayerViewModel {
         accumulatedBeforePause = 0
         playStartedAt = Date()
         resetHitState()
+        startGuidanceTimer()
     }
 
     func pausePlaying() {
@@ -118,6 +162,7 @@ final class PlayerViewModel {
         playStartedAt = nil
         isPlaying = false
         isPaused = true
+        stopGuidanceTimer()
     }
 
     func resumePlaying() {
@@ -125,6 +170,7 @@ final class PlayerViewModel {
         isPaused = false
         isPlaying = true
         playStartedAt = Date()
+        startGuidanceTimer()
     }
 
     func stopPlaying() {
@@ -134,6 +180,7 @@ final class PlayerViewModel {
         playStartedAt = nil
         accumulatedBeforePause = 0
         resetHitState()
+        stopGuidanceTimer()
     }
 
     /// Clear hit-detection state for a fresh play / replay: notes become
@@ -155,19 +202,74 @@ final class PlayerViewModel {
         }
         playStartedAt = nil
         isPlaying = false
+        stopGuidanceTimer()
 
         resultTotal = hitJudge.totalNotes
         resultRight = hitJudge.rightTaps
         resultStars = Self.stars(right: resultRight, total: resultTotal)
+        resultMissed = hitJudge.missedSolfege()   // snapshot before reset() clears it
         withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
             songFinished = true
         }
     }
 
-    /// Replay from the result screen.
+    /// Replay from the result screen — same rung, beat your best.
     func replaySong() {
         songFinished = false
         restart()
+    }
+
+    /// Take the next rung up (offered only after a clean 3-star run). The
+    /// player chose this — never automatic, never a down-rung punishment.
+    func climbRung() {
+        guard canClimb else { return }
+        rungIndex += 1
+        songFinished = false
+        restart()
+    }
+
+    // MARK: - Synced guidance (keyboard glow)
+
+    /// Sample the shared clock ~20×/s and light the upcoming target key. Not a
+    /// second timebase — it reads the same `elapsedSeconds` the scene does, so
+    /// glow and bars stay locked. Off for rung 4 (no guidance) — then we never
+    /// arm the timer and `guidanceNote` stays nil.
+    private func startGuidanceTimer() {
+        stopGuidanceTimer()
+        guard currentRung.guidance != .none else { return }
+        let timer = Timer(timeInterval: 0.05, repeats: true) { [weak self] _ in
+            guard let self else { return }
+            self.guidanceNote = self.computeGuidanceNote()
+        }
+        RunLoop.main.add(timer, forMode: .common)
+        guidanceTimer = timer
+    }
+
+    private func stopGuidanceTimer() {
+        guidanceTimer?.invalidate()
+        guidanceTimer = nil
+        guidanceNote = nil
+    }
+
+    /// The note to glow right now: the earliest one whose target moment is
+    /// approaching (lit ~1.2 beats early so a hand can move) and hasn't slipped
+    /// past its hit window yet. Same beat math as `HitJudge`/the scene.
+    private func computeGuidanceNote() -> NoteEntry? {
+        guard isPlaying, currentRung.guidance != .none else { return nil }
+        let beatDuration = 60.0 / Double(max(metronome.bpm, 30))
+        let nowBeats = elapsedSeconds / beatDuration
+        let windowBeats = (hitJudge.hitWindowMs / 1000.0) / beatDuration
+        let leadGlowBeats = 1.2   // how early the key lights before its moment
+
+        var cumulative = 0.0
+        for note in notes {
+            let dueBeat = cumulative + HitJudge.leadInBeats
+            cumulative += note.duration.beats
+            if nowBeats >= dueBeat - leadGlowBeats && nowBeats <= dueBeat + windowBeats {
+                return note   // notes are in time order → first match is the earliest active
+            }
+        }
+        return nil
     }
 
     /// Stars from accuracy. Always at least 1 — we never show a kid zero.
@@ -316,6 +418,51 @@ final class PlayerViewModel {
     }
 }
 
+// MARK: - Mastery ladder
+
+/// How strongly the keyboard's target-key glow guides the player on a rung.
+/// The falling block always shows the note; this is the *extra* hand-holding
+/// (light up the key you're about to need), scaled down as mastery grows.
+enum Guidance {
+    case full     // bright glow — the 5yo floor
+    case fading   // dim glow — training wheels coming off
+    case none     // block only — adult ceiling
+
+    /// Glow opacity for `PianoKeyboardView`, or `nil` to suppress the glow
+    /// entirely (the view is fed no `expectedNote`).
+    var glowOpacity: Double? {
+        switch self {
+        case .full: return 0.35
+        case .fading: return 0.16
+        case .none: return nil
+        }
+    }
+}
+
+/// One rung of the single-song mastery ladder. The **song is constant**; a
+/// rung scales three knobs — tempo, guidance, and timing strictness — so the
+/// same notes serve a 5yo (rung 1) and an adult (rung 4). Numbers from
+/// `docs/superpowers/specs/2026-06-09-single-song-mastery-ladder.md`; tune in
+/// playtest. Co-located with `HitJudge` (which consumes the windows) so adding
+/// a rung never touches the manual Xcode file references.
+struct Rung {
+    let name: String
+    let bpm: Int
+    let guidance: Guidance
+    let hitMs: Double       // HIT window (right key, looser timing)
+    let perfectMs: Double   // PERFECT window (right key, tight timing)
+}
+
+enum MasteryLadder {
+    /// The four rungs, slow→fast / guided→bare / forgiving→precise.
+    static let rungs: [Rung] = [
+        Rung(name: "Learn the keys", bpm: 50,  guidance: .full,   hitMs: 600, perfectMs: 250),
+        Rung(name: "Find the beat",  bpm: 70,  guidance: .full,   hitMs: 450, perfectMs: 200),
+        Rung(name: "Play it",        bpm: 96,  guidance: .fading, hitMs: 300, perfectMs: 150),
+        Rung(name: "Master it",      bpm: 120, guidance: .none,   hitMs: 150, perfectMs: 60),
+    ]
+}
+
 // MARK: - Hit detection
 
 /// Outcome of a key press judged against the falling-note schedule.
@@ -346,9 +493,17 @@ struct HitEvent: Equatable {
 /// Co-located in this file (rather than its own) because the Xcode project
 /// uses manual file references; extract when batching a file add.
 final class HitJudge {
-    enum Window {
-        static let perfectMs = 250.0
-        static let hitMs = 600.0
+    /// Live timing windows (ms). Default to rung 1's forgiving numbers; the
+    /// mastery ladder narrows them per rung via `setWindows`. Instance state
+    /// (not the old `static`) so a rung change is a property set, not a rebuild.
+    private(set) var hitWindowMs = 600.0
+    private(set) var perfectWindowMs = 250.0
+
+    /// Tighten / loosen the timing windows for a rung. Called before a fresh
+    /// play — never mid-song, so an in-flight judgment can't straddle two windows.
+    func setWindows(hitMs: Double, perfectMs: Double) {
+        hitWindowMs = hitMs
+        perfectWindowMs = perfectMs
     }
 
     /// Beats of run-up before note one is due, so the first bar has fall-time
@@ -365,6 +520,7 @@ final class HitJudge {
     private struct ScheduledHit {
         let hitBeat: Double
         let lane: Int
+        let solfege: Solfege   // which note this was — drives the near-miss display
     }
 
     private let layout: KeyboardLayout
@@ -386,9 +542,21 @@ final class HitJudge {
             cumulativeBeats += note.duration.beats
             let pitch = Pitch(solfege: note.solfege, octave: note.octave)
             guard let lane = layout.laneIndex(for: pitch) else { continue }
-            built.append(ScheduledHit(hitBeat: hitBeat, lane: lane))
+            built.append(ScheduledHit(hitBeat: hitBeat, lane: lane, solfege: note.solfege))
         }
         hits = built
+    }
+
+    /// Distinct solfège of notes never landed this play-through — the "what to
+    /// practice" set for the near-miss display. Order-preserving (first-missed
+    /// first) and de-duplicated so a song that repeats Sol shows it once.
+    func missedSolfege() -> [Solfege] {
+        var seen: Set<Solfege> = []
+        var result: [Solfege] = []
+        for (index, hit) in hits.enumerated() where !consumed.contains(index) {
+            if seen.insert(hit.solfege).inserted { result.append(hit.solfege) }
+        }
+        return result
     }
 
     /// Judge a press `elapsedSeconds` into the song at the current `bpm`.
@@ -414,13 +582,13 @@ final class HitJudge {
             }
         }
 
-        guard let index = bestIndex, bestDeltaMs <= Window.hitMs else {
+        guard let index = bestIndex, bestDeltaMs <= hitWindowMs else {
             missTaps += 1
             return .miss
         }
         consumed.insert(index)
         rightTaps += 1
-        return bestDeltaMs <= Window.perfectMs ? .perfect : .hit
+        return bestDeltaMs <= perfectWindowMs ? .perfect : .hit
     }
 
     /// Clear consumption + tally for a fresh play / replay.
