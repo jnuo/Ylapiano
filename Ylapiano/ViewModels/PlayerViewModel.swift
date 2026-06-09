@@ -238,8 +238,12 @@ final class PlayerViewModel {
         stopGuidanceTimer()
         guard currentRung.guidance != .none else { return }
         let timer = Timer(timeInterval: 0.05, repeats: true) { [weak self] _ in
-            guard let self else { return }
-            self.guidanceNote = self.computeGuidanceNote()
+            // Fires on the main run loop; assert that so the @Observable write
+            // is main-actor isolated (SwiftUI observation requires it).
+            MainActor.assumeIsolated {
+                guard let self else { return }
+                self.guidanceNote = self.computeGuidanceNote()
+            }
         }
         RunLoop.main.add(timer, forMode: .common)
         guidanceTimer = timer

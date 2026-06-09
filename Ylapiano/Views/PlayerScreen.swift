@@ -714,48 +714,72 @@ private struct LoopingVideoView: UIViewRepresentable {
 }
 
 private final class LoopingPlayerUIView: UIView {
-    private let queuePlayer = AVQueuePlayer()
-    private var looper: AVPlayerLooper?
-
-    override class var layerClass: AnyClass { AVPlayerLayer.self }
-    private var playerLayer: AVPlayerLayer { layer as! AVPlayerLayer }
+    private let player = AVPlayer()
+    private let output = AVPlayerItemVideoOutput(
+        pixelBufferAttributes: [kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)]
+    )
+    private let ciContext = CIContext()
+    private let keyFilter: CIFilter?
+    private var displayLink: CADisplayLink?
+    private var endObserver: NSObjectProtocol?
 
     init(url: URL) {
+        // Build the chroma-key filter up front; if CIColorCube is somehow
+        // unavailable we simply skip keying (video still plays) rather than crash.
+        let filter = CIFilter(name: "CIColorCube")
+        filter?.setValue(32, forKey: "inputCubeDimension")
+        filter?.setValue(Self.whiteKeyCubeData(dimension: 32), forKey: "inputCubeData")
+        self.keyFilter = filter
+
         super.init(frame: .zero)
-        isOpaque = false               // let the keyed-out background show the card through
+        isOpaque = false
         backgroundColor = .clear
+        layer.contentsGravity = .resizeAspect      // never stretch Pim
 
-        let asset = AVURLAsset(url: url)
-        let item = AVPlayerItem(asset: asset)
-        item.videoComposition = Self.chromaKeyComposition(for: asset)
+        // We render frames ourselves to `layer.contents` because AVPlayerLayer
+        // composites video over an opaque background and drops the alpha our
+        // chroma-key produces. A plain CALayer honors per-pixel alpha.
+        let item = AVPlayerItem(url: url)
+        item.add(output)
+        player.replaceCurrentItem(with: item)
+        player.isMuted = true
+        player.actionAtItemEnd = .none
 
-        looper = AVPlayerLooper(player: queuePlayer, templateItem: item)
-        queuePlayer.isMuted = true
-        playerLayer.player = queuePlayer
-        playerLayer.videoGravity = .resizeAspect
-        playerLayer.backgroundColor = UIColor.clear.cgColor
-        queuePlayer.play()
-    }
-
-    /// Per-frame composition that keys the near-white background to transparent
-    /// via a `CIColorCube` — Pim's saturated fur survives, the flat white drops out.
-    private static func chromaKeyComposition(for asset: AVAsset) -> AVVideoComposition {
-        let dimension = 32
-        let filter = CIFilter(name: "CIColorCube")!
-        filter.setValue(dimension, forKey: "inputCubeDimension")
-        filter.setValue(whiteKeyCubeData(dimension: dimension), forKey: "inputCubeData")
-        let context = CIContext()
-        return AVMutableVideoComposition(asset: asset) { request in
-            filter.setValue(request.sourceImage.clampedToExtent(), forKey: kCIInputImageKey)
-            let output = (filter.outputImage ?? request.sourceImage)
-                .cropped(to: request.sourceImage.extent)
-            request.finish(with: output, context: context)
+        // Seamless loop without AVPlayerLooper (which swaps items and would
+        // detach our video output).
+        endObserver = NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime, object: item, queue: .main
+        ) { [weak self] _ in
+            self?.player.seek(to: .zero)
+            self?.player.play()
         }
+
+        let link = CADisplayLink(target: self, selector: #selector(renderFrame))
+        link.add(to: .main, forMode: .common)
+        displayLink = link
+        player.play()
     }
 
-    /// Builds a premultiplied RGBA color cube: desaturated near-white → alpha 0
-    /// (feathered), everything else opaque. Saturation gate protects Pim's cream
-    /// belly and eye-shine from being punched out with the flat-white backdrop.
+    @objc private func renderFrame() {
+        guard let item = player.currentItem else { return }
+        let time = item.currentTime()
+        guard output.hasNewPixelBuffer(forItemTime: time),
+              let buffer = output.copyPixelBuffer(forItemTime: time, itemTimeForDisplay: nil)
+        else { return }
+
+        var image = CIImage(cvPixelBuffer: buffer)
+        if let keyFilter {
+            keyFilter.setValue(image, forKey: kCIInputImageKey)
+            image = keyFilter.outputImage ?? image
+        }
+        guard let cgImage = ciContext.createCGImage(image, from: image.extent) else { return }
+        layer.contents = cgImage
+    }
+
+    /// Premultiplied RGBA color cube: only *near-pure* white (bright AND
+    /// desaturated) keys to transparent, feathered at the edge. Pim's cream
+    /// belly (`min ≈ 0.92`) sits below the brightness gate, so it stays opaque —
+    /// only the flat white backdrop (`min ≈ 1.0`) is removed.
     private static func whiteKeyCubeData(dimension dim: Int) -> Data {
         func smoothstep(_ edge0: Float, _ edge1: Float, _ x: Float) -> Float {
             let t = min(max((x - edge0) / (edge1 - edge0), 0), 1)
@@ -770,10 +794,10 @@ private final class LoopingPlayerUIView: UIView {
                     let rf = Float(r) / n, gf = Float(g) / n, bf = Float(b) / n
                     let lo = min(rf, min(gf, bf)), hi = max(rf, max(gf, bf))
                     var alpha: Float = 1
-                    if (hi - lo) < 0.13 {                 // desaturated → candidate background
-                        alpha = 1 - smoothstep(0.78, 0.90, lo)
+                    if (hi - lo) < 0.09 && lo > 0.94 {     // bright + desaturated → backdrop only
+                        alpha = 1 - smoothstep(0.94, 0.995, lo)
                     }
-                    cube.append(rf * alpha)               // premultiplied
+                    cube.append(rf * alpha)                // premultiplied
                     cube.append(gf * alpha)
                     cube.append(bf * alpha)
                     cube.append(alpha)
@@ -781,6 +805,11 @@ private final class LoopingPlayerUIView: UIView {
             }
         }
         return cube.withUnsafeBufferPointer { Data(buffer: $0) }
+    }
+
+    deinit {
+        displayLink?.invalidate()
+        if let endObserver { NotificationCenter.default.removeObserver(endObserver) }
     }
 
     @available(*, unavailable)
