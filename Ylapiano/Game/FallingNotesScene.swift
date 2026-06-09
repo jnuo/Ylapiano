@@ -53,6 +53,12 @@ final class FallingNotesScene: SKScene {
     var beatsEnabled = false
     private var lastBeatTocked = -1
 
+    /// Fired once when the last bar has fallen past the line (+ a short tail),
+    /// off this scene's own clock. Drives the end-of-song result.
+    var onSongEnd: (() -> Void)?
+    private var endFired = false
+    private var maxHitBeat: Double = 0
+
     /// Set by SwiftUI from `PlayerViewModel`. While `playStartedAt` is non-nil
     /// the song is playing (elapsed advances live via `Date()`). While `nil`
     /// + `accumulatedBeforePause > 0` it is paused (elapsed is frozen).
@@ -166,6 +172,7 @@ final class FallingNotesScene: SKScene {
 
             scheduled.append(ScheduledNote(hitBeat: hitBeat, lengthBeats: lengthBeats, lane: lane, node: node))
         }
+        maxHitBeat = scheduled.map(\.hitBeat).max() ?? 0
     }
 
     /// Kept as a no-op for API compatibility. Stop / restart is now fully
@@ -197,6 +204,7 @@ final class FallingNotesScene: SKScene {
                 note.node.setScale(1)
                 note.node.alpha = 0
             }
+            endFired = false
         }
         lastElapsed = elapsed
 
@@ -206,17 +214,27 @@ final class FallingNotesScene: SKScene {
 
         // Metronome beat — fired off the SAME clock as the blocks below, so the
         // tock lands exactly when a note crosses the line. One tock per beat.
+        // Beats 0…leadIn-1 tick during the run-up — an audible count-in.
         let currentBeat = Int(elapsedBeats)
         if beatsEnabled && currentBeat > lastBeatTocked {
             lastBeatTocked = currentBeat
             AudioServicesPlaySystemSound(1104)
         }
 
+        // End of song: last bar has fallen past the line + a short tail.
+        let songEndBeat = maxHitBeat + HitJudge.leadInBeats + 2
+        if !endFired, !scheduled.isEmpty, elapsedBeats > songEndBeat {
+            endFired = true
+            onSongEnd?()
+        }
+
         for note in scheduled {
             // A celebrated note is mid-pop — leave its scale/alpha to the action.
             if poppedNodes.contains(ObjectIdentifier(note.node)) { continue }
 
-            let beatsUntilHit = note.hitBeat - elapsedBeats
+            // Lead-in: shift every bar later so note one has fall-time (the
+            // run-up). Must match HitJudge.leadInBeats so blocks + judging agree.
+            let beatsUntilHit = note.hitBeat + HitJudge.leadInBeats - elapsedBeats
             let timeUntilHit = beatsUntilHit * beatDuration
             let lengthInSeconds = note.lengthBeats * beatDuration
             let lengthInPixels = CGFloat(lengthInSeconds) * pixelsPerSecond

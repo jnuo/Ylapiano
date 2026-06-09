@@ -76,7 +76,8 @@ struct PlayerScreen: View {
                             accumulatedBeforePause: viewModel.accumulatedBeforePause,
                             bpm: viewModel.metronome.bpm,
                             lastHit: viewModel.lastHit,
-                            beatsEnabled: viewModel.playMetronome
+                            beatsEnabled: viewModel.playMetronome,
+                            onSongEnd: { viewModel.finishSong() }
                         )
                     }
                 }
@@ -190,6 +191,14 @@ struct PlayerScreen: View {
             // Mic permission prompt
             if viewModel.pitchDetector.permissionDenied {
                 micPermissionOverlay
+            }
+        }
+        .overlay {
+            // End-of-song result — the squirrel mascot + earned stars.
+            if viewModel.songFinished {
+                SongResultView(stars: viewModel.resultStars) {
+                    viewModel.replaySong()
+                }
             }
         }
     }
@@ -501,6 +510,67 @@ struct PlayerScreen: View {
                 .fill(.ultraThinMaterial)
         )
         .padding()
+    }
+}
+
+/// End-of-song result. The squirrel mascot bounces in, stars pop in one by
+/// one (filled = earned, always ≥1 — never a frown, never a number), and a big
+/// round button replays. Swap the mascot image for an OpenArt-generated pose /
+/// animation later — it's one asset. Art direction is Aiko's call, the
+/// celebration choreography Diego's; this is the working frame for both.
+private struct SongResultView: View {
+    let stars: Int
+    let onReplay: () -> Void
+
+    @State private var appear = false
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.4).ignoresSafeArea()
+
+            VStack(spacing: 24) {
+                Image("Mascot")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 160, height: 160)
+                    .scaleEffect(appear ? 1 : 0.4)
+                    .rotationEffect(.degrees(appear ? 0 : -8))
+
+                HStack(spacing: 16) {
+                    ForEach(0..<3, id: \.self) { index in
+                        Image(systemName: index < stars ? "star.fill" : "star")
+                            .font(.system(size: 52))
+                            .foregroundStyle(index < stars
+                                ? Color(red: 1.0, green: 0.78, blue: 0.20)
+                                : Color.white.opacity(0.4))
+                            .scaleEffect(appear ? 1 : 0.1)
+                            .animation(
+                                .spring(response: 0.4, dampingFraction: 0.55)
+                                    .delay(0.15 + Double(index) * 0.12),
+                                value: appear
+                            )
+                    }
+                }
+
+                Button(action: onReplay) {
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.system(size: 34, weight: .bold))
+                        .foregroundStyle(.white)
+                        .frame(width: 88, height: 88)
+                        .background(Circle().fill(Color(red: 0.97, green: 0.45, blue: 0.30)))
+                        .shadow(radius: 8, y: 4)
+                }
+                .accessibilityLabel("Play again")
+                .scaleEffect(appear ? 1 : 0.5)
+            }
+            .padding(40)
+            .background(RoundedRectangle(cornerRadius: 28).fill(.ultraThinMaterial))
+            .padding(40)
+            .scaleEffect(appear ? 1 : 0.85)
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.45, dampingFraction: 0.6)) { appear = true }
+        }
     }
 }
 

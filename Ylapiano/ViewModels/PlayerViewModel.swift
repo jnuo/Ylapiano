@@ -66,6 +66,13 @@ final class PlayerViewModel {
     var lastHit: HitEvent?
     private var hitEventCounter = 0
 
+    /// End-of-song result. `songFinished` drives the result overlay; the rest
+    /// is the frozen score to show (no numbers on screen — stars + a face).
+    var songFinished = false
+    private(set) var resultStars = 0
+    private(set) var resultRight = 0
+    private(set) var resultTotal = 0
+
     /// MIDI numbers currently in their brief "just pressed" visual state.
     /// Lifted out of `PianoKeyboardView` so tap gestures, MIDI events, and
     /// the future pitch-detection input all converge on one source of truth.
@@ -135,6 +142,41 @@ final class PlayerViewModel {
         hitJudge.reset()
         comboCount = 0
         lastJudgment = nil
+        songFinished = false
+    }
+
+    /// The song's last bar has fallen. Freeze the clock (so the metronome
+    /// stops), snapshot the score, and raise the result overlay. Called by the
+    /// falling-notes scene from its own clock — no dependency on abcjs.
+    func finishSong() {
+        guard isPlaying, !songFinished else { return }
+        if let started = playStartedAt {
+            accumulatedBeforePause += Date().timeIntervalSince(started)
+        }
+        playStartedAt = nil
+        isPlaying = false
+
+        resultTotal = hitJudge.totalNotes
+        resultRight = hitJudge.rightTaps
+        resultStars = Self.stars(right: resultRight, total: resultTotal)
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+            songFinished = true
+        }
+    }
+
+    /// Replay from the result screen.
+    func replaySong() {
+        songFinished = false
+        restart()
+    }
+
+    /// Stars from accuracy. Always at least 1 — we never show a kid zero.
+    private static func stars(right: Int, total: Int) -> Int {
+        guard total > 0 else { return 1 }
+        let ratio = Double(right) / Double(total)
+        if ratio >= 0.8 { return 3 }
+        if ratio >= 0.5 { return 2 }
+        return 1
     }
 
     func restart() {
@@ -309,6 +351,15 @@ final class HitJudge {
         static let hitMs = 600.0
     }
 
+    /// Beats of run-up before note one is due, so the first bar has fall-time
+    /// (you were always late because note one was due the instant play began).
+    /// 4 beats = ~two bars in 2/4 — the metronome counts you in during it.
+    /// Shared with `FallingNotesScene` so blocks + judging agree.
+    static let leadInBeats: Double = 4
+
+    /// Total judgeable notes in the song — the denominator for the end score.
+    var totalNotes: Int { hits.count }
+
     /// One strike opportunity: a note's ideal hit moment (in beats from t=0)
     /// and the white-key lane it belongs to.
     private struct ScheduledHit {
@@ -356,7 +407,7 @@ final class HitJudge {
         var bestDeltaMs = Double.greatestFiniteMagnitude
         for (index, hit) in hits.enumerated()
         where hit.lane == lane && !consumed.contains(index) {
-            let deltaMs = abs((hit.hitBeat - nowBeats) * beatDuration) * 1000
+            let deltaMs = abs((hit.hitBeat + Self.leadInBeats - nowBeats) * beatDuration) * 1000
             if deltaMs < bestDeltaMs {
                 bestDeltaMs = deltaMs
                 bestIndex = index
