@@ -1,5 +1,6 @@
 import SpriteKit
 import UIKit
+import AudioToolbox
 
 /// Falling-notes lane for a single song. Each note becomes a rounded coral
 /// rectangle in the lane that matches its pitch's white-key column on the
@@ -43,6 +44,14 @@ final class FallingNotesScene: SKScene {
     /// fresh play (detected via `lastElapsed` jumping backward) and on rebuild.
     private var poppedNodes: Set<ObjectIdentifier> = []
     private var lastElapsed: TimeInterval = 0
+
+    /// When true, the scene plays a metronome tock as each beat crosses — off
+    /// the SAME `elapsedBeats` that positions the blocks, so the beat you HEAR
+    /// and the block you SEE can't drift (they're one clock, one frame). This
+    /// replaces the old free-running `Timer` metronome that ran on its own
+    /// timebase. Scales with tempo automatically (elapsedBeats uses live bpm).
+    var beatsEnabled = false
+    private var lastBeatTocked = -1
 
     /// Set by SwiftUI from `PlayerViewModel`. While `playStartedAt` is non-nil
     /// the song is playing (elapsed advances live via `Date()`). While `nil`
@@ -173,6 +182,7 @@ final class FallingNotesScene: SKScene {
             for note in scheduled where note.node.alpha != 0 {
                 note.node.alpha = 0
             }
+            lastBeatTocked = -1
             return
         }
 
@@ -181,6 +191,7 @@ final class FallingNotesScene: SKScene {
         // reset its visual state so the song can be played again.
         if elapsed + 0.25 < lastElapsed {
             poppedNodes.removeAll()
+            lastBeatTocked = -1
             for note in scheduled {
                 note.node.removeAllActions()
                 note.node.setScale(1)
@@ -192,6 +203,14 @@ final class FallingNotesScene: SKScene {
         let bpm = max(currentBPM, 30)
         let beatDuration = 60.0 / Double(bpm)
         let elapsedBeats = elapsed / beatDuration
+
+        // Metronome beat — fired off the SAME clock as the blocks below, so the
+        // tock lands exactly when a note crosses the line. One tock per beat.
+        let currentBeat = Int(elapsedBeats)
+        if beatsEnabled && currentBeat > lastBeatTocked {
+            lastBeatTocked = currentBeat
+            AudioServicesPlaySystemSound(1104)
+        }
 
         for note in scheduled {
             // A celebrated note is mid-pop — leave its scale/alpha to the action.

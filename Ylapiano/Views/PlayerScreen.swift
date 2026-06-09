@@ -53,8 +53,13 @@ struct PlayerScreen: View {
                         isPlaying: viewModel.isPlaying,
                         isPaused: viewModel.isPaused,
                         bpm: viewModel.metronome.bpm,
-                        playNotes: viewModel.playNotes,
-                        playMetronome: viewModel.playMetronome,
+                        // In the falling-notes game the kid plays the melody and
+                        // the scene drives the beat (one clock, synced to the
+                        // blocks). Keep abcjs silent here so a second timebase
+                        // can't drift against the blocks — it still runs as the
+                        // timing cursor / end detector.
+                        playNotes: displayMode == .fallingNotes ? false : viewModel.playNotes,
+                        playMetronome: displayMode == .fallingNotes ? false : viewModel.playMetronome,
                         onNoteChange: { index in
                             viewModel.currentNoteIndex = index
                         },
@@ -70,7 +75,8 @@ struct PlayerScreen: View {
                             playStartedAt: viewModel.playStartedAt,
                             accumulatedBeforePause: viewModel.accumulatedBeforePause,
                             bpm: viewModel.metronome.bpm,
-                            lastHit: viewModel.lastHit
+                            lastHit: viewModel.lastHit,
+                            beatsEnabled: viewModel.playMetronome
                         )
                     }
                 }

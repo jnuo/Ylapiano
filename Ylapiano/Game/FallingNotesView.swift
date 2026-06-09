@@ -16,6 +16,8 @@ struct FallingNotesView: UIViewRepresentable {
     let bpm: Int
     /// Latest judged press; forwarded to the scene once per new `id`.
     let lastHit: HitEvent?
+    /// When true the scene plays the metronome beat (synced to the blocks).
+    let beatsEnabled: Bool
 
     func makeUIView(context: Context) -> SKView {
         let view = SKView()
@@ -33,6 +35,7 @@ struct FallingNotesView: UIViewRepresentable {
         scene.playStartedAt = playStartedAt
         scene.accumulatedBeforePause = accumulatedBeforePause
         scene.currentBPM = bpm
+        scene.beatsEnabled = beatsEnabled
 
         // Forward each new judged press into the scene exactly once.
         if let hit = lastHit, hit.id != context.coordinator.lastHitID {

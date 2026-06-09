@@ -2,10 +2,23 @@ import Foundation
 import SwiftData
 
 struct SeedData {
+    /// Titles we used to seed but have since cut. Pruned from any existing
+    /// store so the app shows only the one song in active use. (Re-add from git
+    /// history when the repertoire grows again.)
+    private static let retiredSeedTitles: Set<String> = [
+        "Hot Cross Buns", "Mary Had a Little Lamb", "Twinkle Twinkle Little Star",
+        "Old MacDonald", "Frère Jacques", "Deniz's Lullaby", "La Castanyera", "Sol Solet"
+    ]
+
     static func seedIfNeeded(context: ModelContext) {
         let descriptor = FetchDescriptor<Song>()
         let existing = (try? context.fetch(descriptor)) ?? []
         let existingByTitle = Dictionary(existing.map { ($0.title, $0) }, uniquingKeysWith: { first, _ in first })
+
+        // Remove the songs we no longer ship (leaves any user-added songs alone).
+        for song in existing where retiredSeedTitles.contains(song.title) {
+            context.delete(song)
+        }
 
         for seed in createSeedSongs() {
             if let current = existingByTitle[seed.title] {
@@ -18,20 +31,9 @@ struct SeedData {
     }
 
     static func createSeedSongs() -> [Song] {
-        // PLAN.md v1 repertoire first, then the original Catalan tunes that
-        // shipped before the falling-notes pivot. Order on the home screen
-        // matches this array.
-        let songs = [
-            hotCrossBuns(),
-            maryHadALittleLamb(),
-            twinkleTwinkleLittleStar(),
-            oldMacDonald(),
-            frereJacques(),
-            denizsLullaby(),
-            plimPlim(),
-            laCastanyera(),
-            solSolet()
-        ]
+        // One song while we get the falling-notes game right. The other tunes'
+        // builders are kept below (unused) so they're easy to bring back.
+        let songs = [plimPlim()]
         for (index, song) in songs.enumerated() {
             song.sortOrder = index
         }
