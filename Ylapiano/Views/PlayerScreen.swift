@@ -1,5 +1,7 @@
 import SwiftUI
 import AudioToolbox
+import AVKit
+import CoreImage
 import SwiftMIDIIO
 
 struct PlayerScreen: View {
@@ -16,7 +18,9 @@ struct PlayerScreen: View {
 
     /// Which top-panel view the user has chosen: the existing ABC sheet music
     /// (default) or the new Sprint 3 falling-notes lane.
-    @State private var displayMode: DisplayMode = .sheetMusic
+    // Falling-notes is the front door — the game IS the app, not a hidden tab.
+    // Sheet music stays available via the toolbar toggle.
+    @State private var displayMode: DisplayMode = .fallingNotes
     private enum DisplayMode { case sheetMusic, fallingNotes }
 
     /// 3-2-1-Go pre-roll. Non-`nil` means the overlay is on screen; while it
@@ -51,8 +55,13 @@ struct PlayerScreen: View {
                         isPlaying: viewModel.isPlaying,
                         isPaused: viewModel.isPaused,
                         bpm: viewModel.metronome.bpm,
-                        playNotes: viewModel.playNotes,
-                        playMetronome: viewModel.playMetronome,
+                        // In the falling-notes game the kid plays the melody and
+                        // the scene drives the beat (one clock, synced to the
+                        // blocks). Keep abcjs silent here so a second timebase
+                        // can't drift against the blocks — it still runs as the
+                        // timing cursor / end detector.
+                        playNotes: displayMode == .fallingNotes ? false : viewModel.playNotes,
+                        playMetronome: displayMode == .fallingNotes ? false : viewModel.playMetronome,
                         onNoteChange: { index in
                             viewModel.currentNoteIndex = index
                         },
@@ -67,7 +76,10 @@ struct PlayerScreen: View {
                             song: song,
                             playStartedAt: viewModel.playStartedAt,
                             accumulatedBeforePause: viewModel.accumulatedBeforePause,
-                            bpm: viewModel.metronome.bpm
+                            bpm: viewModel.metronome.bpm,
+                            lastHit: viewModel.lastHit,
+                            beatsEnabled: viewModel.playMetronome,
+                            onSongEnd: { viewModel.finishSong() }
                         )
                     }
                 }
@@ -90,12 +102,18 @@ struct PlayerScreen: View {
                 useSolfege: viewModel.useSolfege,
                 highlightedNote: viewModel.pitchDetector.detectedNote,
                 highlightedOctave: viewModel.pitchDetector.detectedOctave,
-                // Only hint the "expected" key while a song is actively playing;
-                // otherwise the yellow glow sits on whatever note the cursor
-                // last landed on and looks like a stuck UI bug.
-                expectedNote: viewModel.isActive ? viewModel.currentNote : nil,
+                // Falling-notes mode now glows the target key off the SAME clock
+                // as the bars (`guidanceNote`, sampled from `elapsedSeconds` +
+                // lead-in) — the synced rung-1/2 guidance the ladder calls for.
+                // Rung 3 dims it (`guidanceOpacity`), rung 4 turns it off
+                // (`guidanceNote` stays nil). Sheet-music mode keeps the abcjs
+                // cursor's `currentNote` glow as before.
+                expectedNote: displayMode == .fallingNotes
+                    ? viewModel.guidanceNote
+                    : (viewModel.isActive ? viewModel.currentNote : nil),
                 isCorrect: viewModel.lastDetectionCorrect,
                 guidedMode: viewModel.guidedMode,
+                guidanceOpacity: viewModel.currentRung.guidance.glowOpacity ?? 0.35,
                 onKeyTap: { pitch in
                     viewModel.handleKeyPressed(pitch, sampler: sampler)
                 },
@@ -150,8 +168,24 @@ struct PlayerScreen: View {
         // trip is unreliable enough to leave the overlay stuck on first run.
         // When we re-introduce a "Listen mode" the request will fire on the
         // toggle, not on view appear.
+        .onAppear {
+            // Pre-render this song's tones so the first strike of each note
+            // doesn't synthesize a buffer inline mid-play (first-touch hitch).
+            // Distinct pitches only; tap velocity defaults to 100.
+            let pitches = Set(song.notes.map { Pitch(solfege: $0.solfege, octave: $0.octave) })
+            sampler.prewarm(Array(pitches))
+            viewModel.fallingNotesActive = (displayMode == .fallingNotes)
+            // Gameplay is landscape — the keyboard needs the width. The rest of
+            // the app stays free-rotating; we restore that on the way out.
+            OrientationGate.lockLandscape()
+        }
+        .onChange(of: displayMode) { _, newMode in
+            // Only judge taps as hits while the falling-notes panel is showing.
+            viewModel.fallingNotesActive = (newMode == .fallingNotes)
+        }
         .onDisappear {
             viewModel.stopPlaying()
+            OrientationGate.unlock()   // back to free rotation outside gameplay
         }
         .onChange(of: viewModel.pitchDetector.detectedNote) { _, _ in
             viewModel.checkDetectedNote()
@@ -169,6 +203,22 @@ struct PlayerScreen: View {
             // Mic permission prompt
             if viewModel.pitchDetector.permissionDenied {
                 micPermissionOverlay
+            }
+        }
+        .overlay {
+            // End-of-song result — the squirrel mascot + earned stars, and (on
+            // a clean 3-star run) the climb-a-rung offer. Celebrate + replay,
+            // nothing a 5yo has to read. (Near-miss report cut — Defne: it's an
+            // adult deliberate-practice model; parked to the upper rungs.)
+            if viewModel.songFinished {
+                SongResultView(
+                    stars: viewModel.resultStars,
+                    rungName: viewModel.currentRung.name,
+                    canClimb: viewModel.canClimb,
+                    climbLabel: viewModel.climbLabel,
+                    onReplay: { viewModel.replaySong() },
+                    onClimb: { viewModel.climbRung() }
+                )
             }
         }
     }
@@ -481,6 +531,289 @@ struct PlayerScreen: View {
         )
         .padding()
     }
+}
+
+/// End-of-song result — a celebration, not a static card. The squirrel reacts,
+/// the earned stars pop in ONE AT A TIME, and a perfect 3/3 fires a sparkle
+/// burst + a mascot wiggle. The mascot pose swaps per result: drop an
+/// OpenArt-generated **"MascotCheer"** (thumbs-up / high-five squirrel) into
+/// Assets and it shows for 3 stars — falls back to the normal "Mascot" until
+/// then. Stars never drop below 1; never a frown. Honors Reduce Motion.
+private struct SongResultView: View {
+    let stars: Int
+    /// The rung just played, e.g. "Find the beat" — names where the player is
+    /// on the ladder without numbers a 5yo can't read.
+    let rungName: String
+    /// A clean 3-star run with a rung above → offer the climb. The headline CTA
+    /// becomes "Faster!" / "Lights off!"; replay stays available beside it.
+    let canClimb: Bool
+    let climbLabel: String
+    let onReplay: () -> Void
+    let onClimb: () -> Void
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    @State private var card = false        // card + mascot enter
+    @State private var revealed = 0        // earned stars shown so far
+    @State private var celebrate = false   // 3/3 sparkle burst
+    @State private var burst: CGFloat = 0  // 0→1 drives the burst outward
+    @State private var wiggle = false      // mascot reaction on a perfect run
+
+    private let gold = Color(red: 1.0, green: 0.78, blue: 0.20)
+    private let coral = Color(red: 0.97, green: 0.45, blue: 0.30)
+    private var perfect: Bool { stars >= 3 }
+
+    private let cream = Color(red: 1.0, green: 0.97, blue: 0.93)
+
+    /// Per-tier reward clip — Pim reacts to how the kid did (1★ = "hmm, again!",
+    /// 2★ = clap, 3★ = jump-cheer). Looks up `PimResult1/2/3.mp4` in the bundle;
+    /// `nil` until that asset is added, so the still fallback below keeps working.
+    private var tierVideoURL: URL? {
+        Bundle.main.url(forResource: "PimResult\(min(max(stars, 1), 3))", withExtension: "mp4")
+    }
+
+    /// Still fallback (reduced motion, or before the clips are bundled). 3/3
+    /// swaps to a cheer pose if that asset exists; otherwise the default squirrel.
+    private var mascotImage: UIImage {
+        let name = perfect ? "MascotCheer" : "Mascot"
+        return UIImage(named: name) ?? UIImage(named: "Mascot") ?? UIImage()
+    }
+
+    var body: some View {
+        ZStack {
+            Color.black.opacity(0.4).ignoresSafeArea()
+
+            VStack(spacing: 24) {
+                ZStack {
+                    if celebrate {
+                        ForEach(0..<10, id: \.self) { i in
+                            let angle = Double(i) / 10 * 2 * .pi
+                            Image(systemName: "sparkle")
+                                .font(.system(size: 20))
+                                .foregroundStyle(gold)
+                                .offset(x: cos(angle) * 95 * burst, y: sin(angle) * 95 * burst)
+                                .opacity(Double(1 - burst))
+                                .scaleEffect(0.3 + burst)
+                        }
+                    }
+                    Group {
+                        // Reward clip when bundled + motion allowed; the white-bg
+                        // video sits in a cream rounded "stage" so its edges blend
+                        // into the app's cream palette instead of reading as a box.
+                        if let url = tierVideoURL, !reduceMotion {
+                            // White background is chroma-keyed out in the player,
+                            // so Pim floats transparently on the card.
+                            LoopingVideoView(url: url)
+                                .frame(width: 170, height: 170)
+                        } else {
+                            Image(uiImage: mascotImage)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 170, height: 170)
+                        }
+                    }
+                    .scaleEffect(card ? (celebrate ? 1.08 : 1) : 0.4)
+                    .rotationEffect(.degrees(wiggle ? 5 : (card ? 0 : -8)))
+                }
+
+                Text(rungName.uppercased())
+                    .font(.system(.caption, design: .rounded, weight: .heavy))
+                    .tracking(1.5)
+                    .foregroundStyle(.white.opacity(0.85))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 5)
+                    .background(Capsule().fill(.white.opacity(0.18)))
+                    .opacity(card ? 1 : 0)
+
+                HStack(spacing: 18) {
+                    ForEach(0..<3, id: \.self) { index in
+                        let earned = index < stars
+                        let shown = index < revealed
+                        Image(systemName: earned ? "star.fill" : "star")
+                            .font(.system(size: 56))
+                            .foregroundStyle(earned ? gold : Color.white.opacity(0.35))
+                            .scaleEffect(earned ? (shown ? 1 : 0.1) : 1)
+                            .opacity(earned ? (shown ? 1 : 0) : 0.6)
+                            .rotationEffect(.degrees(earned && !shown ? -40 : 0))
+                    }
+                }
+
+                // Action row. On a clean 3-star run the headline becomes the
+                // climb ("Faster!" / "Lights off!"); replay is always there too.
+                HStack(spacing: 20) {
+                    Button(action: onReplay) {
+                        Image(systemName: "arrow.counterclockwise")
+                            .font(.system(size: 30, weight: .bold))
+                            .foregroundStyle(.white)
+                            .frame(width: 76, height: 76)
+                            .background(Circle().fill(canClimb ? Color.white.opacity(0.22) : coral))
+                            .shadow(radius: 8, y: 4)
+                    }
+                    .accessibilityLabel("Play again")
+
+                    if canClimb {
+                        Button(action: onClimb) {
+                            HStack(spacing: 10) {
+                                Image(systemName: climbLabel == "Lights off!" ? "lightbulb.slash.fill" : "hare.fill")
+                                Text(climbLabel)
+                                    .font(.system(.title3, design: .rounded, weight: .heavy))
+                            }
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 26)
+                            .frame(height: 76)
+                            .background(Capsule().fill(coral))
+                            .shadow(radius: 8, y: 4)
+                        }
+                        .accessibilityLabel(climbLabel)
+                        .scaleEffect(celebrate ? 1.04 : 1)
+                    }
+                }
+                .scaleEffect(card ? 1 : 0.5)
+            }
+            .padding(40)
+            .background(RoundedRectangle(cornerRadius: 28).fill(.ultraThinMaterial))
+            .padding(40)
+            .scaleEffect(card ? 1 : 0.85)
+        }
+        .task { await runSequence() }
+    }
+
+    @MainActor
+    private func runSequence() async {
+        guard !reduceMotion else {
+            card = true
+            revealed = stars
+            celebrate = perfect
+            burst = 0           // no motion burst in reduced mode
+            return
+        }
+        withAnimation(.spring(response: 0.45, dampingFraction: 0.6)) { card = true }
+        try? await Task.sleep(for: .milliseconds(320))
+        // Reveal earned stars one at a time — pop, beat, pop, beat.
+        for i in 1...max(stars, 1) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.45)) { revealed = i }
+            try? await Task.sleep(for: .milliseconds(340))
+        }
+        guard perfect else { return }
+        // Perfect run: sparkle burst + a happy wiggle.
+        celebrate = true
+        withAnimation(.easeOut(duration: 0.7)) { burst = 1 }
+        withAnimation(.easeInOut(duration: 0.12).repeatCount(6, autoreverses: true)) { wiggle = true }
+    }
+}
+
+/// Plays a bundled clip on a seamless loop, muted, scaled to fit (so Pim is
+/// never stretched). Used for the per-tier reward video in `SongResultView`.
+/// Muted because the reward sound is a separate, layered SFX (Khalid's lane),
+/// not the clip's own audio. Honors Reduce Motion at the call site (the view is
+/// only mounted when motion is allowed).
+private struct LoopingVideoView: UIViewRepresentable {
+    let url: URL
+    func makeUIView(context: Context) -> LoopingPlayerUIView { LoopingPlayerUIView(url: url) }
+    func updateUIView(_ uiView: LoopingPlayerUIView, context: Context) {}
+}
+
+private final class LoopingPlayerUIView: UIView {
+    private let player = AVPlayer()
+    private let output = AVPlayerItemVideoOutput(
+        pixelBufferAttributes: [kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)]
+    )
+    private let ciContext = CIContext()
+    private let keyFilter: CIFilter?
+    private var displayLink: CADisplayLink?
+    private var endObserver: NSObjectProtocol?
+
+    init(url: URL) {
+        // Build the chroma-key filter up front; if CIColorCube is somehow
+        // unavailable we simply skip keying (video still plays) rather than crash.
+        let filter = CIFilter(name: "CIColorCube")
+        filter?.setValue(32, forKey: "inputCubeDimension")
+        filter?.setValue(Self.whiteKeyCubeData(dimension: 32), forKey: "inputCubeData")
+        self.keyFilter = filter
+
+        super.init(frame: .zero)
+        isOpaque = false
+        backgroundColor = .clear
+        layer.contentsGravity = .resizeAspect      // never stretch Pim
+
+        // We render frames ourselves to `layer.contents` because AVPlayerLayer
+        // composites video over an opaque background and drops the alpha our
+        // chroma-key produces. A plain CALayer honors per-pixel alpha.
+        let item = AVPlayerItem(url: url)
+        item.add(output)
+        player.replaceCurrentItem(with: item)
+        player.isMuted = true
+        player.actionAtItemEnd = .none
+
+        // Seamless loop without AVPlayerLooper (which swaps items and would
+        // detach our video output).
+        endObserver = NotificationCenter.default.addObserver(
+            forName: .AVPlayerItemDidPlayToEndTime, object: item, queue: .main
+        ) { [weak self] _ in
+            self?.player.seek(to: .zero)
+            self?.player.play()
+        }
+
+        let link = CADisplayLink(target: self, selector: #selector(renderFrame))
+        link.add(to: .main, forMode: .common)
+        displayLink = link
+        player.play()
+    }
+
+    @objc private func renderFrame() {
+        guard let item = player.currentItem else { return }
+        let time = item.currentTime()
+        guard output.hasNewPixelBuffer(forItemTime: time),
+              let buffer = output.copyPixelBuffer(forItemTime: time, itemTimeForDisplay: nil)
+        else { return }
+
+        var image = CIImage(cvPixelBuffer: buffer)
+        if let keyFilter {
+            keyFilter.setValue(image, forKey: kCIInputImageKey)
+            image = keyFilter.outputImage ?? image
+        }
+        guard let cgImage = ciContext.createCGImage(image, from: image.extent) else { return }
+        layer.contents = cgImage
+    }
+
+    /// Premultiplied RGBA color cube: only *near-pure* white (bright AND
+    /// desaturated) keys to transparent, feathered at the edge. Pim's cream
+    /// belly (`min ≈ 0.92`) sits below the brightness gate, so it stays opaque —
+    /// only the flat white backdrop (`min ≈ 1.0`) is removed.
+    private static func whiteKeyCubeData(dimension dim: Int) -> Data {
+        func smoothstep(_ edge0: Float, _ edge1: Float, _ x: Float) -> Float {
+            let t = min(max((x - edge0) / (edge1 - edge0), 0), 1)
+            return t * t * (3 - 2 * t)
+        }
+        var cube = [Float]()
+        cube.reserveCapacity(dim * dim * dim * 4)
+        let n = Float(dim - 1)
+        for b in 0..<dim {
+            for g in 0..<dim {
+                for r in 0..<dim {
+                    let rf = Float(r) / n, gf = Float(g) / n, bf = Float(b) / n
+                    let lo = min(rf, min(gf, bf)), hi = max(rf, max(gf, bf))
+                    var alpha: Float = 1
+                    if (hi - lo) < 0.09 && lo > 0.94 {     // bright + desaturated → backdrop only
+                        alpha = 1 - smoothstep(0.94, 0.995, lo)
+                    }
+                    cube.append(rf * alpha)                // premultiplied
+                    cube.append(gf * alpha)
+                    cube.append(bf * alpha)
+                    cube.append(alpha)
+                }
+            }
+        }
+        return cube.withUnsafeBufferPointer { Data(buffer: $0) }
+    }
+
+    deinit {
+        displayLink?.invalidate()
+        if let endObserver { NotificationCenter.default.removeObserver(endObserver) }
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
 }
 
 #Preview {

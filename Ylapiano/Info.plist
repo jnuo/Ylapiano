@@ -6,8 +6,6 @@
 	<array>
 		<string>NotoMusic-Regular.ttf</string>
 	</array>
-	<key>UIRequiresFullScreen</key>
-	<true/>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

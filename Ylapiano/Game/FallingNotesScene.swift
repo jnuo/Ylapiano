@@ -1,4 +1,6 @@
 import SpriteKit
+import UIKit
+import AudioToolbox
 
 /// Falling-notes lane for a single song. Each note becomes a rounded coral
 /// rectangle in the lane that matches its pitch's white-key column on the
@@ -36,6 +38,26 @@ final class FallingNotesScene: SKScene {
     }
 
     private var scheduled: [ScheduledNote] = []
+
+    /// Nodes already celebrated this play-through — skipped by `update` so the
+    /// pop animation isn't fought by per-frame repositioning. Cleared on a
+    /// fresh play (detected via `lastElapsed` jumping backward) and on rebuild.
+    private var poppedNodes: Set<ObjectIdentifier> = []
+    private var lastElapsed: TimeInterval = 0
+
+    /// When true, the scene plays a metronome tock as each beat crosses — off
+    /// the SAME `elapsedBeats` that positions the blocks, so the beat you HEAR
+    /// and the block you SEE can't drift (they're one clock, one frame). This
+    /// replaces the old free-running `Timer` metronome that ran on its own
+    /// timebase. Scales with tempo automatically (elapsedBeats uses live bpm).
+    var beatsEnabled = false
+    private var lastBeatTocked = -1
+
+    /// Fired once when the last bar has fallen past the line (+ a short tail),
+    /// off this scene's own clock. Drives the end-of-song result.
+    var onSongEnd: (() -> Void)?
+    private var endFired = false
+    private var maxHitBeat: Double = 0
 
     /// Set by SwiftUI from `PlayerViewModel`. While `playStartedAt` is non-nil
     /// the song is playing (elapsed advances live via `Date()`). While `nil`
@@ -88,6 +110,7 @@ final class FallingNotesScene: SKScene {
     private func rebuildLayout() {
         removeAllChildren()
         scheduled.removeAll()
+        poppedNodes.removeAll()
         drawLaneGrid()
         drawHitLine()
         buildScheduledNotes()
@@ -149,6 +172,7 @@ final class FallingNotesScene: SKScene {
 
             scheduled.append(ScheduledNote(hitBeat: hitBeat, lengthBeats: lengthBeats, lane: lane, node: node))
         }
+        maxHitBeat = scheduled.map(\.hitBeat).max() ?? 0
     }
 
     /// Kept as a no-op for API compatibility. Stop / restart is now fully
@@ -165,15 +189,52 @@ final class FallingNotesScene: SKScene {
             for note in scheduled where note.node.alpha != 0 {
                 note.node.alpha = 0
             }
+            lastBeatTocked = -1
             return
         }
 
+        let elapsed = elapsedSeconds
+        // Fresh play / replay: elapsed jumps backward. Un-pop every note and
+        // reset its visual state so the song can be played again.
+        if elapsed + 0.25 < lastElapsed {
+            poppedNodes.removeAll()
+            lastBeatTocked = -1
+            for note in scheduled {
+                note.node.removeAllActions()
+                note.node.setScale(1)
+                note.node.alpha = 0
+            }
+            endFired = false
+        }
+        lastElapsed = elapsed
+
         let bpm = max(currentBPM, 30)
         let beatDuration = 60.0 / Double(bpm)
-        let elapsedBeats = elapsedSeconds / beatDuration
+        let elapsedBeats = elapsed / beatDuration
+
+        // Metronome beat — fired off the SAME clock as the blocks below, so the
+        // tock lands exactly when a note crosses the line. One tock per beat.
+        // Beats 0…leadIn-1 tick during the run-up — an audible count-in.
+        let currentBeat = Int(elapsedBeats)
+        if beatsEnabled && currentBeat > lastBeatTocked {
+            lastBeatTocked = currentBeat
+            AudioServicesPlaySystemSound(1104)
+        }
+
+        // End of song: last bar has fallen past the line + a short tail.
+        let songEndBeat = maxHitBeat + HitJudge.leadInBeats + 2
+        if !endFired, !scheduled.isEmpty, elapsedBeats > songEndBeat {
+            endFired = true
+            onSongEnd?()
+        }
 
         for note in scheduled {
-            let beatsUntilHit = note.hitBeat - elapsedBeats
+            // A celebrated note is mid-pop — leave its scale/alpha to the action.
+            if poppedNodes.contains(ObjectIdentifier(note.node)) { continue }
+
+            // Lead-in: shift every bar later so note one has fall-time (the
+            // run-up). Must match HitJudge.leadInBeats so blocks + judging agree.
+            let beatsUntilHit = note.hitBeat + HitJudge.leadInBeats - elapsedBeats
             let timeUntilHit = beatsUntilHit * beatDuration
             let lengthInSeconds = note.lengthBeats * beatDuration
             let lengthInPixels = CGFloat(lengthInSeconds) * pixelsPerSecond
@@ -188,6 +249,78 @@ final class FallingNotesScene: SKScene {
             // Center Y so the rectangle's BOTTOM crosses y=0 exactly at hitBeat.
             let centerY = lengthInPixels / 2 + CGFloat(timeUntilHit) * pixelsPerSecond
             note.node.position = CGPoint(x: note.node.position.x, y: centerY)
+        }
+    }
+
+    // MARK: - Hit juice
+
+    /// Celebrate a judged press: pop the note nearest the line in `lane`, burst
+    /// particles, escalate with `combo`. MISS does nothing (soft — never
+    /// punished). Honors Reduce Motion. Spec: hit-juice-spec.md.
+    func registerHit(lane: Int, judgment: HitJudgment, combo: Int) {
+        guard judgment != .miss else { return }
+
+        let node = scheduled
+            .filter {
+                $0.lane == lane
+                    && $0.node.alpha > 0.5
+                    && !poppedNodes.contains(ObjectIdentifier($0.node))
+            }
+            .min { abs($0.node.position.y) < abs($1.node.position.y) }?
+            .node
+        guard let node else { return }
+
+        let reduced = UIAccessibility.isReduceMotionEnabled
+        let perfect = (judgment == .perfect)
+        popNote(node, perfect: perfect, reduced: reduced)
+
+        guard !reduced else { return }
+        let laneWidth = size.width / CGFloat(laneCount)
+        let point = CGPoint(x: laneWidth * (CGFloat(lane) + 0.5), y: 10)
+        let base = perfect ? 10 : 6
+        let bonus = min(max(combo - 1, 0), 6)                 // streak adds up to +6
+        emitSparkles(at: point, count: min(base + bonus, 14), gold: perfect || combo >= 6)
+    }
+
+    private func popNote(_ node: SKShapeNode, perfect: Bool, reduced: Bool) {
+        poppedNodes.insert(ObjectIdentifier(node))
+        node.removeAllActions()
+        if reduced {
+            node.run(.fadeOut(withDuration: 0.18))            // calm, scale-free
+            return
+        }
+        let squash = SKAction.scaleX(to: 1.15, y: 0.8, duration: 0.07)
+        squash.timingMode = .easeOut
+        let hitPause = SKAction.wait(forDuration: 0.045)      // freeze target only (Sakurai)
+        let pop = SKAction.group([
+            SKAction.scale(to: perfect ? 1.45 : 1.3, duration: 0.15),
+            SKAction.fadeOut(withDuration: 0.15)
+        ])
+        pop.timingMode = .easeOut
+        node.run(.sequence([squash, hitPause, pop]))
+    }
+
+    private func emitSparkles(at point: CGPoint, count: Int, gold: Bool) {
+        let coral = SKColor(red: 0.97, green: 0.45, blue: 0.30, alpha: 1)
+        let goldColor = SKColor(red: 1.0, green: 0.82, blue: 0.32, alpha: 1)
+        for _ in 0..<count {
+            let dot = SKShapeNode(circleOfRadius: CGFloat.random(in: 2...4.5))
+            dot.fillColor = (gold && Bool.random()) ? goldColor : coral
+            dot.strokeColor = .clear
+            dot.position = point
+            dot.zPosition = 20
+            addChild(dot)
+            let angle = CGFloat.random(in: 0 ..< (2 * .pi))
+            let dist = CGFloat.random(in: 18...42)
+            let move = SKAction.move(
+                by: CGVector(dx: cos(angle) * dist, dy: sin(angle) * dist + 14),
+                duration: 0.3
+            )
+            move.timingMode = .easeOut
+            dot.run(.sequence([
+                .group([move, .fadeOut(withDuration: 0.3)]),
+                .removeFromParent()
+            ]))
         }
     }
 }

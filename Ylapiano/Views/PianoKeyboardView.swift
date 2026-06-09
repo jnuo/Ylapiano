@@ -7,6 +7,10 @@ struct PianoKeyboardView: View {
     let expectedNote: NoteEntry?
     let isCorrect: Bool?
     let guidedMode: Bool
+    /// Opacity of the "play this next" yellow glow. The mastery ladder dims it
+    /// as guidance fades (rung 3) before turning it off entirely (rung 4, where
+    /// `expectedNote` is simply nil). Defaults to the original full strength.
+    var guidanceOpacity: Double = 0.35
     /// Called when the user taps a key. Receives a typed `Pitch` so callers
     /// (sampler, future MIDI input, falling-notes scene) share one currency
     /// instead of bare MIDI integers. Default no-op keeps existing call
@@ -89,7 +93,7 @@ struct PianoKeyboardView: View {
             }
             if isPressed { return Color(white: 0.82) }
             if isExpected && !isHighlighted {
-                return Color.yellow.opacity(0.35)
+                return Color.yellow.opacity(guidanceOpacity)
             }
             return .white
         }()

@@ -38,6 +38,9 @@
 		AD000020 /* NotoMusic-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = AD000021 /* NotoMusic-Regular.ttf */; };
 		B00000030000000000000003 /* SwiftMIDIIO in Frameworks */ = {isa = PBXBuildFile; productRef = B00000020000000000000002 /* SwiftMIDIIO */; };
 		D9D9DB8B5A55104679BB27D9 /* abcjs-basic-min.js in Resources */ = {isa = PBXBuildFile; fileRef = AD646997735A00E870EDCD9B /* abcjs-basic-min.js */; };
+		AE000101 /* PimResult1.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = AE000111 /* PimResult1.mp4 */; };
+		AE000102 /* PimResult2.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = AE000112 /* PimResult2.mp4 */; };
+		AE000103 /* PimResult3.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = AE000113 /* PimResult3.mp4 */; };
 		EA112EAB9027B0A007DF32C5 /* ABCMusicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD5B0BBB0B3A88D01FCEF984 /* ABCMusicView.swift */; };
 /* End PBXBuildFile section */
 
@@ -75,6 +78,9 @@
 		AD000021 /* NotoMusic-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = "NotoMusic-Regular.ttf"; path = "Resources/Fonts/NotoMusic-Regular.ttf"; sourceTree = "<group>"; };
 		AD5B0BBB0B3A88D01FCEF984 /* ABCMusicView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ABCMusicView.swift; sourceTree = "<group>"; };
 		AD646997735A00E870EDCD9B /* abcjs-basic-min.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = "abcjs-basic-min.js"; sourceTree = "<group>"; };
+		AE000111 /* PimResult1.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PimResult1.mp4"; path = "Resources/Reward/PimResult1.mp4"; sourceTree = "<group>"; };
+		AE000112 /* PimResult2.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PimResult2.mp4"; path = "Resources/Reward/PimResult2.mp4"; sourceTree = "<group>"; };
+		AE000113 /* PimResult3.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PimResult3.mp4"; path = "Resources/Reward/PimResult3.mp4"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,6 +118,9 @@
 				95ECB0758B48796D0194CE14 /* MusicNotation.html */,
 				AD646997735A00E870EDCD9B /* abcjs-basic-min.js */,
 				AD000021 /* NotoMusic-Regular.ttf */,
+				AE000111 /* PimResult1.mp4 */,
+				AE000112 /* PimResult2.mp4 */,
+				AE000113 /* PimResult3.mp4 */,
 			);
 			path = Ylapiano;
 			sourceTree = "<group>";
@@ -253,6 +262,9 @@
 				5CA827276D9F72A4E3CED352 /* MusicNotation.html in Resources */,
 				D9D9DB8B5A55104679BB27D9 /* abcjs-basic-min.js in Resources */,
 				AD000020 /* NotoMusic-Regular.ttf in Resources */,
+				AE000101 /* PimResult1.mp4 in Resources */,
+				AE000102 /* PimResult2.mp4 in Resources */,
+				AE000103 /* PimResult3.mp4 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -354,7 +366,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_ASSET_PATHS = "\"Ylapiano/Preview Content\"";
 				DEVELOPMENT_TEAM = K6QC8Q3253;
 				ENABLE_PREVIEWS = YES;
@@ -366,13 +378,13 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIStatusBarHidden = NO;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.5;
+				MARKETING_VERSION = 1.4.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ylapiano.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
@@ -389,7 +401,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
+				CURRENT_PROJECT_VERSION = 6;
 				DEVELOPMENT_ASSET_PATHS = "\"Ylapiano/Preview Content\"";
 				DEVELOPMENT_TEAM = K6QC8Q3253;
 				ENABLE_PREVIEWS = YES;
@@ -401,13 +413,13 @@
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UIStatusBarHidden = NO;
-				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.3.5;
+				MARKETING_VERSION = 1.4.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.ylapiano.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
