@@ -1,5 +1,24 @@
 # Release Notes
 
+## v1.4.6 (build 6) — 2026-06-10
+
+### Features
+
+- Single-song mastery ladder: the same song now has 4 rungs that scale tempo, guidance, and timing strictness together (50bpm/glow-on/±600ms for a 5yo floor → 120bpm/no-glow/±150ms for adult mastery). 3-star a rung to be offered the next one ("Faster!" / "Lights off!"); never forced up, never punished down (#6)
+- Synced key-glow guidance returns in falling-notes mode, driven off the same clock as the falling blocks (no more drift), and dims/turns off as you climb (#6)
+- End-of-song reward videos: per-tier Pim animations play in the result card — 1★ a thoughtful "hmm… try again!", 2★ a clap, 3★ a jump-cheer. White backgrounds are chroma-keyed out so Pim floats; still image + reduced-motion fallbacks (#6)
+- Gameplay now locks to landscape (the keyboard needs the width) while the rest of the app rotates freely (#6)
+
+### Bug Fixes
+
+- Result screen no longer shows a hard-to-parse "practice these notes" report to young non-readers — it's celebrate + replay (the near-miss report is parked for the adult-tier rungs) (#6)
+
+### Other
+
+- Support all interface orientations and drop `UIRequiresFullScreen` (iPad multitasking requirement; clears the deprecation warnings) (#6)
+- New project skills: `add-song` (transcribe a real song into the game's note format) and `pim-reward-assets` (generate Pim's tier poses + videos via OpenArt) (#6)
+- Single-song product brief, design spec, and backlog added under `product/` and `docs/` (#6)
+
 ## v1.3.5 (build 5) — 2026-06-08
 
 ### Features
