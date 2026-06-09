@@ -67,7 +67,8 @@ struct PlayerScreen: View {
                             song: song,
                             playStartedAt: viewModel.playStartedAt,
                             accumulatedBeforePause: viewModel.accumulatedBeforePause,
-                            bpm: viewModel.metronome.bpm
+                            bpm: viewModel.metronome.bpm,
+                            lastHit: viewModel.lastHit
                         )
                     }
                 }

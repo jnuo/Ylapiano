@@ -61,6 +61,11 @@ final class PlayerViewModel {
     /// sheet-music mode aren't judged and notes aren't consumed.
     var fallingNotesActive = false
 
+    /// Latest celebration for the falling-notes view to forward into the scene.
+    /// `id` increments per hit so the view tells a new event from a re-render.
+    var lastHit: HitEvent?
+    private var hitEventCounter = 0
+
     /// MIDI numbers currently in their brief "just pressed" visual state.
     /// Lifted out of `PianoKeyboardView` so tap gestures, MIDI events, and
     /// the future pitch-detection input all converge on one source of truth.
@@ -202,24 +207,28 @@ final class PlayerViewModel {
         // Falling-notes hit detection. Only judge while the game panel is the
         // active mode and playing, so sheet-music taps don't consume notes.
         // Right key is required for a celebration; timing only separates
-        // PERFECT from HIT. The visual + audio juice consume `lastJudgment`.
+        // PERFECT from HIT. Visual juice consumes `lastHit`; audio sparkle fires
+        // here off the same outcome.
         guard fallingNotesActive, isPlaying else { return }
-        applyJudgment(hitJudge.judge(
-            pitch: pitch,
-            elapsedSeconds: elapsedSeconds,
-            bpm: metronome.bpm
-        ))
+        let judgment = hitJudge.judge(pitch: pitch, elapsedSeconds: elapsedSeconds, bpm: metronome.bpm)
+        applyJudgment(judgment, pitch: pitch)
+        if judgment != .miss {
+            sampler.playSparkle(base: pitch, comboStep: comboCount - 1, perfect: judgment == .perfect)
+        }
     }
 
-    /// Fold a press outcome into combo state and expose it for the juice
-    /// layer. Logs the running right/miss tally — the mashing-vs-learning
+    /// Fold a press outcome into combo state, publish the celebration event for
+    /// the scene, and log the running right/miss tally — the mashing-vs-learning
     /// curve the playtest protocol reads straight off the console.
-    private func applyJudgment(_ judgment: HitJudgment) {
-        lastJudgment = judgment
+    private func applyJudgment(_ judgment: HitJudgment, pitch: Pitch) {
         switch judgment {
         case .perfect, .hit: comboCount += 1
         case .miss: comboCount = 0
         }
+        lastJudgment = judgment
+        hitEventCounter += 1
+        let lane = KeyboardLayout.default.laneIndex(for: pitch) ?? -1
+        lastHit = HitEvent(id: hitEventCounter, lane: lane, judgment: judgment, combo: comboCount)
         print("[HitJudge] \(judgment) · right=\(hitJudge.rightTaps) miss=\(hitJudge.missTaps) combo=\(comboCount)")
     }
 
@@ -272,6 +281,15 @@ enum HitJudgment: Equatable {
     case perfect   // right key, |Δ| ≤ 250 ms
     case hit       // right key, |Δ| ≤ 600 ms
     case miss      // wrong key, or no note in the window
+}
+
+/// A celebration to forward to the falling-notes scene. `id` lets the view
+/// detect a genuinely new hit vs a re-render of the same value.
+struct HitEvent: Equatable {
+    let id: Int
+    let lane: Int
+    let judgment: HitJudgment
+    let combo: Int
 }
 
 /// Judges key presses against a song's falling-note schedule — pure timing
