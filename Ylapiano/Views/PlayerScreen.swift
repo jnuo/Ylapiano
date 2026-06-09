@@ -16,7 +16,9 @@ struct PlayerScreen: View {
 
     /// Which top-panel view the user has chosen: the existing ABC sheet music
     /// (default) or the new Sprint 3 falling-notes lane.
-    @State private var displayMode: DisplayMode = .sheetMusic
+    // Falling-notes is the front door — the game IS the app, not a hidden tab.
+    // Sheet music stays available via the toolbar toggle.
+    @State private var displayMode: DisplayMode = .fallingNotes
     private enum DisplayMode { case sheetMusic, fallingNotes }
 
     /// 3-2-1-Go pre-roll. Non-`nil` means the overlay is on screen; while it
