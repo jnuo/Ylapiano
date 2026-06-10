@@ -85,6 +85,28 @@ final class SongIdentityTests: XCTestCase {
         XCTAssertNil(user?.seedID, "user song wrongly tagged as seed")
     }
 
+    // Sub-task 4: localized titles are keyed by seedID per language.
+    func testLocalizedTitleReturnsTRUnderTurkishAndENUnderEnglish() {
+        XCTAssertEqual(
+            SeedData.localizedTitle(seedID: "plim-plim", locale: Locale(identifier: "tr")),
+            "Plim Plim (Zıpla Sincap)"
+        )
+        XCTAssertEqual(
+            SeedData.localizedTitle(seedID: "plim-plim", locale: Locale(identifier: "en")),
+            "Plim Plim (Jump, Little Squirrel)"
+        )
+    }
+
+    // Sub-task 4: unmapped language falls back to the canonical seed title;
+    // unknown seedID yields nil.
+    func testLocalizedTitleFallbacks() {
+        XCTAssertEqual(
+            SeedData.localizedTitle(seedID: "plim-plim", locale: Locale(identifier: "fr")),
+            "Plim Plim (Salta l'Esquirol)"
+        )
+        XCTAssertNil(SeedData.localizedTitle(seedID: "not-a-seed", locale: Locale(identifier: "en")))
+    }
+
     private func freshContext() throws -> ModelContext {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try ModelContainer(for: Song.self, configurations: config)

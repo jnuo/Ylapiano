@@ -10,6 +10,22 @@ struct SeedData {
         "Old MacDonald", "Frère Jacques", "Deniz's Lullaby", "La Castanyera", "Sol Solet"
     ]
 
+    /// Display titles per language, keyed by seedID. Languages not listed fall
+    /// back to the canonical (stored) seed title. Placeholder translations —
+    /// final wording lands with B2 (catalog) / B13 (Turkish).
+    private static let localizedTitles: [String: [String: String]] = [
+        "plim-plim": [
+            "tr": "Plim Plim (Zıpla Sincap)",
+            "en": "Plim Plim (Jump, Little Squirrel)",
+        ],
+    ]
+
+    static func localizedTitle(seedID: String, locale: Locale) -> String? {
+        guard let seed = createSeedSongs().first(where: { $0.seedID == seedID }) else { return nil }
+        let lang = locale.language.languageCode?.identifier ?? ""
+        return localizedTitles[seedID]?[lang] ?? seed.title
+    }
+
     static func seedIfNeeded(context: ModelContext) {
         let descriptor = FetchDescriptor<Song>()
         let existing = (try? context.fetch(descriptor)) ?? []
