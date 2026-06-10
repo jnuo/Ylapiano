@@ -184,6 +184,13 @@ final class Song {
     var bpm: Int
     var notesData: Data
     var sortOrder: Int = 0
+    /// Stable identity for shipped seed songs; nil = user-created.
+    /// Defaults keep the SwiftData migration from build 6 lightweight.
+    var seedID: String? = nil
+    var language: String? = nil
+    var difficultyRank: Int = 0
+
+    var isSeed: Bool { seedID != nil }
 
     var notes: [NoteEntry] {
         get {
@@ -194,11 +201,16 @@ final class Song {
         }
     }
 
-    init(id: UUID = UUID(), title: String, bpm: Int, notes: [NoteEntry] = [], sortOrder: Int = 0) {
+    init(id: UUID = UUID(), title: String, bpm: Int,
+         seedID: String? = nil, language: String? = nil, difficultyRank: Int = 0,
+         notes: [NoteEntry] = [], sortOrder: Int = 0) {
         self.id = id
         self.title = title
         self.bpm = bpm
         self.notesData = (try? JSONEncoder().encode(notes)) ?? Data()
         self.sortOrder = sortOrder
+        self.seedID = seedID
+        self.language = language
+        self.difficultyRank = difficultyRank
     }
 }

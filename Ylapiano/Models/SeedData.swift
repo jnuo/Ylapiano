@@ -312,6 +312,9 @@ struct SeedData {
         Song(
             title: "Plim Plim (Salta l'Esquirol)",
             bpm: 60,
+            seedID: "plim-plim",
+            language: "ca",
+            difficultyRank: 1,
             notes: [
                 NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
                 NoteEntry(solfege: .Mi, octave: 4, duration: .eighth),
