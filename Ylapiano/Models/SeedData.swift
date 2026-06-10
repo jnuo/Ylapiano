@@ -2,13 +2,12 @@ import Foundation
 import SwiftData
 
 struct SeedData {
-    /// Titles we used to seed but have since cut. Pruned from any existing
-    /// store so the app shows only the one song in active use. (Re-add from git
-    /// history when the repertoire grows again.)
-    private static let retiredSeedTitles: Set<String> = [
-        "Hot Cross Buns", "Mary Had a Little Lamb", "Twinkle Twinkle Little Star",
-        "Old MacDonald", "Frère Jacques", "Deniz's Lullaby", "La Castanyera", "Sol Solet"
-    ]
+    /// Canonical (stored) seed titles by seedID, built once.
+    private static let canonicalTitles: [String: String] = Dictionary(
+        uniqueKeysWithValues: createSeedSongs().compactMap { song in
+            song.seedID.map { ($0, song.title) }
+        }
+    )
 
     /// Display titles per language, keyed by seedID. Languages not listed fall
     /// back to the canonical (stored) seed title. Placeholder translations —
@@ -21,9 +20,9 @@ struct SeedData {
     ]
 
     static func localizedTitle(seedID: String, locale: Locale) -> String? {
-        guard let seed = createSeedSongs().first(where: { $0.seedID == seedID }) else { return nil }
+        guard let canonical = canonicalTitles[seedID] else { return nil }
         let lang = locale.language.languageCode?.identifier ?? ""
-        return localizedTitles[seedID]?[lang] ?? seed.title
+        return localizedTitles[seedID]?[lang] ?? canonical
     }
 
     static func seedIfNeeded(context: ModelContext) {
@@ -37,14 +36,16 @@ struct SeedData {
         // untouched.
         for seed in seeds {
             guard let seedID = seed.seedID else { continue }
-            for song in existing
-            where song.seedID == nil
-                && song.title == seed.title
-                && song.bpm == seed.bpm
-                && song.notes.musicallyEquals(seed.notes) {
-                song.seedID = seedID
-                song.language = seed.language
-                song.difficultyRank = seed.difficultyRank
+            let seedNotes = seed.notes
+            if let legacy = existing.first(where: {
+                $0.seedID == nil
+                    && $0.title == seed.title
+                    && $0.bpm == seed.bpm
+                    && $0.notes.musicallyEquals(seedNotes)
+            }) {
+                legacy.seedID = seedID
+                legacy.language = seed.language
+                legacy.difficultyRank = seed.difficultyRank
             }
         }
 

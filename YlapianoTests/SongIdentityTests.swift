@@ -85,6 +85,23 @@ final class SongIdentityTests: XCTestCase {
         XCTAssertNil(user?.seedID, "user song wrongly tagged as seed")
     }
 
+    // Sub-task 3 (defensive): two byte-identical legacy copies — only one
+    // adopts the seedID; the other stays a user song.
+    func testOnlyOneOfTwoIdenticalLegacyCopiesIsAdopted() throws {
+        let context = try freshContext()
+        let canonical = SeedData.createSeedSongs().first!
+        context.insert(Song(title: canonical.title, bpm: canonical.bpm, notes: canonical.notes))
+        context.insert(Song(title: canonical.title, bpm: canonical.bpm, notes: canonical.notes))
+        try context.save()
+
+        SeedData.seedIfNeeded(context: context)
+
+        let songs = try context.fetch(FetchDescriptor<Song>())
+        XCTAssertEqual(songs.filter { $0.seedID == canonical.seedID }.count, 1,
+                       "exactly one copy may adopt the seedID")
+        XCTAssertEqual(songs.count, 2, "no extra seed insert, no deletion")
+    }
+
     // Sub-task 4: localized titles are keyed by seedID per language.
     func testLocalizedTitleReturnsTRUnderTurkishAndENUnderEnglish() {
         XCTAssertEqual(
