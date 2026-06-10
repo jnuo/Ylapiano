@@ -727,6 +727,16 @@ private struct LoopingVideoView: UIViewRepresentable {
     func updateUIView(_ uiView: LoopingPlayerUIView, context: Context) {}
 }
 
+/// Weak target for the render `CADisplayLink`. The link retains its target, so
+/// pointing it straight at the view would keep the view (and its player +
+/// CIContext + frame buffers) alive forever — `deinit`, which invalidates the
+/// link, could never fire. The proxy holds the view weakly to break that cycle.
+private final class DisplayLinkProxy: NSObject {
+    weak var view: LoopingPlayerUIView?
+    init(_ view: LoopingPlayerUIView) { self.view = view }
+    @objc func tick() { view?.renderFrame() }
+}
+
 private final class LoopingPlayerUIView: UIView {
     private let player = AVPlayer()
     private let output = AVPlayerItemVideoOutput(
@@ -768,13 +778,17 @@ private final class LoopingPlayerUIView: UIView {
             self?.player.play()
         }
 
-        let link = CADisplayLink(target: self, selector: #selector(renderFrame))
+        // Weak proxy so the link doesn't retain us (see DisplayLinkProxy). The
+        // clip is a pre-rendered loop, so ~30fps is plenty and halves the
+        // per-frame Core Image cost.
+        let link = CADisplayLink(target: DisplayLinkProxy(self), selector: #selector(DisplayLinkProxy.tick))
+        link.preferredFrameRateRange = CAFrameRateRange(minimum: 24, maximum: 30, preferred: 30)
         link.add(to: .main, forMode: .common)
         displayLink = link
         player.play()
     }
 
-    @objc private func renderFrame() {
+    @objc fileprivate func renderFrame() {
         guard let item = player.currentItem else { return }
         let time = item.currentTime()
         guard output.hasNewPixelBuffer(forItemTime: time),
@@ -810,8 +824,12 @@ private final class LoopingPlayerUIView: UIView {
                     let other = max(rf, bf)
                     let greenness = gf - other          // how much green exceeds red/blue
                     var alpha: Float = 1
-                    if gf > 0.30 && greenness > 0.08 {  // green-dominant → backdrop
-                        alpha = 1 - smoothstep(0.08, 0.22, greenness)
+                    // Anything clearly green-dominant keys FULLY (alpha 0) by
+                    // greenness 0.12 — feather only 0.04→0.12 — so a slightly
+                    // washed-out green backdrop (e.g. the jump clip, greenness
+                    // ~0.18) doesn't land mid-feather and leave a green haze.
+                    if gf > 0.28 && greenness > 0.04 {  // green-dominant → backdrop
+                        alpha = 1 - smoothstep(0.04, 0.12, greenness)
                     }
                     // Despill: pull excess green down so kept edges don't tint green.
                     let og = greenness > 0 ? other + greenness * 0.4 : gf

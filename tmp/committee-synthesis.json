@@ -1,0 +1,833 @@
+{
+  "chair": {
+    "growth_thesis": "YLapiano's Four Fits line up around one wedge: every credible competitor (Simply Piano, Yousician, Flowkey) is a $60-170/yr English-centric subscription, so 'real piano, songs in your language, €1 once, no ads, no data collected' is genuine Market-Product fit for subscription-fatigued parents. Channel-Model fit dictates everything else: €0.85 net can never fund paid UA (~$1.41 casual iOS CPI), so the only channels are App Store search, ratings compounding, and niche parenting communities (Turkish, Catalan) — which makes the store listing the acquisition loop and the rating average the growth engine. At this price the Model-Market constraint inverts the usual playbook: nobody refunds €1 over value, they refund and 1-star over 'broken' or 'prototype' — so refund/1-star prevention in the first 5 minutes IS the growth strategy, not D30 retention. Product-Channel fit means screenshots can only show what the median buyer reaches in minute one; today the shipping build seeds exactly ONE song and the mic promise is dead code, so completeness work (catalog, persistence, uniform game mode, honest input claims) precedes any store work. Win condition: 4.5+ stars at 10-15 ratings in TR week one, then EU expansion rides the same listing.",
+    "activation_metric": "Setup moment: parent completes an input proof-of-life during onboarding (app names a note the kid plays via mic, or USB MIDI connects). Aha moment: the kid's first DELIBERATE correct-key hit on the real instrument with instant audiovisual response (glow + sparkle + sound), within 90 seconds of device handover, zero adult words. Activated household: in session 1 the kid finishes one song to the stars+Pim result screen, and at next launch the home screen shows their persisted stars (proves the app 'remembered'). Measurement (no analytics, by design): pre-launch = cold-open playtest gate (>=4/5 kids reach aha <90s; >=3/5 day-3 unprompted reopen); post-launch proxies = App Store Connect refund count and rating average >=4.5.",
+    "decisions": [
+      {
+        "question": "Onboarding/FTUE — what's the right v1 for a pre-reader kid + parent setup?",
+        "decision": "Kill the 3 text pages. v1 = exactly two beats: (1) ONE illustrated parent setup page — device-on-piano placement illustration, mic-vs-USB-MIDI choice, mic pre-prompt, ending in a live proof-of-life ('play any key' — app names the note it heard, with a didn't-hear-it fallback panel); (2) the kid plays immediately — Pim points at a glowing key, a 3-note tutorial runs through the existing song-agnostic FallingNotesScene at rung-1 forgiveness (slow, full glow, ±600ms), flowing straight into the easiest song. No 'you're all set' page, no separate tutorial engine, zero reading required of the kid.",
+        "rationale": "All 9 personas converged on 'kill the text pages, make the kid's first 60 seconds the core verb.' The apparent conflict (Luca/Khalid/Market's mic magic-moment vs Defne/Mei's playable kid moment) dissolves — they are the same flow, parent beat then kid beat. Marco verified FallingNotesScene is fully song-agnostic, so this is routing + assets, not an engine. The live input check converts the #1 refund driver ('it doesn't hear my piano') into the first wow moment."
+      },
+      {
+        "question": "Microphone input (cross-cutting conflict: Mei says delete it, Luca/Marco/Market say showcase it)",
+        "decision": "Wire the mic for real, with a kill criterion. Route PitchDetector.detectedNote into the same game-mode hit-judging path as key presses (Marco verified it only drives the legacy sheet-music loop today and startListening() is never called — Mei is factually right that it's currently a dead promise). Then gate it behind the onboarding proof-of-life check. Kill criterion: if mic judging fails the on-device acoustic-piano test before submission, execute Mei's plan — strip the mic permission page and ALL 'hears your piano' copy, and ship honestly as touch + USB MIDI.",
+        "rationale": "Touch-only guts the 'real piano' wedge the entire market positioning rests on, so the upside justifies the M-effort attempt. But the one unacceptable state is the current one: requesting a permission for a feature that doesn't function — a justified-refund machine and an App Review smell. Either branch (working mic or honest removal) is shippable; the dishonest middle is not."
+      },
+      {
+        "question": "Song catalog & regional/language bundling",
+        "decision": "All songs included for everyone — no packs, no IAP, no pick-your-language onboarding step. Structure: locale-aware sections on home ('Your songs' = device-locale matches first, then 'More songs'), sorted easy→hard WITHIN sections via a new difficultyRank. Launch blocker discovered: the shipping build seeds exactly ONE song (createSeedSongs returns [plimPlim()]); restore the 8 retired builders + add 4 Turkish songs (Mini Mini Bir Kuş, Ali Babanın Çiftliği, Yağ Satarım Bal Satarım, Kırmızı Balık) to hit 12-14, on top of the seedID identity refactor so seeding stops deleting user songs by title match. Localize song display titles per locale (Twinkle = 'Daha Dün Annemizin', Old MacDonald = 'Ali Baba'nın Çiftliği', Frère Jacques = 'Tembel Çocuk'). Completeness ruling: EVERY song launches falling-notes game mode and ends in the same stars+Pim result screen; the full 4-rung mastery ladder stays Salta-only for v1.",
+        "rationale": "Unanimous do_not_do on packs/gating (notes are ~1-2KB; hidden songs make a €1 app feel thinner). Defne's difficulty ordering and the locale-sort camp aren't in conflict — sections by locale, ladder within. On gamification depth, Mei/Defne's 'uniform result is the completeness fix' overrules Luca's L-effort full-ladder rollout: thinness comes from 8 of 9 songs ending in a flat text overlay, not from missing rungs, and screenshots must show what every song actually does. Turkey-first with zero Turkish songs was the single most-repeated refund risk across personas."
+      },
+      {
+        "question": "Pim presence — where does the mascot live, cheap-but-effective?",
+        "decision": "Re-anchor canon to CHIBI (overruling the pim-reward-assets skill's painterly declaration): one OpenArt session producing a new chibi app icon + 3-4 static stills — greeting (home header), pointing (FTUE guide), listening (mic states), and the missing MascotCheer (referenced at PlayerScreen.swift:592, absent from Assets). Retire Mascot.png (the third squirrel). Add Khalid's 5-6 wordless squirrel chirps (.caf, adult voice pitched up — never ElevenLabs child voices) layered over the silent reward videos, onboarding, and home greeting. Pim lives in exactly four places: icon, home header, onboarding, result screen. No Lottie/Rive/Spine, no new videos, no rig.",
+        "rationale": "Aiko's chibi re-anchor is the cheap direction (new icon = 1 still; matching the videos to painterly = 3 fragile regenerations) and chibi wins the 60x60 thumbnail test. Three squirrels reads as asset-flip carelessness — the icon writes a check the app must cash. Mei's research point seals the budget: kids attach through repetition of the SAME pose, not animation everywhere. Diego's idle video loop (reusing the shipped chroma-key player) is a stretch inside the motion pass, not a gate."
+      },
+      {
+        "question": "Home screen redesign — what does 'designed' mean at minimal cost?",
+        "decision": "Keep the LazyVGrid — the problem is missing DATA, not design tech. 'Designed' = (1) persisted best-stars row on every card + rung badge (requires the persistence item — today rungIndex dies on every launch), (2) chibi Pim greeting in a warm header band replacing the system-white nav, (3) locale sections, (4) per-song picture icons so a pre-reader can find 'their' song, (5) Theme.swift palette tokens (<=12 colors), (6) Add Song demoted to a parental-gated toolbar '+' and long-press delete removed from kid reach, (7) Diego's press-squash + staggered entrance. Acceptance test (Luca's): does this screen survive as App Store frame #1 next to Pok Pok?",
+        "rationale": "Six personas independently named stars-on-cards as the single biggest completeness signal — it converts '9 songs' into '36+ visible challenges' and gives day-3 reopens a target. The ungated long-press delete is simultaneously a refund bomb (kid erases the catalog in one gesture) and a parental-gate requirement. No hero illustrations, no metagame map — it's a catalog browser for ~13 songs."
+      },
+      {
+        "question": "Store readiness — what must be true in-app before screenshot day?",
+        "decision": "Gates: (1) catalog restored to 12+ with Turkish songs and ear-verified notes (incl. the Salta Sol-vs-Mi flag), (2) progress persists and shows on home, (3) every song ends in the same stars+Pim result, (4) playable FTUE shipped, (5) one squirrel everywhere, (6) TR strings ACTUALLY in the build — migrate to a String Catalog; the existing en/es .lproj files are not in the resources build phase, so zero localization ships today, (7) compliance pack done: privacy policy URL (currently missing, hard blocker), Data Not Collected label, localized NSMicrophoneUsageDescription, App Review notes pre-empting the mic-with-kids question. Kids Category ruling: NO for v1 — file at 4+ instead (ASO overrules Luca). iPad-only stays; fix store-config.md's incorrect iPhone 6.7\" frame plan (build is TARGETED_DEVICE_FAMILY=2). Frame arc: 4 frames — falling-notes hero, hears-your-real-piano, Pim celebration, library-with-stars — plus a trust frame ('no ads · no subscriptions · no data collected'), tr + en-US only, via a deterministic -screenshotState seed mechanism.",
+        "rationale": "Kids Category is a one-way door, mic access inside it triggers extended review, and the Kids tab skews free — the worst trade for a solo dev racing a submission; Luca's trust story survives intact without enrollment since 'Data Not Collected' is verifiably true (no network/analytics code exists). Screenshots-last is the core anti-refund principle: every frame must show a state the buyer reaches in minute one."
+      },
+      {
+        "question": "Launch — how to ship without chasing perfection?",
+        "decision": "Three-stage organic launch, zero paid UA, no metrics theater. Go/no-go gate = Mei's cold-open playtest (5 age-5 kids, not Deniz: >=4/5 reach a deliberate correct hit <90s unprompted; >=3/5 day-3 reopen — recruit families NOW, they're the long pole) + one clean TestFlight device week on the restored catalog + the compliance pack. Stage 1: quiet TR-only submission as a crash/refund/review shakeout and a 10-15-honest-ratings sprint from TR friends + the Catalan circle (TR metrics run low — never read them as global signal). Stage 2 (after ~7-14 days + one fix release): EN storefronts + EU in one release; first real marketing beat is the Catalan niche ('Sol Solet on a real piano' to criança-en-català communities) — genuinely rare content, warmest audience. Stage 3: TR community push (Turkish songs are in at launch via the catalog item). Apple Featuring nomination on every release + Common Sense Media submission as upside, never the plan. Scoreboard: App Store Connect refund count + rating average. Do NOT gate on: mascot animation, full ladders on all songs, App Preview video, es/ca listings, or any cohort table you'll never have at solo-€1 volume.",
+        "rationale": "At €1 the bar is 'no buyer's remorse in the first 5 minutes,' not retention curves; reviews ARE the kid data at this volume. Launch is the playtest at scale, so the pre-launch playtest is the only gate that predicts it. Sequencing puts the cheapest-to-absorb market first and saves each marketing beat for when its content claim is true."
+      }
+    ],
+    "candidate_backlog": [
+      {
+        "id": "B1",
+        "title": "Song identity refactor: seedID + localized titles + safe seeding",
+        "what": "Add stable seedID, localized-title map, language tag, and difficultyRank to the seed catalog; key SeedData.seedIfNeeded on seedID instead of raw title; never delete user-created songs (tag seeds vs user songs).",
+        "why": "Current title-keyed pruning deletes user songs sharing a retired seed's title — data-loss-on-update is the worst refund class. Foundation for every catalog, locale, and home-section item.",
+        "source_personas": [
+          "Marco",
+          "ASO",
+          "Luca"
+        ],
+        "impact_1to5": 5,
+        "depends_on": ""
+      },
+      {
+        "id": "B2",
+        "title": "Catalog restore + expand to 12-14 songs (incl. 4 Turkish), notes ear-verified",
+        "what": "Re-activate the 8 retired builders in SeedData.swift, add 4 Turkish (Mini Mini Bir Kuş, Ali Babanın Çiftliği, Yağ Satarım Bal Satarım, Kırmızı Balık) + 1-2 universal songs; ear-verify all melodies (resolve Salta Sol-vs-Mi); add dotted notes + rests to NoteDuration where TR repertoire needs them; all bundled in-binary.",
+        "why": "The shipping build seeds exactly ONE song (verified: createSeedSongs returns [plimPlim()]) — a parent who pays €1 and sees one song refunds in minute one. Zero Turkish songs in a Turkey-first launch was the most-repeated refund risk across personas; wrong notes are the refund that also becomes a 1-star review.",
+        "source_personas": [
+          "Marco",
+          "Market",
+          "Luca",
+          "Defne",
+          "ASO"
+        ],
+        "impact_1to5": 5,
+        "depends_on": "B1"
+      },
+      {
+        "id": "B3",
+        "title": "Persist per-song progress: bestStars + bestRung in SwiftData",
+        "what": "Additive fields on Song (or a Progress model keyed by seedID), written from finishSong()/climbRung(); restore rung on song open. Mastery ladder needs zero changes — it's already generic config in PlayerViewModel.",
+        "why": "Today every launch wipes all progress (rungIndex is in-memory only) — on day 2 the app reads as broken/thin to the paying parent. Prerequisite for any home-screen state and for 'beat your best' to mean anything.",
+        "source_personas": [
+          "Defne",
+          "Marco",
+          "Mei"
+        ],
+        "impact_1to5": 5,
+        "depends_on": ""
+      },
+      {
+        "id": "B4",
+        "title": "Uniform game mode + stars/Pim result for every song",
+        "what": "Every seeded song launches the falling-notes game at rung-1-style settings (slow, glow, wide windows) and routes completion through the existing SongResultView (stars + Pim video) instead of the flat 'Great job!' overlay. Full 4-rung ladder stays Salta-only; don't fork the in-flight single-song work.",
+        "why": "Only 1 of the songs is gamified — the kid who gets Pim after Salta then gets a flat text card on Twinkle concludes the rest is filler, and the parent concludes the app is one-ninth finished. Also the precondition for honest game-mode screenshots.",
+        "source_personas": [
+          "Market",
+          "Mei",
+          "Luca"
+        ],
+        "impact_1to5": 5,
+        "depends_on": "B2, B3"
+      },
+      {
+        "id": "B5",
+        "title": "Mic for real: route pitch detection into game judging + onboarding proof-of-life",
+        "what": "Feed PitchDetector.detectedNote into the same hit-judging path as handleKeyPressed in falling-notes mode (debounce held notes); add the live onboarding check ('play any key' — app names the heard note) with a fallback panel (move device / quiet room / USB MIDI). Kill criterion: if it fails the acoustic-piano device test, strip the mic permission page and all 'hears your piano' copy instead (Mei's branch) — never ship the current dead-code permission request.",
+        "why": "Verified: startListening() is never called — the app requests a permission for a feature that doesn't function, the single most refund-shaped gap in the product. Working mic is the core 'real piano' promise; honest removal is the acceptable fallback; the status quo is neither.",
+        "source_personas": [
+          "Marco",
+          "Luca",
+          "Market",
+          "ASO",
+          "Mei"
+        ],
+        "impact_1to5": 5,
+        "depends_on": ""
+      },
+      {
+        "id": "B6",
+        "title": "Unify audio session + engine-rendered count-in/metronome",
+        "what": "Delete rogue setCategory calls in Metronome.prepareAudio and PitchDetector.startListening; one AudioSession.configurePlayAndRecord() entry point; replace AudioServicesPlaySystemSound(1104) ticks with a synthesized woodblock through the engine (renderSparkle pattern). Explicit ruling: all app audio under .playback, ignoring the silent switch like every music app, with one parent-facing sound toggle.",
+        "why": "Verified bug: with mute on, piano notes play but count-in/metronome go silent — the game appears broken at the exact first-play moment. The category race between three components also produces 'sound went quiet' states mid-session.",
+        "source_personas": [
+          "Khalid"
+        ],
+        "impact_1to5": 5,
+        "depends_on": ""
+      },
+      {
+        "id": "B7",
+        "title": "Pim canon lock: chibi icon + still pack (incl. missing MascotCheer)",
+        "what": "One OpenArt session from the locked Pim character: new 1024px chibi app icon + greeting/pointing/listening/cheer stills as transparent PNGs; replace icon, retire Mascot.imageset, update pim-reward-assets SKILL.md to declare chibi canon. MascotCheer is referenced at PlayerScreen.swift:592 but absent from Assets — the reduced-motion 3-star path is broken today.",
+        "why": "Three different squirrels (painterly icon, chibi videos, glossy Mascot.png) reads as asset-flip carelessness, and the icon is the first refund-prevention surface. Every downstream item (home, FTUE, screenshots) reuses these stills.",
+        "source_personas": [
+          "Aiko",
+          "Defne",
+          "Diego",
+          "Mei",
+          "Marco",
+          "Market"
+        ],
+        "impact_1to5": 4,
+        "depends_on": ""
+      },
+      {
+        "id": "B8",
+        "title": "Playable FTUE: one parent setup page + Pim-led glowing-key tutorial",
+        "what": "Replace the 3 text pages: (1) illustrated parent page — device-on-piano placement illustration (the highest-refund-prevention image in the app), mic-vs-MIDI choice, mic pre-prompt + B5's live note check; (2) kid moment — Pim points, 3-note tutorial 'song' through the existing song-agnostic FallingNotesScene at rung-1 forgiveness, flowing into the easiest song. Skippable for returning users; icons + audio over text throughout.",
+        "why": "The FTUE is the 2-minute refund window: today a pre-reader bounces off three English text walls and nothing teaches placement or the core verb. The tutorial IS rung 1 — no new engine, the kid plays the actual game in minute one.",
+        "source_personas": [
+          "Defne",
+          "Mei",
+          "Marco",
+          "Khalid",
+          "Diego",
+          "Aiko",
+          "Luca",
+          "Market",
+          "ASO"
+        ],
+        "impact_1to5": 5,
+        "depends_on": "B5, B6, B7"
+      },
+      {
+        "id": "B9",
+        "title": "Home screen v1: warm theme, Pim header, stars on cards, locale sections, gated Add Song",
+        "what": "Theme.swift palette tokens (<=12 colors, warm cream header band replacing system white); chibi Pim greeting still in header; persisted best-stars row + rung badge on every SongCardView; 'Your songs' / 'More songs' locale sections sorted easy→hard within; Add Song demoted to a parental-gated toolbar '+'; long-press delete removed from kid reach.",
+        "why": "The grid is the parent's 10-second 'worth €1?' judgment and App Store frame #1. Stars-on-cards is the cheapest completeness signal in the app (named by 6 personas); the ungated delete is both a Kids-design requirement and a kid-erases-the-catalog refund bomb.",
+        "source_personas": [
+          "Aiko",
+          "Defne",
+          "Mei",
+          "Marco",
+          "Market",
+          "Luca"
+        ],
+        "impact_1to5": 5,
+        "depends_on": "B1, B3, B7"
+      },
+      {
+        "id": "B10",
+        "title": "Kid Mode player screen: one big Play, adult controls behind a gate",
+        "what": "Collapse the PlayerScreen toolbar (BPM stepper, notation picker, sound toggles, display picker, Edit pencil) behind a parental-gated gear; one large center Play button (icon, not English text); Edit pencil out of kid reach.",
+        "why": "Verified bounce point: a 5yo lands on a paused screen with ~10 adult controls and a small text Play button; one tap on the pencil drops them into the adult note-entry form. The watching parent reads it as broken/confusing — the refund moment.",
+        "source_personas": [
+          "Mei",
+          "Defne",
+          "Marco"
+        ],
+        "impact_1to5": 5,
+        "depends_on": ""
+      },
+      {
+        "id": "B11",
+        "title": "Result-screen sound pass: star dings + tier fanfare",
+        "what": "SongResultView.runSequence already pops stars on 340ms beats — fire a rising celesta ding per star (renderSparkle at ascending pentatonic pitches), a ~1s synth fanfare on 3-star, a sympathetic low tone on 1-star. All through the existing engine, zero new assets.",
+        "why": "The biggest emotional payoff in the app currently plays in total silence — a mute celebration reads 'unfinished demo' to the parent watching over the kid's shoulder. Cheapest completeness win on the board.",
+        "source_personas": [
+          "Khalid"
+        ],
+        "impact_1to5": 4,
+        "depends_on": "B6"
+      },
+      {
+        "id": "B12",
+        "title": "Pim chirp pack: 5-6 wordless squirrel sounds",
+        "what": "Hello, encouragement, small cheer, big cheer, 'try again' — adult voice pitched up +4-6 semitones or indemnified library (never ElevenLabs child voices, never recordings of Deniz); bundle as .caf, layer over the silent reward videos, onboarding guide, and once-per-launch home greeting.",
+        "why": "Zero localization cost across TR/EN/CA/ES, zero COPPA voice exposure, and a mascot that makes sound is one kids bond with — the bond that makes €1 feel generous.",
+        "source_personas": [
+          "Khalid"
+        ],
+        "impact_1to5": 3,
+        "depends_on": "B7"
+      },
+      {
+        "id": "B13",
+        "title": "String Catalog + Turkish localization actually wired into the build",
+        "what": "Migrate to Localizable.xcstrings with tr + en (the existing en/es .lproj files are NOT in PBXResourcesBuildPhase — nothing localizes today); localized song display titles ride on B1's title map (Twinkle='Daha Dün Annemizin' etc.); localize NSMicrophoneUsageDescription via InfoPlist.strings.",
+        "why": "TR+EN is a hard constraint and the primary market is Turkey; an all-English app on the TR storefront is an instant 'not for us' refund. Localized native titles make 3 existing songs Turkish classics for a half-day strings change.",
+        "source_personas": [
+          "Marco",
+          "ASO",
+          "Mei"
+        ],
+        "impact_1to5": 5,
+        "depends_on": "B1"
+      },
+      {
+        "id": "B14",
+        "title": "Pre-reader pass: per-song picture icons + icon/audio over kid-facing text",
+        "what": "Icon per seeded song (sheep for Mary, star for Twinkle, squirrel for Salta — SF Symbols or one-pose stills); audit kid-visible strings (rung names, result copy) and pair each with icon + short audio cue, text as caption only. Mute-safe: every audio cue keeps a visual twin.",
+        "why": "Pre-readers navigate by picture and ear — today song cards are title + BPM + note count, three pieces of text a 5-year-old cannot read, so they can't find 'their' song again.",
+        "source_personas": [
+          "Mei",
+          "Defne"
+        ],
+        "impact_1to5": 3,
+        "depends_on": "B2"
+      },
+      {
+        "id": "B15",
+        "title": "Home-card song previews: press to hear the first 4 bars",
+        "what": "Press-and-hold (or speaker glyph) schedules the song's first ~4 bars through PianoSampler from its note data at song BPM; stop on release/scroll/navigation, 200ms fade, one preview at a time.",
+        "why": "Melody is the only navigation a pre-reader has — a 5-year-old recognizes Frère Jacques by ear regardless of title language. Zero new assets and it largely dissolves the locale-bundling question.",
+        "source_personas": [
+          "Khalid"
+        ],
+        "impact_1to5": 4,
+        "depends_on": "B6"
+      },
+      {
+        "id": "B16",
+        "title": "Motion & life pass: MotionTokens, card juice, reduced-motion audit (+ optional Pim idle)",
+        "what": "MotionTokens.swift (spring response ~0.35, damping ~0.6, reduceMotion-aware helper); card press squash 0.95→1.05, 40ms staggered grid entrance; gate OnboardingView's repeating bounces behind accessibilityReduceMotion. Stretch (not a gate): extract LoopingVideoView into PimClipView + one PimIdle.mp4 breathe/blink loop on the home header with tap-react.",
+        "why": "Inert cards read as broken to a kid who expects toys to squash; juice consistency makes nine screens feel like one product. Reduced-motion coverage is reviewer-visible in a kids app, and the idle reuses already-shipped chroma-key tech if time allows.",
+        "source_personas": [
+          "Diego"
+        ],
+        "impact_1to5": 3,
+        "depends_on": "B7"
+      },
+      {
+        "id": "B17",
+        "title": "Grown-Ups corner: setup help, support escape hatch, rating ask",
+        "what": "Parental-gated adult area: mic/MIDI + placement help, support mailto, and SKStoreReviewController triggered after the kid's first 3-star mastery (second session+, adult side only, never repeated).",
+        "why": "Ratings are the real currency at €1 — a 1-star costs every future sale — and a visible support path deflects 'broken → refund' into 'broken → email'. Compliant, no dark patterns.",
+        "source_personas": [
+          "Luca"
+        ],
+        "impact_1to5": 4,
+        "depends_on": ""
+      },
+      {
+        "id": "B18",
+        "title": "Submission compliance pack (Kids Category = NO, recorded)",
+        "what": "Host a static privacy policy page (hard blocker — none exists), privacy nutrition label 'Data Not Collected' (verified true: no network/analytics code), 4+ age-rating questionnaire answers, App Review notes pre-empting the mic-with-kids question ('on-device pitch detection, nothing recorded or transmitted; demo: hum near the iPad'), decision recorded in product/decisions/.",
+        "why": "Hard submission blockers, cheaper than any screenshot, and the entire mitigation for the biggest rejection risk (kids-marketed app with mic access).",
+        "source_personas": [
+          "ASO",
+          "Luca",
+          "Marco"
+        ],
+        "impact_1to5": 5,
+        "depends_on": ""
+      },
+      {
+        "id": "B19",
+        "title": "Store metadata + listing pack (tr + en-US)",
+        "what": "Char-verified title/subtitle/keywords (TR: 'Y La Piano – Çocuk Piyanosu' / 'Gerçek piyanoda şarkı öğren'; EN: 'Piano for Kids' / 'Learn songs on a real piano'; no word repeated across fields), description built on the wedge ('Real piano · No subscription · No ads · Songs in your language' + built-for-Deniz story + explicit song count), saved to product/store-listing/texts/.",
+        "why": "Search is the only acquisition channel at €1; the wedge is invisible unless the listing says it explicitly. TR storefront also indexes English (UK) metadata, so EN keywords work double-duty.",
+        "source_personas": [
+          "ASO",
+          "Luca",
+          "Market"
+        ],
+        "impact_1to5": 4,
+        "depends_on": "B18"
+      },
+      {
+        "id": "B20",
+        "title": "Screenshot seed mechanism + store-config corrections (iPad-only)",
+        "what": "Launch arguments (-screenshotState home|playing|reward) seeding SwiftData demo progress deterministically; simctl status-bar override documented; fix store-config.md — build is TARGETED_DEVICE_FAMILY=2, so iPad 13\" 2048×2732 frames only, delete the iPhone 6.7\" plan.",
+        "why": "Fills the two open TODOs in store-config.md, makes screenshots reproducible after every UI change, and removes a silent contradiction that would burn screenshot day.",
+        "source_personas": [
+          "ASO"
+        ],
+        "impact_1to5": 3,
+        "depends_on": ""
+      },
+      {
+        "id": "B21",
+        "title": "Screenshot frame-arc kit: 4 frames + trust frame, tr + en-US",
+        "what": "Canva kit: falling-notes hero mid-song, 'hears your real piano' (mic/MIDI), Pim 3-star celebration, library-with-stars, plus trust frame ('no ads · no subscriptions · no data collected'); captions TR/EN, consistent warm background family, icon legibility verified at 60×60. Don't pad to 8; no App Preview video at launch.",
+        "why": "Icon + first 3 screenshots are ~70% of paid conversion; shooting LAST (after home, Pim, FTUE land) means frames show truth — the core anti-refund principle.",
+        "source_personas": [
+          "Aiko",
+          "ASO",
+          "Luca",
+          "Market"
+        ],
+        "impact_1to5": 4,
+        "depends_on": "B9, B19, B20"
+      },
+      {
+        "id": "B22",
+        "title": "Cold-open kid playtest gate: 5 age-5 kids, recruit now",
+        "what": "Extend docs/superpowers/specs/2026-06-08-playtest-protocol.md with a cold-open block: hand the device at home screen, say nothing, measure time-to-first-deliberate-correct-key and stall points. Go criteria: >=4/5 reach a deliberate hit <90s with zero adult words; >=3/5 day-3 unprompted reopen. Recruiting families is the long pole — start before the build is done.",
+        "why": "This is the refund window made measurable, run before real parents pay €1 to run the same experiment. Deniz doesn't count: wrong familiarity, wrong parent, n=1. This is the launch go/no-go gate.",
+        "source_personas": [
+          "Mei",
+          "Defne"
+        ],
+        "impact_1to5": 5,
+        "depends_on": "B8, B10"
+      }
+    ],
+    "open_questions_for_onur": [
+      "Mic reality check (decides B5's branch): run the acoustic-piano device test this week — does pitch detection, once actually started, reliably name notes in your living room? Working mic vs honest removal both ship; pick by evidence, not hope.",
+      "Playtest recruiting: can you line up 5 age-5 kids (not Deniz) within 2-3 weeks? Families are the long pole for the B22 launch gate — if not, what's your acceptable fallback (e.g., 3 kids + Deniz's classmates)?",
+      "Who ear-verifies the 12-14 song transcriptions (B2)? You at the piano per song, or do we trust MIDI playback + spot checks? This sets the catalog item's real timeline.",
+      "Confirm the two one-way-ish store decisions: Kids Category = NO and iPad-only (no iPhone build) for v1. Both are committee rulings but they're yours to veto before B18/B20 lock them in.",
+      "The 9-persona backlog is ~5-7 weeks of solo-dev work even AI-assisted. If you want to launch sooner, the cut line I'd defend: B12, B14, B15, B16, B17 slip to v1.1 — everything B1-B11 + B13 + B18-B22 is the refund-prevention core. Agree?"
+    ]
+  },
+  "efforts": {
+    "estimates": [
+      {
+        "id": "B1",
+        "effort_days": 1,
+        "approach": "Add seedID/isSeed/language/difficultyRank fields with defaults to the Song @Model (lightweight SwiftData migration), key seedIfNeeded on seedID with a one-time title→seedID adoption pass for existing stores, and a static localized-title map keyed by seedID. Must be device-tested as an UPGRADE from shipped build 6, not a fresh install."
+      },
+      {
+        "id": "B2",
+        "effort_days": 3,
+        "approach": "Re-activate the 8 builders (trivial), transcribe 4 TR + 1-2 universal songs, and extend NoteDuration/NoteEntry with dotted values and a rest case — that schema change ripples through toABC, FallingNotesScene heights, HitJudge (skip rests), and AddSongScreen, and must keep decoding old notesData JSON. Half the estimate is ear-verifying ~14 melodies on device at the piano."
+      },
+      {
+        "id": "B3",
+        "effort_days": 1,
+        "approach": "Additive bestStars/bestRung fields on Song (or a small Progress model keyed by seedID), written in finishSong()/climbRung(), read in PlayerViewModel.init to restore rungIndex. Code is half a day; the other half is upgrade-path and replay testing on device."
+      },
+      {
+        "id": "B4",
+        "effort_days": 1,
+        "approach": "Mostly already built: falling-notes is the default displayMode and SongResultView is song-agnostic. Work is pinning non-Salta songs to a fixed rung-1 config (gate MasteryLadder by seedID), deleting the sheet-music completionOverlay path, and verifying each restored song end-to-end."
+      },
+      {
+        "id": "B5",
+        "effort_days": 4,
+        "approach": "Wire pitchDetector.startListening() into the session lifecycle, debounce detectedNote transitions into the same handleKeyPressed→hitJudge.judge path, add the onboarding play-any-key proof-of-life with fallback panel. Code is ~1 day; 3 days is acoustic-piano device testing under .playAndRecord (harmonics, sustain, speaker bleed) with the Mei strip-the-mic branch ready if the kill criterion fires."
+      },
+      {
+        "id": "B6",
+        "effort_days": 1,
+        "approach": "Delete the rogue setCategory calls in Metronome.prepareAudio and PitchDetector.startListening, add AudioSession.configurePlayAndRecord() as the single entry point, and replace all three AudioServicesPlaySystemSound(1104) sites (PlayerScreen count-in, FallingNotesScene beat, Metronome.tick) with a synthesized woodblock buffer following the existing renderSparkle pattern in PianoSampler. Test mute-switch and mid-session route changes on device."
+      },
+      {
+        "id": "B7",
+        "effort_days": 1,
+        "approach": "Onur drives one OpenArt session from the locked chibi Pim; code side is swapping icon_1024.png, adding MascotCheer/greeting/pointing/listening imagesets (fixes the broken reduced-motion 3-star fallback at PlayerScreen.swift:592), retiring Mascot.imageset, and updating the pim-reward-assets SKILL.md. Mostly asset wrangling, not engineering."
+      },
+      {
+        "id": "B8",
+        "effort_days": 3,
+        "approach": "Replace OnboardingView's three text pages with (1) an illustrated parent setup page reusing B7 stills + B5's live note check, and (2) a Pim-led 3-note tutorial that is just FallingNotesScene fed a hardcoded 3-note Song at rung-1 settings — no new engine. The cost is flow plumbing (skippable state, transitions into the easiest song) and iterating the kid moment on device."
+      },
+      {
+        "id": "B9",
+        "effort_days": 2,
+        "approach": "New Theme.swift token file plus HomeScreen restructure: cream header band with Pim still, sectioned lists from B1's language/difficultyRank fields, stars/rung badge on SongCardView from B3's persisted fields, build the shared parental-gate component here, move Add Song behind it, delete the contextMenu delete. New files mean pbxproj edits — batch them."
+      },
+      {
+        "id": "B10",
+        "effort_days": 1.5,
+        "approach": "Collapse the PlayerScreen toolbarRow (BPM stepper, pickers, toggles, Edit pencil) into a gear sheet behind the parental gate from B9, leaving one large center icon Play button. Straightforward SwiftUI surgery on one 867-line file plus on-device layout checks in landscape."
+      },
+      {
+        "id": "B11",
+        "effort_days": 0.5,
+        "approach": "Add renderDing/renderFanfare buffers to PianoSampler following the existing renderSparkle pattern, fire them from SongResultView.runSequence on each star reveal beat and on the 3-star celebrate. Zero new assets, one file each side."
+      },
+      {
+        "id": "B12",
+        "effort_days": 1,
+        "approach": "Onur records/sources 5-6 chirps (pitch-shifted adult voice), convert to .caf, bundle, and add a tiny PimSounds player (AVAudioPlayerNode through the existing engine) triggered from result view, onboarding, and a once-per-launch home greeting. Engineering is thin; the day covers sourcing and level-matching the audio."
+      },
+      {
+        "id": "B13",
+        "effort_days": 2,
+        "approach": "Migrate to Localizable.xcstrings actually wired into the build phase (the en/es .lproj files are dead today), then extract and key every user-facing string across ~9 view files, translate tr, localize song display titles via B1's map, and add InfoPlist.strings for the mic usage description. String extraction across the whole app is the bulk; verify on a TR-locale device."
+      },
+      {
+        "id": "B14",
+        "effort_days": 1,
+        "approach": "Add an iconName (SF Symbol or still asset) to B1's seed metadata, render it large on SongCardView and in the player header, then audit kid-visible strings (rung names, result copy) pairing each with an icon and a B12 audio cue, demoting text to caption."
+      },
+      {
+        "id": "B15",
+        "effort_days": 1,
+        "approach": "Small preview sequencer: on press-and-hold, walk the first ~4 bars of song.notes and schedule sampler buffers at beat offsets (Task-based timing is fine at preview fidelity), with a 200ms fade-out on release/scroll and a single-active-preview guard in HomeScreen. PianoSampler already has prewarm and polyphonic voices."
+      },
+      {
+        "id": "B16",
+        "effort_days": 1,
+        "approach": "New MotionTokens.swift with reduceMotion-aware spring helpers, apply press squash + 40ms staggered entrance to SongCardView/HomeScreen, gate OnboardingView's repeating symbolEffects behind accessibilityReduceMotion. Skip the PimIdle stretch unless a clip already exists — extracting LoopingVideoView into PimClipView adds +0.5 if taken."
+      },
+      {
+        "id": "B17",
+        "effort_days": 1,
+        "approach": "Parental-gated Grown-Ups sheet off the home toolbar: static setup-help content (reuse B8's placement illustration), mailto link, and SKStoreReviewController behind an AppStorage-tracked trigger (first 3-star, second session, fire once). All standard SwiftUI plus two UserDefaults flags."
+      },
+      {
+        "id": "B18",
+        "effort_days": 1,
+        "approach": "Host a static privacy page on an existing Onur domain, draft the nutrition-label answers ('Data Not Collected' — verified, no network code), 4+ questionnaire answers, App Review notes on the on-device mic, and a decision doc in product/decisions/. Writing and console work, no app code."
+      },
+      {
+        "id": "B19",
+        "effort_days": 0.5,
+        "approach": "Write char-verified tr + en-US title/subtitle/keywords/description per the wedge copy, validated with a character-count script, saved to product/store-listing/texts/. Pure copywriting against known limits."
+      },
+      {
+        "id": "B20",
+        "effort_days": 1,
+        "approach": "Add a -screenshotState launch-argument branch in YlapianoApp that seeds an in-memory/demo SwiftData store deterministically (home/playing/reward states), document the simctl status-bar override, and correct store-config.md to iPad-13\" 2048×2732 only per TARGETED_DEVICE_FAMILY=2."
+      },
+      {
+        "id": "B21",
+        "effort_days": 2,
+        "approach": "Use B20's deterministic states to capture raw iPad frames, build the 5-frame Canva kit (hero, hears-your-piano, Pim celebration, library-with-stars, trust frame) in tr + en-US with a shared warm background family, verify icon legibility at 60×60. Mostly Canva iteration time, not code."
+      },
+      {
+        "id": "B22",
+        "effort_days": 2,
+        "approach": "Extend the existing playtest-protocol spec with the cold-open block and go/no-go criteria (half a day of writing), then run and debrief 5 moderated kid sessions (~1.5 days of effort spread across calendar weeks). Start recruiting immediately — families are the long pole and recruiting is calendar time, not effort."
+      }
+    ],
+    "tech_risks": [
+      "B5 mic judging may simply not work on an acoustic piano: the autocorrelation detector is mono-pitch and piano harmonics/sustain/speaker-bleed under .playAndRecord will confuse it — treat the 4-day estimate as capped by the kill criterion and have the strip-the-mic branch (Mei) genuinely ready, not theoretical.",
+      "B2's dotted-notes-and-rests change mutates the Codable schema inside Song.notesData — existing user-created songs from build 6 must still decode after update; pair it with B1 and test the upgrade path on a device carrying real data, because data-loss-on-update is the refund class this whole backlog exists to prevent.",
+      "Seed migration (B1) is upgrade-path sensitive: the title→seedID adoption must run exactly once against a store created by the shipped build, or you get duplicate/deleted songs; fresh-install testing alone will pass and lie to you.",
+      "B5 and B6 interact: switching the unified session to .playAndRecord changes output routing and levels (receiver vs speaker, ducking) for the piano sampler that currently runs under .playback — verify game audio volume and latency on a real iPad after the category change, not just that the mic works.",
+      "The Xcode project uses manual file references, so every new file (Theme.swift, MotionTokens.swift, gate component, xcstrings) is a pbxproj edit — batch file additions per PR or Claude will burn time on project-file merge noise across B9/B13/B16."
+    ]
+  },
+  "rice": {
+    "scored": [
+      {
+        "id": "B1",
+        "title": "Song identity refactor: seedID + localized titles + safe seeding",
+        "reach": 100,
+        "impact": 2,
+        "confidence": 1,
+        "effort_days": 1,
+        "rice": 200,
+        "tier": "NOW"
+      },
+      {
+        "id": "B2",
+        "title": "Catalog restore + expand to 12-14 songs (incl. 4 Turkish), notes ear-verified",
+        "reach": 100,
+        "impact": 3,
+        "confidence": 1,
+        "effort_days": 3,
+        "rice": 100,
+        "tier": "NOW"
+      },
+      {
+        "id": "B3",
+        "title": "Persist per-song progress: bestStars + bestRung in SwiftData",
+        "reach": 90,
+        "impact": 3,
+        "confidence": 1,
+        "effort_days": 1,
+        "rice": 270,
+        "tier": "NOW"
+      },
+      {
+        "id": "B4",
+        "title": "Uniform game mode + stars/Pim result for every song",
+        "reach": 100,
+        "impact": 3,
+        "confidence": 1,
+        "effort_days": 1,
+        "rice": 300,
+        "tier": "NOW"
+      },
+      {
+        "id": "B5",
+        "title": "Mic for real: route pitch detection into game judging + onboarding proof-of-life",
+        "reach": 80,
+        "impact": 3,
+        "confidence": 0.8,
+        "effort_days": 4,
+        "rice": 48,
+        "tier": "NOW"
+      },
+      {
+        "id": "B6",
+        "title": "Unify audio session + engine-rendered count-in/metronome",
+        "reach": 60,
+        "impact": 2,
+        "confidence": 1,
+        "effort_days": 1,
+        "rice": 120,
+        "tier": "NOW"
+      },
+      {
+        "id": "B7",
+        "title": "Pim canon lock: chibi icon + still pack (incl. missing MascotCheer)",
+        "reach": 100,
+        "impact": 1,
+        "confidence": 1,
+        "effort_days": 1,
+        "rice": 100,
+        "tier": "NOW"
+      },
+      {
+        "id": "B8",
+        "title": "Playable FTUE: one parent setup page + Pim-led glowing-key tutorial",
+        "reach": 100,
+        "impact": 3,
+        "confidence": 0.8,
+        "effort_days": 3,
+        "rice": 80,
+        "tier": "NOW"
+      },
+      {
+        "id": "B9",
+        "title": "Home screen v1: warm theme, Pim header, stars on cards, locale sections, gated Add Song",
+        "reach": 100,
+        "impact": 2,
+        "confidence": 1,
+        "effort_days": 2,
+        "rice": 100,
+        "tier": "NOW"
+      },
+      {
+        "id": "B10",
+        "title": "Kid Mode player screen: one big Play, adult controls behind a gate",
+        "reach": 100,
+        "impact": 2,
+        "confidence": 1,
+        "effort_days": 1.5,
+        "rice": 133.3,
+        "tier": "NOW"
+      },
+      {
+        "id": "B11",
+        "title": "Result-screen sound pass: star dings + tier fanfare",
+        "reach": 100,
+        "impact": 1,
+        "confidence": 1,
+        "effort_days": 0.5,
+        "rice": 200,
+        "tier": "NOW"
+      },
+      {
+        "id": "B12",
+        "title": "Pim chirp pack: 5-6 wordless squirrel sounds",
+        "reach": 100,
+        "impact": 0.5,
+        "confidence": 0.8,
+        "effort_days": 1,
+        "rice": 40,
+        "tier": "NEXT"
+      },
+      {
+        "id": "B13",
+        "title": "String Catalog + Turkish localization actually wired into the build",
+        "reach": 70,
+        "impact": 3,
+        "confidence": 1,
+        "effort_days": 2,
+        "rice": 105,
+        "tier": "NOW"
+      },
+      {
+        "id": "B14",
+        "title": "Pre-reader pass: per-song picture icons + icon/audio over kid-facing text",
+        "reach": 100,
+        "impact": 1,
+        "confidence": 0.8,
+        "effort_days": 1,
+        "rice": 80,
+        "tier": "NEXT"
+      },
+      {
+        "id": "B15",
+        "title": "Home-card song previews: press to hear the first 4 bars",
+        "reach": 60,
+        "impact": 1,
+        "confidence": 0.8,
+        "effort_days": 1,
+        "rice": 48,
+        "tier": "NEXT"
+      },
+      {
+        "id": "B16",
+        "title": "Motion & life pass: MotionTokens, card juice, reduced-motion audit (+ optional Pim idle)",
+        "reach": 100,
+        "impact": 0.5,
+        "confidence": 0.8,
+        "effort_days": 1,
+        "rice": 40,
+        "tier": "LATER"
+      },
+      {
+        "id": "B17",
+        "title": "Grown-Ups corner: setup help, support escape hatch, rating ask",
+        "reach": 40,
+        "impact": 1,
+        "confidence": 0.8,
+        "effort_days": 1,
+        "rice": 32,
+        "tier": "NEXT"
+      },
+      {
+        "id": "B18",
+        "title": "Submission compliance pack (Kids Category = NO, recorded)",
+        "reach": 100,
+        "impact": 3,
+        "confidence": 1,
+        "effort_days": 1,
+        "rice": 300,
+        "tier": "NOW"
+      },
+      {
+        "id": "B19",
+        "title": "Store metadata + listing pack (tr + en-US)",
+        "reach": 100,
+        "impact": 2,
+        "confidence": 1,
+        "effort_days": 0.5,
+        "rice": 400,
+        "tier": "NOW"
+      },
+      {
+        "id": "B20",
+        "title": "Screenshot seed mechanism + store-config corrections (iPad-only)",
+        "reach": 100,
+        "impact": 1,
+        "confidence": 1,
+        "effort_days": 1,
+        "rice": 100,
+        "tier": "NOW"
+      },
+      {
+        "id": "B21",
+        "title": "Screenshot frame-arc kit: 4 frames + trust frame, tr + en-US",
+        "reach": 100,
+        "impact": 2,
+        "confidence": 1,
+        "effort_days": 2,
+        "rice": 100,
+        "tier": "NOW"
+      },
+      {
+        "id": "B22",
+        "title": "Cold-open kid playtest gate: 5 age-5 kids, recruit now",
+        "reach": 100,
+        "impact": 2,
+        "confidence": 0.8,
+        "effort_days": 2,
+        "rice": 80,
+        "tier": "NOW"
+      }
+    ],
+    "notes": "Method: RICE per jpm-prioritization SKILL.md; RICE = (Reach% x Impact x Confidence) / effort_days. Reach = % of buyer households touched in first/week-1 sessions; first cohort installs fresh, so anything on the first-session path (catalog, FTUE, player, listing) is 100. Goal lens: refund prevention (parent's 2-min judgment) + kid replay (day-2 return).\n\nTier logic, not pure RICE rank: NOW = anything whose absence is a refund-shaped hole at launch or a hard submission blocker. B5 scores low (48) because of 4-day effort and 0.8 confidence (acoustic-piano detection risk) but stays NOW — it is the core 'real piano' promise and the built-in kill criterion (strip mic honestly) caps the downside; treat the Mei strip-the-mic branch as the schedule backstop. B2 also under-indexes on RICE (effort 3) but one-song catalog is the minute-one refund; non-negotiable NOW. B22 is the go/no-go gate — start family recruiting immediately since it is calendar time, not effort.\n\nNOW totals ~27.5 effort days. Dependency-safe order: B1 -> B3 -> B6 -> B2 -> B4 -> B5 (kill decision) -> B7 -> B13 -> B10 -> B9 -> B11 -> B8 -> B18 -> B19 -> B20 -> B21 -> B22 (sessions). Store items (B18-B21) are deliberately last so screenshots show truth.\n\nNEXT (v1.x fast-follow): B12, B14, B15 deepen the kid bond/replay loop but no parent refunds over their absence in week 1; B17 scores lowest (32) — keep it NEXT but fold the bare support mailto into B18's privacy page now so a week-1 'broken' email path exists before the full Grown-Ups corner ships. LATER: B16 (juice polish, reduced-motion items in it that are reviewer-visible can ride along with B8/B9 touches). CUT: none — this backlog was already committee-curated; nothing here is speculative scope.\n\nQuick-wins-trap check per skill guardrails: distribution is healthy — the big bets (B2, B5, B8) sit in NOW alongside the quick wins; no avoided strategic initiative.\n\nConfidence flags: B5 (0.8, device-test outcome unknown), B8 (0.8, kid moment needs on-device iteration), B22 (0.8, recruiting risk). Everything verified-in-code (B6 mute bug, B3 progress wipe, B5 dead startListening, B7 missing MascotCheer) scored 1.0."
+  },
+  "phasing": {
+    "phases": [
+      {
+        "name": "Phase 0 — Single-song gate (in flight, respect it)",
+        "goal": "Pass the existing build-6 device gate (rung-1 floor feel, Salta Sol-vs-Mi, Pim videos render clean) while the three zero-dependency, off-critical-path items run in lanes that don't touch the gated code.",
+        "weeks": 0.5,
+        "item_ids": [
+          "B7",
+          "B18"
+        ],
+        "parallel_tracks": [
+          "Onur-on-device: run the NOW gate on iPad (rung-1 feel, Salta notes, video transparency) — owner of go/no-go",
+          "Onur-art: B7 OpenArt chibi session (icon + greeting/pointing/listening/cheer stills) — needed by B8 and B9 later, do it now while code is frozen",
+          "Onur-writing: B18 compliance pack (privacy policy page live, nutrition label, App Review notes) — zero app code, removes the hard submission blocker early",
+          "Onur-calendar: START B22 family recruiting TODAY (5 age-5 kids). Recruiting is calendar time, not effort — it is the long pole for Phase 4"
+        ],
+        "exit_criteria": [
+          "Build-6 gate passed (or feel fixes landed and re-passed) — nothing in Phase 1 forks the in-flight mastery work",
+          "Privacy policy URL live (hard blocker cleared)",
+          "Chibi still pack + 1024px icon delivered as PNGs; MascotCheer asset exists",
+          "3+ playtest families confirmed with session dates on the calendar"
+        ]
+      },
+      {
+        "name": "Phase 1 — Foundations & catalog (the refund floor)",
+        "goal": "Kill the three worst refund classes: one-song catalog, progress wiped on launch, mute-switch silence. B1 is the hard prerequisite for everything catalog/locale/home — it lands first and is device-tested as an UPGRADE from shipped build 6, never a fresh install.",
+        "weeks": 2,
+        "item_ids": [
+          "B1",
+          "B2",
+          "B3",
+          "B6",
+          "B4"
+        ],
+        "parallel_tracks": [
+          "Claude-Code: B1 seedID refactor → B2 builders + NoteDuration dotted/rest schema; B3 persistence and B6 audio-session unification run concurrently (no deps on B1)",
+          "Onur-on-device: ear-verify ~14 melodies at the real piano (half of B2's estimate), upgrade-path test from build 6, mute-switch + route-change test for B6",
+          "Onur-art: none — lane idle, do not invent work for it"
+        ],
+        "exit_criteria": [
+          "Upgrade from build 6 preserves user-created songs and adopts seeds by seedID (data-loss test passed on device)",
+          "12-14 songs seeded incl. 4 Turkish, every melody ear-verified, Salta Sol-vs-Mi resolved",
+          "bestStars/bestRung survive app relaunch and restore in the player",
+          "Every song launches falling-notes and ends in the same stars+Pim result screen; flat 'Great job!' overlay deleted",
+          "Count-in/metronome audible with mute switch on; no mid-session category races"
+        ]
+      },
+      {
+        "name": "Phase 2 — Mic verdict, playable FTUE, kid-safe player",
+        "goal": "Resolve the mic honestly (works or stripped — the dead permission request must not survive this phase) and make the first 60 seconds the core verb: parent setup page with proof-of-life, then Pim-led 3-note tutorial flowing into the easiest song.",
+        "weeks": 2,
+        "item_ids": [
+          "B5",
+          "B8",
+          "B10",
+          "B11",
+          "B12"
+        ],
+        "parallel_tracks": [
+          "Claude-Code: B5 wiring (~1 day) first, then B8 FTUE plumbing and B10 player-screen collapse while mic testing runs; B11 result-screen dings (0.5d) slots in anywhere after B6",
+          "Onur-on-device: the 3-day acoustic-piano mic test under .playAndRecord (harmonics, sustain, speaker bleed) — this is the calendar-parallel long pole of the phase; then FTUE kid-moment iteration with Deniz as smoke test (not the gate)",
+          "Onur-audio: B12 record/source 5-6 pitched-up chirps, level-match, hand .caf files to code lane"
+        ],
+        "exit_criteria": [
+          "Mic verdict EXECUTED by end of week 4: either pitch detection judges hits on a real acoustic piano, or the permission page + all 'hears your piano' copy is stripped (Mei branch). No third state ships",
+          "FTUE is two beats, zero kid-facing reading: illustrated parent page with live note check + fallback panel, then 3-note tutorial into easiest song; skippable for returning users",
+          "Player screen: one big icon Play button, all adult controls behind the parental gate, Edit pencil out of kid reach",
+          "Star reveals and Pim moments make sound; reward videos no longer silent"
+        ]
+      },
+      {
+        "name": "Phase 3 — Home v1, Turkish actually in the build, pre-reader pass",
+        "goal": "The parent's 10-second 'worth €1?' surface and the TR hard constraint. Home shows stars-on-cards (the cheapest completeness signal), locale sections, Pim header; String Catalog migration makes localization real for the first time — the existing .lproj files ship nothing today.",
+        "weeks": 1.5,
+        "item_ids": [
+          "B9",
+          "B13",
+          "B14",
+          "B17"
+        ],
+        "parallel_tracks": [
+          "Claude-Code: B9 home restructure + Theme tokens + shared parental gate, then B13 string extraction across ~9 view files, B14 icon plumbing, B17 Grown-Ups sheet",
+          "Onur-on-device: TR-locale device verification of every screen; Luca's acceptance test — does the home grid survive as App Store frame #1 next to Pok Pok?",
+          "Onur-translation: tr strings review + localized song titles (Daha Dün Annemizin etc.) riding B1's title map"
+        ],
+        "exit_criteria": [
+          "Home: stars row + rung badge on every card, locale sections sorted easy→hard, Pim header, Add Song behind parental gate, long-press delete gone",
+          "TR strings verified in the build on a TR-locale device, incl. localized NSMicrophoneUsageDescription (or its removal if the mic kill fired)",
+          "Every seeded song has a picture icon; kid-visible text demoted to caption with icon/audio twin",
+          "Rating ask wired (first 3-star, second session, fires once) and support mailto reachable from the gated adult area"
+        ]
+      },
+      {
+        "name": "Phase 4 — Playtest gate, screenshots LAST, submit",
+        "goal": "Screenshots shot only after the product states they show are true — the core anti-refund principle. The cold-open kid playtest is the launch go/no-go; nothing submits past a failed gate.",
+        "weeks": 1.5,
+        "item_ids": [
+          "B22",
+          "B20",
+          "B19",
+          "B21"
+        ],
+        "parallel_tracks": [
+          "Onur-playtest: run 5 cold-open kid sessions on the Phase-3 TestFlight build (families recruited since Phase 0); day-3 reopen checks straddle the week",
+          "Claude-Code: B20 -screenshotState seed mechanism + store-config.md correction to iPad-only frames; one small fix release from playtest findings if needed",
+          "Onur-store: B19 char-verified tr + en-US metadata, then B21 5-frame Canva kit (hero, hears-your-piano, Pim celebration, library-with-stars, trust frame) from B20's deterministic states"
+        ],
+        "exit_criteria": [
+          "Playtest GO: >=4/5 kids reach a deliberate correct hit <90s with zero adult words; >=3/5 day-3 unprompted reopen",
+          "One clean TestFlight device week on the restored catalog (no crashes, no audio dropouts)",
+          "Screenshots show only states a buyer reaches in minute one; icon legible at 60x60; iPhone frame plan deleted from store-config.md",
+          "Submitted to App Review: TR storefront only, 4+ age rating (NOT Kids Category — recorded), mic App Review notes attached"
+        ]
+      }
+    ],
+    "cuts": [
+      {
+        "id": "B15",
+        "reason": "Home-card previews are charming but sit outside the refund window — a parent doesn't refund over missing previews, and B14's picture icons solve pre-reader song-finding for a third of the cost. Parked, not killed: revisit trigger = post-launch review mentioning 'can't find songs'."
+      },
+      {
+        "id": "B16",
+        "reason": "Motion pass is polish on screens that don't yet have their data (stars, sections) — juice on an unfinished home is paint on wet plaster. B9 already carries the press-squash and staggered entrance the chair mandated; the full MotionTokens system + reduced-motion audit + PimIdle stretch parks until v1.1. Revisit trigger = first post-launch release."
+      },
+      {
+        "id": "B16-PimIdle",
+        "reason": "Explicitly re-killing the stretch inside the parked item so it doesn't sneak back: no new Pim videos, no LoopingVideoView extraction before launch. Chair already ruled it 'a stretch, not a gate' — at 7.5 weeks total there is no stretch budget."
+      }
+    ],
+    "kill_criteria": [
+      "Mic kill (end of Phase 2): if pitch detection cannot judge hits on a real acoustic piano in the on-device test, strip the mic permission page and ALL 'hears your piano' copy and ship touch + USB MIDI. The current dead-permission state never reaches review.",
+      "Playtest kill (Phase 4 gate): fewer than 4/5 kids reach a deliberate correct hit under 90 seconds unprompted, or fewer than 3/5 reopen by day 3 → do NOT submit. Fix forgiveness/FTUE, re-run with 2-3 fresh kids. Two consecutive failed gates = stop and rethink the core loop, not the schedule.",
+      "Data-loss hard stop: if the B1 migration or any later schema change loses user songs or progress on upgrade from build 6, the release is blocked until fixed. No exceptions — data loss is the worst refund class on the board.",
+      "Schedule kill (end of week 5): if Phases 1-2 aren't both exited, cut B14 + B12 + B17 in that order and ship the core (catalog + persistence + FTUE + home + TR strings). The submission date moves last.",
+      "Post-launch kill (Stage 1 watch): refund count trending above ~1 in 10 sales or rating average below 4.0 on the TR storefront in the first 14 days → halt the EN/EU rollout, ship the fix release first. TR metrics are never read as global signal in either direction."
+    ],
+    "launch_steps": [
+      "1. TestFlight: push the Phase-3 build (full catalog, FTUE, home, TR strings) to Onur's devices + 2-3 friend families; start the one clean device week.",
+      "2. Playtest gate: run the 5-kid cold-open sessions (B22 criteria) on that build; day-3 reopen check; GO/NO-GO decision recorded in product/decisions/.",
+      "3. Fix release: one small TestFlight iteration from playtest findings (timing windows, FTUE stalls) — small fixes only, no new features past the gate.",
+      "4. Store assets: B20 deterministic states → B21 screenshot kit (tr + en-US, iPad 13\" only) + B19 metadata uploaded; verify privacy URL, nutrition label 'Data Not Collected', 4+ rating answers, mic App Review notes.",
+      "5. Submit Stage 1: TR storefront ONLY. Quiet shakeout — no marketing beat. Apple Featuring nomination filed with the release.",
+      "6. Stage 1 watch (days 1-14): daily App Store Connect check — refund count + rating average, nothing else. Sprint to 10-15 honest ratings from TR friends + the Catalan circle. Ship one fix release.",
+      "7. Stage 2 (after ~7-14 days + the fix release): EN storefronts + EU in one release. First real marketing beat: 'Sol Solet on a real piano' to criança-en-català communities — the warmest audience, saved for when the claim is live.",
+      "8. Stage 3: TR community push (Turkish songs already in since Phase 1). Common Sense Media submission filed as upside, never the plan.",
+      "9. First-week watch routine per stage: reply to every review, route 'it doesn't hear my piano' to the Grown-Ups support mailto, log refund reasons. Scoreboard stays two numbers: refunds + rating average. No cohort tables at solo-€1 volume."
+    ]
+  }
+}

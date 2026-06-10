@@ -1,5 +1,23 @@
 # Release Notes
 
+## v1.4.8 (build 8) — 2026-06-10
+
+### Bug Fixes
+
+- Reward videos: removed a faint green haze that showed on the 3-star clip (the green key now fully removes a slightly washed-out backdrop instead of leaving it half-transparent).
+- 3-star jump now loops naturally — regenerated so Pim jumps and lands back to the same pose, instead of the boomerang that played the jump in reverse.
+- Fixed a memory leak where each finished song leaked the reward-video player (CADisplayLink retained its view, so it never deallocated). Render now runs through a weak proxy and is capped at ~30fps.
+
+## v1.4.7 (build 7) — 2026-06-10
+
+### Features
+
+- Reward videos now play cleanly transparent: Pim is regenerated on a green screen and the green is keyed out in-app, replacing the white-key that left shifting marks. Each clip is boomeranged so the loop has no jump (first frame == last frame).
+
+### Bug Fixes
+
+- Song screen opens instantly: the abcjs web view only loads in sheet-music mode, tone prewarm is deferred past the transition, and a spinner covers the heavy panel build — no more lag when tapping a song.
+
 ## v1.4.6 (build 6) — 2026-06-10
 
 ### Features

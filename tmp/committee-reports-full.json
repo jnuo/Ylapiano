@@ -1,0 +1,768 @@
+[
+  {
+    "persona": "Defne — senior casual-mobile game designer, kids 5-7 (Peak Games / Rovio; weekly niece playtests)",
+    "headline": "The core loop is real and the ladder already scales kid-to-adult, but the meta-loop is broken — progress evaporates at relaunch, the home screen shows zero state, and onboarding never makes the kid play — fix those three and 9 songs becomes a game instead of a list.",
+    "open_question_answers": [
+      {
+        "topic": "onboarding",
+        "recommendation": "Split it: one parent page, then the kid PLAYS. Parent page (text is fine — the parent reads): device-on-piano placement diagram, mic-vs-MIDI choice, mic permission. Then no 'you're all set' page — first run auto-opens the easiest song on rung 1 (±600ms window, full glow: the kid structurally cannot fail) with Pim pointing at the glowing key and an audio cue. The tutorial IS rung 1; don't build a separate tutorial mode. The kid's verb in the first 5 seconds is 'press the glowing key and hear it land' — that's the whole FTUE. Kill the current 3 text pages; a pre-reader sees three walls of nothing."
+      },
+      {
+        "topic": "songs",
+        "recommendation": "Do NOT structure by language for v1 — no locale packs, no pick-your-language onboarding step (a pre-reader can't choose and it adds a dead screen). Language is a metadata tag (small flag/icon on the card), structure is DIFFICULTY: order the 9 songs easy→hard (Hot Cross Buns's 3 notes first, longest last) so the catalog itself is a ladder. What makes 9 songs feel complete is per-song star state on the cards — 9 songs × 4 rungs = 36 climbable challenges, and that's your store-listing math too. One real gap: you launch in Turkey with zero Turkish songs — add 2-3 (e.g. Mini Mini Bir Kuş, Ali Babanın Çiftliği) before launch. That's content, not architecture."
+      },
+      {
+        "topic": "pim",
+        "recommendation": "Cheap-but-effective = 3 static poses, not a rig: (1) Pim greeting on the home header, (2) Pim pointing in the FTUE, (3) Pim small on song cards next to the star row. Generate them on OpenArt in the CHIBI style — the reward videos already exist in chibi, so chibi is canon by default; updating the painterly icon is a later Aiko task, not a launch blocker. Do not build idle animations or new videos. Pim's job is continuity: the same character the kid meets in onboarding cheers at the result — that closes the emotional loop for the cost of three images."
+      },
+      {
+        "topic": "home",
+        "recommendation": "The redesign IS the progression display — don't restyle the grid, give it state. Each card shows best stars (and a small rung badge once climbed); songs ordered easy→hard; Pim header on top. That single change converts 'dev-tool list' into 'game map' and is what a parent screenshots in their head before deciding not to refund. Also: move 'Add Song' and long-press delete behind a parent corner with a parental gate — right now a 5yo can delete Twinkle Twinkle with one long-press and no confirmation (HomeScreen.swift contextMenu). That's both a Kids Category requirement and a refund bomb."
+      },
+      {
+        "topic": "store",
+        "recommendation": "Screenshot day requires four things true in-app: (1) progress persists across relaunch and is visible on home, (2) home has Pim + stars (the 'rich state' screenshot), (3) FTUE is kid-playable, (4) all 9 songs' notes are ear-verified — including the open Salta Sol-vs-Mi question — because a musical parent who hears wrong notes refunds and reviews. TR localization of parent-facing copy is mandatory for the TR launch geo. Your four screenshots then write themselves: home-with-stars, falling notes mid-play, Pim 3-star celebration, parent setup page."
+      },
+      {
+        "topic": "launch",
+        "recommendation": "Gate launch on exactly: Mei's playtest gate (kid + adult replay unprompted, miss-curve drops), persistence shipped, playable FTUE shipped, notes verified. Do NOT gate on: mascot canon, more songs beyond the TR pack, MIDI polish, locale packs. Launch TR + non-EU as planned, treat the first 2 weeks as soft launch — watch reviews and your own kid's day-3 unprompted reopen, ship a v1.1 fix, then open EU. At €1 the bar is 'no buyer's remorse in the first 5 minutes,' not D30 retention — optimize the first session, ship."
+      }
+    ],
+    "backlog_items": [
+      {
+        "title": "Persist progress: best stars + best rung per song",
+        "what": "Add bestStars and bestRungIndex fields to the Song SwiftData model; write them at the result screen; restore rungIndex on song open (start at best-reached rung, player can drop down). PlayerViewModel.swift line 83 already flags this as backlog — the ladder logic is built and song-generic, only the persistence is missing.",
+        "why": "The single biggest refund fix: today every launch wipes all progress, so the app reads as thin/broken on day 2. Also the prerequisite for any home-screen state and for 'beat your best' to mean anything across sessions.",
+        "impact_1to5": 5,
+        "effort_SML": "S"
+      },
+      {
+        "title": "Home screen as star map (songbook)",
+        "what": "Song cards show persisted best-stars row + small rung badge; songs sorted easy→hard by a new difficulty rank; Pim greeting pose in the header; 'Add Song' and delete moved behind a parent-corner parental gate (simple math gate).",
+        "why": "Turns 9 songs from a list into a visible game with 36 challenges — the completeness a parent judges in the first 10 seconds. The gate also removes the kid-deletes-the-catalog refund scenario and is required for Kids Category.",
+        "impact_1to5": 5,
+        "effort_SML": "M",
+        "depends_on": "Persist progress: best stars + best rung per song"
+      },
+      {
+        "title": "Playable FTUE: parent page + rung-0 first play",
+        "what": "Replace the 3 text pages with: one parent setup page (placement diagram, mic/MIDI choice, mic permission, TR+EN), then auto-launch the easiest song at rung 1 with a Pim pointing cue and audio prompt. Reuses the existing rung-1 systems (full glow, ±600ms) — no new game code, just routing + 1 asset + 1 audio cue.",
+        "why": "The kid's first 60 seconds must be the core verb, not reading. A pre-reader bouncing off three English text pages while the parent watches is the canonical 2-minute refund.",
+        "impact_1to5": 5,
+        "effort_SML": "M"
+      },
+      {
+        "title": "Catalog completeness pass: verify notes, difficulty order, language tags, +3 Turkish songs",
+        "what": "Ear-verify all 9 seeded songs (resolve the Salta Sol-vs-Mi flag), add difficultyRank and languageTag to seeds, and seed 2-3 Turkish nursery songs via the existing add-song pipeline for the TR launch geo.",
+        "why": "Wrong notes = teaching the wrong song = the one refund reason that also becomes a 1-star review. Zero Turkish songs in a Turkey-first launch undercuts the whole geo plan; 12 songs also reads less thin at €1.",
+        "impact_1to5": 4,
+        "effort_SML": "M"
+      },
+      {
+        "title": "Pre-reader copy pass: kid-facing strings → icon + audio",
+        "what": "Audit kid-visible strings (rung names, 'Lights off!', '2 of 3 — one more!', result screen) and replace each with icon + short audio cue, keeping text only as caption; localize remaining parent-facing copy TR+EN. Mute-safe: every audio cue keeps a visual twin.",
+        "why": "Half the audience can't read and the TR launch audience doesn't read English; audio IS the UI for 5-year-olds. Cheap insurance against 'my kid didn't understand anything' refunds.",
+        "impact_1to5": 3,
+        "effort_SML": "M",
+        "depends_on": "Playable FTUE: parent page + rung-0 first play"
+      },
+      {
+        "title": "Pim pose set (3 statics, chibi canon)",
+        "what": "Generate 3 OpenArt poses matching the existing chibi reward videos — greeting (home header), pointing (FTUE), small badge (song cards) — and drop them in as static images. No animation, no rig.",
+        "why": "Gives the home screen and FTUE a face for near-zero effort; continuity from onboarding to reward closes the emotional loop. Asset dependency for the home and FTUE items.",
+        "impact_1to5": 3,
+        "effort_SML": "S"
+      }
+    ],
+    "refund_risks": [
+      "Progress wipes on every relaunch (rungIndex is in-memory, Song model stores nothing) — day-2 the app looks broken/thin to the paying parent.",
+      "Ungated long-press delete on the kid's home screen — a 5yo can erase the seeded catalog in one gesture, parent sees an empty grid.",
+      "English text-heavy onboarding + English kid-facing strings in a Turkey-first launch — parent's first impression is 'not for us', kid bounces in 2 minutes.",
+      "Unverified song notes (open Salta Sol-vs-Mi question across 9 songs) — a piano-literate parent hears wrong notes and refunds with a damaging review."
+    ],
+    "do_not_do": [
+      "No locale-based song packs or pick-your-language onboarding step — tag and sort by difficulty instead; bundling architecture is a v2 problem.",
+      "No new game modes, free-play sandbox, or score HUD/progression map — the rung ladder IS the game; protect the in-flight single-song work.",
+      "No Pim animation/rigging or icon-vs-chibi canon reconciliation before launch — 3 static poses only.",
+      "No analytics, backend, or accounts — local-only SwiftData keeps the Kids Category path clean and v1 shippable."
+    ]
+  },
+  {
+    "persona": "Aiko — senior 2D art director / visual lead (kids casual mobile, ex-Toca Boca)",
+    "headline": "The play loop has real warmth, but the app currently ships three different squirrels and a dev-tool home screen — one weekend of canon-locking and a Pim-led home/onboarding skin is the difference between \"asset flip\" and \"real kids product\" at €1.",
+    "open_question_answers": [
+      {
+        "topic": "pim",
+        "recommendation": "Re-anchor the canon to CHIBI, not painterly — the pim-reward-assets skill says painterly is canon, but the shipped reward videos are chibi, and chibi is the correct call anyway: big head, bold 2px outline, clear silhouette reads at 60×60 where the soft painterly icon muddies. The cheap path is one OpenArt session from the already-locked Pim Character: new app icon (chibi Pim at keyboard, plain warm background, head fills ~60% of frame), a neutral waving still, a listening still, and a 'pointing at piano' still. Retire Mascot.png (it's a third, glossier squirrel). Pim then lives in exactly four places for v1: app icon, home header, onboarding guide, result screen — that's enough presence to feel like a character, not a logo."
+      },
+      {
+        "topic": "home",
+        "recommendation": "Minimal 'designed' = three moves, no layout rework: (1) replace the system nav title with a header band — waving chibi Pim still (~80pt, gentle 2s SwiftUI bob) + rounded wordmark on a warm cream gradient background token instead of system white; (2) put the mastery stars ON each song card (empty-star row for ungamified songs — visible progression is what makes a grid feel like a game, and it's the single biggest 'complete-feeling' signal); (3) demote the dashed Add Song card to a small toolbar '+' — it's an adult feature and currently sits in the kid's grid looking like an unfinished placeholder. Keep the 8 card colors but tokenize them in a Theme.swift so the palette is enforced (max 12 colors total, Pok Pok discipline)."
+      },
+      {
+        "topic": "onboarding",
+        "recommendation": "Visually it must become Pim-led and picture-first: page 1 = waving Pim + one line ('Play real piano with Pim!'), page 2 = a single static illustration of a tablet on a piano music stand (generate it once in OpenArt with the style suffix — this device-placement diagram is the highest-refund-prevention image in the app, because wrong placement makes mic detection 'broken'), page 3 = Pim cupping an ear for the mic ask. Kill all bullet lists; one short TR/EN line per page, icons carry meaning for pre-readers. The interactive 'play the glowing key' first-touch is Defne's FTUE design — I'll skin whatever she specs, but ship the three picture pages even if her interactive step slips."
+      },
+      {
+        "topic": "songs",
+        "recommendation": "Don't build region-pack UI or a language-picker onboarding step for v1 — that's catalog architecture for a €1 app with 9 songs. Ship everything to everyone; fix the perception visually: locale-aware SORT ORDER (tr → Turkish-friendly first, ca/es → Catalan first, else English first) plus two light section headers with icons ('Start here' / 'More songs'). 10-12 songs is the thin-feeling threshold, so add 1-3 universal pre-reader songs before launch — but stars-on-cards does more for perceived completeness than song count 9 vs 12."
+      },
+      {
+        "topic": "store",
+        "recommendation": "Before screenshot day, five surfaces must pass the thumb test: chibi icon legible at 60×60, redesigned home with stars + Pim header, Pim onboarding pages, falling-notes gameplay with key-glow, and the 3★ Pim celebration. First three screenshots (≈70% of conversion): gameplay with Pim badge + falling notes, the home grid with stars, the celebration result screen — captioned in TR/EN, device-framed, same warm background family. No 'happy kid with iPad' stock shots. If the icon and the in-app squirrel don't match on screenshot day, fix that first; nothing else matters until the canon is one squirrel."
+      },
+      {
+        "topic": "launch",
+        "recommendation": "Launch gates from my lane only: one squirrel everywhere, home screen no longer system-white, onboarding has the placement illustration. That's roughly 4-5 days of the backlog below — then ship. Don't gate launch on more Pim videos, per-song art, or animation polish; the staged rollout / geo sequencing call is Anya's and Luca's lane."
+      }
+    ],
+    "backlog_items": [
+      {
+        "title": "Lock Pim canon to chibi: regenerate app icon + still pack from the locked OpenArt character",
+        "what": "One OpenArt session using the saved Pim Character + the existing style-suffix contract in .claude/skills/pim-reward-assets/SKILL.md (updated to declare chibi canon): new 1024px app icon, neutral-wave still, listening still, pointing still, all transparent PNG 1:1. Replace icon_1024.png and retire Mascot.imageset; add stills as PimWave/PimListen/PimPoint in Assets.xcassets.",
+        "why": "Icon is the first refund-prevention surface — a painterly icon promising a squirrel that looks different in-app reads as bait-and-switch. Chibi also wins the 60×60 search-thumbnail test. Everything downstream (home, onboarding, screenshots) reuses these four stills.",
+        "impact_1to5": 5,
+        "effort_SML": "S"
+      },
+      {
+        "title": "Home screen v1 redesign: warm theme, Pim header, mastery stars on cards, Add Song to toolbar",
+        "what": "Create Theme.swift with tokenized palette (warm cream background gradient + the existing 8 card colors, ≤12 total). HomeScreen.swift: header band with waving Pim still + rounded wordmark, star row on every SongCardView (filled from mastery progress where it exists, empty otherwise), move the dashed Add Song card to a toolbar '+' button.",
+        "why": "The grid is the parent's 10-second 'is this worth €1' judgment and screenshot #2. Visible stars on every card is the cheapest completeness signal in the whole app; the dev-tool look is the top refund trigger in the brief.",
+        "impact_1to5": 5,
+        "effort_SML": "M",
+        "depends_on": "Pim canon still pack"
+      },
+      {
+        "title": "Pim-led onboarding art pass (3 picture pages incl. device-placement illustration)",
+        "what": "Rebuild OnboardingView.swift pages around images: Pim wave (page 1), a generated tablet-on-piano-music-stand placement illustration (page 2, mic permission lives here), Pim listening (page 3). One short localized line per page (TR/EN), no bullet lists; keep the existing mic-permission flow logic.",
+        "why": "Wrong device placement makes pitch detection look broken — the placement illustration directly prevents the 'app doesn't work' refund. Also makes onboarding screenshot-able. Defne's interactive FTUE step layers on top later without rework.",
+        "impact_1to5": 4,
+        "effort_SML": "M",
+        "depends_on": "Pim canon still pack"
+      },
+      {
+        "title": "Locale-aware song ordering + two section headers",
+        "what": "Sort the seeded songs by device locale (tr/ca-es/en first respectively) and add two lightweight section headers in the home grid ('Start here' / 'More songs', icon + short label). No bundling, no gating, no settings UI.",
+        "why": "Answers the regional-bundling question at S cost: the catalog feels curated-for-you instead of a random dump, without building pack infrastructure a €1 v1 doesn't need.",
+        "impact_1to5": 3,
+        "effort_SML": "S",
+        "depends_on": "Home screen v1 redesign"
+      },
+      {
+        "title": "Pim edge-state stills wired in (mic denied, MIDI connected, result fallback)",
+        "what": "Use the still pack in three spots: mic-permission-denied state (listening Pim + 'enable in Settings'), a small Pim acknowledgment when MIDI connects, and PimResult1/2/3 stills in Assets as the reduced-motion / pre-video fallback that pim-reward-assets specifies but Assets.xcassets currently lacks.",
+        "why": "Edge states are where the app currently feels most dev-tool; the reduced-motion fallback is a real accessibility branch already coded in PlayerScreen.swift but pointing at the wrong-canon Mascot.png.",
+        "impact_1to5": 3,
+        "effort_SML": "S",
+        "depends_on": "Pim canon still pack"
+      },
+      {
+        "title": "Screenshot-day kit: first-3 composition spec + framed captures TR/EN",
+        "what": "Spec and produce the App Store set: (1) gameplay falling notes + key glow, (2) home grid with stars and Pim header, (3) 3★ Pim celebration, then supporting shots; captions in TR/EN, consistent warm background family, verify icon legibility at 60×60. Use the existing appstore-screenshots skill for capture mechanics.",
+        "why": "Icon + first 3 screenshots are ~70% of conversion; doing this as a kit (not ad-hoc captures) is what makes the €1 listing look like a studio product on launch day.",
+        "impact_1to5": 4,
+        "effort_SML": "M",
+        "depends_on": "Home screen v1 redesign, Pim-led onboarding art pass"
+      }
+    ],
+    "refund_risks": [
+      "Parent's first 10 seconds: system-white grid + dashed placeholder card reads 'unfinished dev tool', triggering instant buyer's remorse at any price.",
+      "Icon/in-app mismatch: painterly icon squirrel vs chibi reward squirrel vs glossy Mascot.png — three squirrels reads as asset-flip carelessness.",
+      "Onboarding never shows WHERE to put the device, so mic pitch detection 'doesn't work' on the kid's first try — the most refund-shaped failure in the app.",
+      "Only 1 of 9 songs shows stars/rewards; the other 8 feel like filler, making the catalog feel thin regardless of count."
+    ],
+    "do_not_do": [
+      "Do NOT regenerate the reward videos in painterly style to match the icon — re-anchor the cheap direction (new chibi icon = 1 still; new painterly videos = 3 fragile video generations with drift risk).",
+      "No per-song custom illustrations or per-section visual identities — one style, color-coded cards, ≤12 palette tokens; six visual identities is six art directors.",
+      "No rigged/animated Pim on the home screen — a static still with a gentle SwiftUI bob is the €1-appropriate budget; Spine work is post-validation.",
+      "No region/language pack picker, pack store UI, or per-locale catalogs — locale-aware sort order only for v1."
+    ]
+  },
+  {
+    "persona": "Diego — 2D Animator / Motion Lead (game-animator-diego)",
+    "headline": "The reward layer already has soul — chroma-keyed Pim, sparkle bursts, real reduced-motion paths — but the kid and the paying parent meet a dead static grid and a text wall first; no idle, no soul, and the \"thin app\" refund verdict forms in the first ten seconds, so the fix is reusing the transparent-video player you already built to put a living Pim at the front door.",
+    "open_question_answers": [
+      {
+        "topic": "onboarding",
+        "recommendation": "Kill the three bullet-point pages and make onboarding a motion demo with one live magic moment. Page 1: Pim idles and waves (reuse the chroma-key video player, new 3s clip from your existing OpenArt pipeline). Page 2: a wordless animated diagram — device slides onto a piano silhouette, a key glows, a note pops — pure SwiftUI keyframes, loops forever, zero text needed for a pre-reader. Page 3: mic permission, then a LIVE test: 'play any note' — the kid plays, the virtual key lights, Pim scale-punches in celebration. That live test IS the FTUE: it proves the magic works before the parent picks a song, and it's the single best refund insurance you can build. Per Swink, good feedback is immediate, clear, and useful — make the first feedback happen inside onboarding, not three taps later."
+      },
+      {
+        "topic": "pim",
+        "recommendation": "You already solved the hard problem — LoopingVideoView in PlayerScreen.swift does runtime chroma-key onto a CALayer with real alpha. Extract it into its own file and Pim can live anywhere for the cost of a 3-second mp4 (~500KB each, your reward clips prove it). Skip Lottie/Rive entirely: Pim is AI-generated raster art with no vector source, so Lottie means re-authoring the character in After Effects — that's a re-rig, not a port. Cheap-but-effective v1: one idle loop (breathe + blink) on the home screen header, the same idle in onboarding, static mascot.png everywhere reduced-motion is on. One new clip, one extracted view, three placements. Do NOT rig Pim in Spine until the chibi-vs-painterly canon question is settled with Aiko — animating before art lock is re-rig hell."
+      },
+      {
+        "topic": "home",
+        "recommendation": "Motion lens only (layout is Aiko/Defne's lane): the grid needs three things to stop reading as a dev tool. One — Pim idling at the top, because a kid stops engaging when nothing moves for two seconds. Two — press feedback on every song card: squash to 0.95 then overshoot to ~1.05 on a bouncy spring, the cheapest 'this feels alive' win in kids casual; right now cards are inert NavigationLinks. Three — a staggered entrance (cards pop in 40ms apart, scale 0.9→1 with overshoot) so opening the app feels like toys arriving, not a spreadsheet loading. All three are tokens-and-tweens, no new assets except the idle clip."
+      },
+      {
+        "topic": "store",
+        "recommendation": "Before screenshot day, the three screens that appear in the App Preview video must move: home (Pim idle + card press squash), falling-notes gameplay (already good — key glow, sparkles, pops), and the result screen (already good — star reveal, Pim clip). A 30-second preview of a static home screen kills paid conversion; motion is the product's pitch. Also fix MascotCheer before review: the code references it, the asset doesn't exist, so the reduced-motion 3-star celebration shows the same neutral squirrel — exactly the path an App Review accessibility pass will walk."
+      },
+      {
+        "topic": "launch",
+        "recommendation": "Mostly Anya/Luca's lane. My only launch gate: 100% reduced-motion coverage (it's currently ~90% — onboarding's repeating bounces are ungated) and no flashing above 3/sec anywhere (you're clean today; keep it that way). Ship when home + onboarding move; don't hold launch for more Pim poses or more juice — the gameplay layer already clears the kids-casual bar."
+      }
+    ],
+    "backlog_items": [
+      {
+        "title": "Extract PimClipView + Pim idle on the home screen",
+        "what": "Pull LoopingVideoView out of PlayerScreen.swift into Views/PimClipView.swift (no behavior change), generate one PimIdle.mp4 (3–4s breathe + blink loop, same green-screen OpenArt pipeline as the reward clips / pim-reward-assets skill), and mount Pim in a home-screen header. Pause the player when backgrounded; static mascot.png under reduced motion.",
+        "why": "Parent's first screen currently has zero motion and zero mascot — the 'thin app' refund verdict forms there. This reuses already-shipped tech, so it is the highest soul-per-day item on the board.",
+        "impact_1to5": 5,
+        "effort_SML": "M"
+      },
+      {
+        "title": "Wordless FTUE: Pim teaches play-the-glowing-key, ends with a live note test",
+        "what": "Replace the three text pages: (1) Pim idle + wave clip, (2) looping SwiftUI keyframe diagram — device onto piano, key glows, note pops — no words, (3) mic permission then a live 'play any note' moment where the kid's real note lights the virtual key and Pim scale-punches. Skippable for returning users.",
+        "why": "The current onboarding never teaches device placement or the glowing-key interaction, so the kid's first real session can fail silently — the exact 2-minute-bounce refund scenario. The live test moves the first success inside onboarding.",
+        "impact_1to5": 5,
+        "effort_SML": "L",
+        "depends_on": "Extract PimClipView + Pim idle on the home screen"
+      },
+      {
+        "title": "MotionTokens.swift + juice consistency pass on home",
+        "what": "One file defining the app's kid-feel curves (spring response ~0.35, damping ~0.6 — playful overshoot), standard durations, and a reduceMotion-aware animation helper. Apply: song-card press squash (0.95→1.05 overshoot), 40ms staggered grid entrance, Add Song card press feedback, result-screen buttons.",
+        "why": "Juice consistency is what makes nine screens feel like one finished product instead of a dev build — Carlsen's 'everything fits together' rule. Inert cards read as broken to a kid who expects toys to squash.",
+        "impact_1to5": 4,
+        "effort_SML": "M"
+      },
+      {
+        "title": "Reduced-motion audit + MascotCheer asset",
+        "what": "Gate OnboardingView's repeating .symbolEffect(.bounce) behind accessibilityReduceMotion, sweep all withAnimation calls through the MotionTokens helper, and add the missing MascotCheer image (one cheer pose via the existing OpenArt pipeline) so the reduced-motion 3-star fallback actually celebrates.",
+        "why": "Reduced motion is a code path, not a v1.1 promise — and a kids-app accessibility miss is reviewer-visible. MascotCheer is referenced in PlayerScreen.swift line 592 but absent from Assets.xcassets today.",
+        "impact_1to5": 3,
+        "effort_SML": "S",
+        "depends_on": "MotionTokens.swift + juice consistency pass on home"
+      },
+      {
+        "title": "Pim tap-react on home",
+        "what": "Tapping Pim on the home screen triggers one react: a scale-punch + wiggle tween on the idle clip (no new video needed for v1; a dedicated 2s react clip is an optional upgrade later). Input-to-pixel under 80ms, sound hook left for Khalid's lane.",
+        "why": "Kids poke the mascot within the first 30 seconds — a mascot that ignores touch reads as broken and undercuts the alive feeling the idle just bought. One cheap closed feedback loop.",
+        "impact_1to5": 3,
+        "effort_SML": "S",
+        "depends_on": "Extract PimClipView + Pim idle on the home screen"
+      }
+    ],
+    "refund_risks": [
+      "First-impression screen is a static, mascot-less grid — parent judges the €1 app as thin before the kid plays a single note.",
+      "Onboarding never teaches device placement or the glowing-key loop, so the kid's first session can fail and end in the 2-minute bounce that triggers the refund.",
+      "MascotCheer is referenced in code but missing from Assets — reduced-motion users (and pre-clip fallback) get a flat, undifferentiated 3-star result; also the path an App Review accessibility check walks.",
+      "App Preview / screenshots captured before home and onboarding move will show a dead app, depressing paid conversion and attracting exactly the disappointed buyers who refund."
+    ],
+    "do_not_do": [
+      "No Lottie or Rive re-authoring of Pim — he's raster AI art with no vector source; that's a full character rebuild disguised as a format choice.",
+      "No Spine/skeletal rig for Pim in v1 — art canon (chibi vs painterly icon) isn't locked, and animating before art lock is re-rig hell, the #1 animation budget killer.",
+      "No ambient animated Pim or extra particle layers on the gameplay screen — falling notes own that attention budget, and more motion there is noise plus battery cost, not juice.",
+      "No parallax backgrounds, screen shake, or flashing celebration effects — vestibular and WCAG 2.3.1 risk for the exact 5–7 audience, and the current restrained sparkle/pop language is already at the right Pok-Pok-style volume."
+    ]
+  },
+  {
+    "persona": "Khalid — senior sound designer / composer for kids casual mobile (game-sound-khalid)",
+    "headline": "The app listens beautifully but answers in silence — the biggest emotional payoff (Pim + stars) plays mute, the count-in dies on the silent switch while piano notes don't, and three components are still fighting over one AVAudioSession; the €1 feeling of \"finished\" is an audio fix, not a feature.",
+    "open_question_answers": [
+      {
+        "topic": "onboarding",
+        "recommendation": "Kill the three text pages and replace the core with ONE interactive sound moment: Pim points at a glowing key on the on-screen keyboard, the app plays the note (the synth already renders any pitch), the kid plays it on the real piano, the mic hears it, sparkle + Pim chirp fire. That IS the tutorial — it teaches device placement, listening, and the core loop in 30 seconds with zero reading, and it's a thin layer over the existing PitchDetector + playSparkle pipeline. No recorded speech in v1: wordless audio + demonstration is the Pok Pok/Sago path and it works identically in TR, EN, CA, ES. Keep one parent-facing setup page (mic vs MIDI, where to prop the device) — parents can read."
+      },
+      {
+        "topic": "songs",
+        "recommendation": "Pre-readers choose songs by EAR, not by locale or title — a 5-year-old recognizes the Frère Jacques melody regardless of language. So the bundling question mostly dissolves if every card can be heard: ship all 9-12 songs to everyone, sort locale-relevant ones first, and add tap-to-preview on the cards (first ~4 bars through the existing PianoSampler — songs are note data, zero new assets). Do not build a pick-your-languages onboarding step for v1; that's a text solution to a problem audio solves for free. 10-12 hearable, gamified-feeling songs is enough for €1 to not feel thin."
+      },
+      {
+        "topic": "pim",
+        "recommendation": "Pim's voice should be wordless chirps — 'squirrelese,' 5-6 one-shots: hello, encouragement, small cheer, big cheer, sympathetic 'try again.' No words means zero localization, no ElevenLabs child-voice-clone risk (their terms ban it anyway), no COPPA voice exposure, and it never goes stale. Cheapest legitimate sources: an adult voice (Onur's own) doing squeaks pitched up +4-6 semitones, or an indemnified SFX library pick — half a day either way. Then Pim 'lives' wherever the chirps fire: reward videos (currently dead silent), onboarding guide, and home-screen greeting on app open (interaction-triggered, once per launch, never looping)."
+      },
+      {
+        "topic": "home",
+        "recommendation": "From my lane, 'designed' means the home screen makes sound when touched: press a card → soft tap sound + first 4 bars of the song play on the synth piano; release or scroll → it stops. SongCardView today is title + BPM + note count — three pieces of text a 5-year-old cannot read; the preview is how a pre-reader finds Twinkle. This single change makes the grid feel alive before Aiko touches a pixel. Visual redesign itself is Aiko's call, not mine."
+      },
+      {
+        "topic": "store",
+        "recommendation": "App Preview videos record device audio, and parents test apps with the mute switch on — so before screenshot day three things must be true: (1) the result moment sounds finished (star dings + fanfare + Pim chirp), (2) count-in and metronome are audible consistently regardless of silent switch (today they're system sounds that die on mute while the piano synth keeps playing — looks broken on camera and in hand), (3) one audio session configuration owns the app, so no 'sound went quiet after switching songs' moments mid-recording. Bounce the final mix to an old iPhone bottom speaker at 30% volume before recording the preview."
+      },
+      {
+        "topic": "launch",
+        "recommendation": "Make the silent-switch decision explicitly and ship it: this is a music-instruction app, its feedback audio is core function, so route ALL app audio through the AVAudioEngine under .playback (which already ignores the mute switch) — consistent with how every music app behaves — and offer one parent-facing sound toggle in settings as the escape hatch. Audio launch gate is small: unified session, audible count-in, sounding result screen, chirps. Do NOT gate launch on a soundtrack, voice-over, or sampled piano; the additive synth is honest and pleasant at €1."
+      }
+    ],
+    "backlog_items": [
+      {
+        "title": "Unify the audio session + move metronome/count-in onto the engine",
+        "what": "Delete the rogue setCategory(.playAndRecord) calls in Metronome.prepareAudio and PitchDetector.startListening; add AudioSession.configurePlayAndRecord() so the one entry point owns both modes. Replace AudioServicesPlaySystemSound(1104) in Metronome.tick and FallingNotesScene line ~221 with a synthesized woodblock tick rendered like PianoSampler.renderSparkle and played through the engine.",
+        "why": "Verified bug, not polish: with the mute switch on, piano notes and sparkles play (.playback ignores the switch) but the count-in and metronome are system sounds that go silent — the game appears broken at the exact first-play moment. The category race also means whoever configures last wins, producing 'sound got quiet' states. This is the #1 'it's broken, refund' vector in my lane.",
+        "impact_1to5": 5,
+        "effort_SML": "M"
+      },
+      {
+        "title": "Result-screen sound pass: star dings + tier fanfare",
+        "what": "SongResultView.runSequence already pops stars one at a time with 340ms beats — fire a rising celesta ding per star (reuse renderSparkle at fixed ascending pentatonic pitches) and a ~1s synth fanfare on the 3-star burst, all through the existing engine. Hook the sympathetic low 'try again' tone on 1 star.",
+        "why": "The single biggest emotional payoff in the app is currently 100% silent — the code comment even says the reward sound is 'Khalid's lane' and never shipped. A mute celebration reads as unfinished to the parent watching over the kid's shoulder; this is the cheapest completeness win in the whole backlog.",
+        "impact_1to5": 5,
+        "effort_SML": "S"
+      },
+      {
+        "title": "Pim chirp pack (wordless, COPPA-safe) wired to rewards",
+        "what": "Produce 5-6 short wordless squirrel chirps (adult voice pitched up +4-6 semitones, or an indemnified library pack — never ElevenLabs child voices, never recordings of Deniz). Bundle as .caf, play layered over the per-tier PimResult videos (which are H.264 with no audio track — keep them mute, layer the chirp) and on the onboarding guide moment.",
+        "why": "Gives Pim a personality everywhere he appears for zero localization cost across TR/EN/CA/ES, with no COPPA voice-recording exposure. A mascot that makes sound is a mascot kids bond with — that bond is what makes a €1 purchase feel generous instead of thin.",
+        "impact_1to5": 4,
+        "effort_SML": "M"
+      },
+      {
+        "title": "Home-card song previews (press to hear first 4 bars)",
+        "what": "On card press-and-hold (or a small speaker glyph), prewarm via PianoSampler.prewarm and schedule the song's first ~4 bars from its note data at song BPM; stop on release, scroll, or navigation. One preview at a time, soft 200ms fade-out on stop.",
+        "why": "Song titles are text a pre-reader can't read; melody is the only navigation a 5-7 year old has. Zero new assets (songs are note arrays, synth already renders any pitch), and it instantly makes the 'dev-tool-like' home grid feel alive — directly attacks the kid-bounces-in-2-minutes refund trigger.",
+        "impact_1to5": 4,
+        "effort_SML": "S"
+      },
+      {
+        "title": "Audio-first interactive onboarding: 'play the glowing key'",
+        "what": "Replace the text pages with: (1) parent setup page — mic/MIDI choice, device-on-piano placement diagram, mic permission; (2) kid moment — virtual keyboard shows one glowing key, app sounds the note, waits for PitchDetector to hear it from the real piano, fires sparkle + Pim cheer chirp, repeats for 3 notes, done. Reuses the existing detection, glow, and sparkle pipeline.",
+        "why": "Onboarding currently teaches nothing about the core interaction and requires reading English. A 30-second hands-on moment teaches placement + listening + the loop wordlessly, and doubles as a live mic check before the first real song — preventing 'the app doesn't hear my piano' refunds.",
+        "impact_1to5": 5,
+        "effort_SML": "L",
+        "depends_on": "Unify the audio session + move metronome/count-in onto the engine; Pim chirp pack (for the cheer chirp — can ship with sparkle-only fallback)"
+      },
+      {
+        "title": "Minimal UI tap-sound set (3 sounds, engine-rendered)",
+        "what": "Three soft synthesized one-shots through the existing engine: card/button tap 'plock,' back/dismiss, toggle. Interaction-triggered only (Pok Pok model — no autoplay, no ambient bed), peaks well under -6 dB, verified audible on an iPhone bottom speaker at 30% volume.",
+        "why": "Consistency: once the result screen and previews sound good, silent buttons stand out as the unfinished seam. Small completeness signal for the parent; trivial to implement with the renderSparkle pattern.",
+        "impact_1to5": 2,
+        "effort_SML": "S",
+        "depends_on": "Unify the audio session + move metronome/count-in onto the engine"
+      }
+    ],
+    "refund_risks": [
+      "Mute switch on → count-in and metronome silent (system sound 1104) while piano notes still play through the .playback engine: the game looks broken on first launch, which is exactly when refunds happen.",
+      "Kid finishes the first song and the celebration — Pim video, star pops, sparkle burst — plays in total silence: the payoff moment reads 'unfinished demo' to the paying parent.",
+      "Three components (AudioSession, Metronome, PitchDetector) independently set conflicting session categories; mode/song switches can leave output quiet or ducked → 'no sound, 1 star' reviews.",
+      "Text-only English onboarding + text-only song cards: a pre-reader can't start or even pick a song without a parent reading for them — kid bounces in 2 minutes, parent refunds."
+    ],
+    "do_not_do": [
+      "No recorded speech/VO in any language for v1 — wordless chirps + demonstration only; speech means 4-locale recording/maintenance and review burden a €1 app can't carry.",
+      "No background music bed or autoplay ambient — this is a piano app, the kid's piano IS the music; keep the verified interaction-triggered architecture (also keeps WCAG 1.4.2 and parent-in-restaurant tolerance solved).",
+      "No audio middleware migration (FMOD/full AudioKit) and no 25 MB Salamander SF2 bundle — the AVAudioEngine additive synth is right-sized and honest at €1; revisit sampled piano at €5.",
+      "No AI-generated music from tools where you don't own or aren't indemnified for the output (Stable Audio especially); for the tiny fanfare/tick needs here, synthesize in-code — you own every sample."
+    ]
+  },
+  {
+    "persona": "Mei — senior kid-research / playtest specialist (ages 3-12, sweet spot 5-7), 2,000+ kid sessions",
+    "headline": "The first two minutes belong to adults, not the kid: a pre-reader walks past three text pages and a dead mic promise into a dense English-only toolbar where nothing happens until someone finds a small \"Play\" button — fix that cold open and the input honesty, and the €1 holds.",
+    "open_question_answers": [
+      {
+        "topic": "onboarding",
+        "recommendation": "Replace the 3 text pages with a 60-second playable FTUE in two parts. Part 1 (parent, ~20s): one picture-based setup screen — 'How will you play?' with two illustrated choices, touch-the-screen or USB keyboard (photo of iPad propped on a piano with the camera-adapter cable) — and DELETE the mic permission page entirely, because I verified startListening() is never called: the app requests a permission for a feature that does not exist, which is both a refund trap and an App Store review smell. Part 2 (kid, ~40s): Pim points at ONE glowing key, kid presses it, sparkle + sound; repeat with 3 keys; then auto-launch Salta rung 1 with the count-in. Zero reading required — the kid learns the core interaction by doing it, which is the only way a 5-year-old learns anything."
+      },
+      {
+        "topic": "songs",
+        "recommendation": "9 songs is enough for €1 — the thinness feeling comes from 8 of 9 songs ending in a flat text overlay with no stars and no Pim, not from catalog size. Do NOT build locale-pack infrastructure for v1: ship all songs to everyone, and remember pre-readers pick by PICTURE, not title — give every song card an icon (sheep for Mary, star for Twinkle, squirrel for Salta) and let locale merely sort the grid (familiar songs first). A pick-your-language onboarding step is an adult abstraction a 5-year-old cannot answer; skip it. Add Turkish songs later as a free update — 'new free songs' is also your best post-launch review driver."
+      },
+      {
+        "topic": "pim",
+        "recommendation": "Kids attach to a character through repetition of the SAME pose, not through animation everywhere. Cheap-but-effective v1: (1) Pim static greeter on the home screen header, one pose, (2) Pim as the FTUE guide pointing at the glowing key (same still asset), (3) the existing reward videos. That is three touchpoints in every session — enough for a 5-year-old to call it 'the squirrel game.' Reconciling chibi-vs-painterly icon canon matters for the parent's first impression on the store page (Aiko's call), but in-app, consistency of pose beats quantity of appearances."
+      },
+      {
+        "topic": "home",
+        "recommendation": "'Designed' for this app means the home screen answers a pre-reader's two questions: 'which one is my song?' (per-song picture icons) and 'how am I doing?' (best-stars row on each card, persisted). Add the Pim greeter and move Add Song + delete out of kid reach — delete is currently a long-press context menu on every card, which a mashing 5-year-old WILL trigger, and a vanished favorite song reads as 'app broke' to the parent. That's the whole redesign; no hero illustration needed for v1."
+      },
+      {
+        "topic": "store",
+        "recommendation": "Four in-app gates before screenshot day, in order: (1) the mic claim is resolved — removed from onboarding and never promised in store copy, because a parent with an acoustic piano who buys 'the app hears your piano' gets a 100%-justified refund; (2) every song ends in the same stars+Pim result so any screenshot you take is true of the whole app; (3) TR+EN strings exist — today there is zero localization in the codebase; (4) one cold-start kid gate passes: a 5-year-old you are not the parent of reaches their first deliberate correct-key press in under 90 seconds with zero adult words. Screenshots of the result screen and falling notes are your money shots; they must depict the median song, not the one gamified song."
+      },
+      {
+        "topic": "launch",
+        "recommendation": "Launch is your playtest at scale, so structure it like one: before the button-press, run the already-written protocol (docs/superpowers/specs/2026-06-08-playtest-protocol.md) with 5 age-5 kids — recruiting takes lead time, start now — and treat ≥3/5 day-3 unprompted reopens as the go signal. Then soft-launch Turkey-first as planned, with refund rate and 1-2 star reviews as your only metrics (if you pick Kids Category there is no analytics, and that's fine — reviews ARE the kid data at €1 volume). Do not wait for Pim canon, more gamified songs, or mic support; ship when the four store gates pass and iterate from reviews."
+      }
+    ],
+    "backlog_items": [
+      {
+        "title": "Kill the mic lie: remove mic permission + 'listens to your piano' copy",
+        "what": "Delete the OnboardingView microphone page and all 'listens to your piano' copy; strip the mic-permission overlay path from PlayerScreen; position v1 honestly as touch-the-screen + USB MIDI. (PitchDetector.startListening() is already dead code — nothing functional is lost.)",
+        "why": "#1 refund engine: a parent with an acoustic piano buys 'app hears your piano,' grants mic permission, and the app never hears anything. Honest input claims are the cheapest refund prevention in the whole backlog.",
+        "impact_1to5": 5,
+        "effort_SML": "S"
+      },
+      {
+        "title": "Playable FTUE: parent setup screen + kid press-the-glowing-key",
+        "what": "Two-part first run: one picture-based parent screen (touch vs USB-keyboard choice with device-on-piano illustration), then an interactive kid moment — Pim points, one key glows, kid presses, sparkle ×3 — that flows straight into Salta rung 1 with count-in. Reuses PianoKeyboardView glow + existing Pim assets.",
+        "why": "The current 3 text pages teach a pre-reader nothing; the kid arrives at the player not knowing the core interaction. Teaching by doing closes the biggest first-2-minutes bounce point and is the replayable demo for the parent too.",
+        "impact_1to5": 5,
+        "effort_SML": "M"
+      },
+      {
+        "title": "Kid Mode player screen: one big Play, adult controls behind a gate",
+        "what": "Collapse the PlayerScreen toolbar (BPM stepper, notation picker, sound toggles, display picker, Edit pencil) behind a gear with a simple parental gate; surface one large center Play button (icon, not English text). Remove the Edit pencil and home-card long-press-delete from kid reach.",
+        "why": "Verified bounce point: a 5yo lands on a paused screen with ~10 adult controls and a small text 'Play' button; one tap on the pencil drops them into the adult note-entry UI, and a long-press deletes songs. Each of those reads as 'broken/confusing' to the watching parent — the refund moment.",
+        "impact_1to5": 5,
+        "effort_SML": "M"
+      },
+      {
+        "title": "Uniform result across all 9 songs + best-stars on home cards",
+        "what": "Route every song's completion through the existing SongResultView (stars + Pim video) instead of the plain 'Great job!' overlay; persist best stars per song in SwiftData and show them on SongCardView. Ladder rungs stay Salta-only.",
+        "why": "Completeness: the kid who gets Pim after Salta then plays Twinkle and gets a flat text card concludes the other songs are worse — and the parent concludes the app is one-ninth finished. Visible stars on home also gives the day-3 reopen a target.",
+        "impact_1to5": 4,
+        "effort_SML": "M",
+        "depends_on": "in-flight single-song mastery work (don't fork SongResultView)"
+      },
+      {
+        "title": "Per-song picture icons + TR/EN localization pass",
+        "what": "Add an icon per seeded song (SF Symbols or OpenArt one-pose stills) to SongCardView, and move all user-facing strings to a String Catalog with TR+EN. Kid-facing UI stays icon-first so localization is mostly parent screens.",
+        "why": "Pre-readers navigate by picture — today song cards are text-only, so a 5yo picks by color and can't find 'their' song again. TR+EN is a stated hard constraint and currently 0% done (no localized strings anywhere in the codebase).",
+        "impact_1to5": 3,
+        "effort_SML": "M"
+      },
+      {
+        "title": "Cold-open playtest gate: 5 age-5 kids, 120-second first-touch block",
+        "what": "Extend the existing playtest protocol with a cold-open block: hand the device at the home screen, say nothing, measure time-to-first-deliberate-correct-key and where each kid stalls. Kill criterion: ≥4/5 reach a deliberate hit <90s with zero adult words; plus the protocol's day-3 reopen check (≥3/5). Recruit now — families are the long pole, not the build.",
+        "why": "This is the refund window made measurable: it directly tests the FTUE + Kid Mode items above before real parents pay €1 to run the same experiment. Your own daughter doesn't count — wrong age, wrong parent, n=1.",
+        "impact_1to5": 5,
+        "effort_SML": "M",
+        "depends_on": "Playable FTUE + Kid Mode player screen (test the build you'll ship)"
+      }
+    ],
+    "refund_risks": [
+      "Acoustic-piano parent: store/onboarding promises the app 'listens to your piano' but mic detection is dead code (startListening never called) — the app literally cannot hear their instrument. Instant, justified refund.",
+      "Kid bounces in the player: paused screen, dense adult toolbar, small English-only 'Play' text button — the 5yo mashes the on-screen keys, never starts the game, parent watches confusion for 2 minutes and refunds.",
+      "Thinness after song one: only Salta has stars/Pim/ladder; the other 8 songs end in a flat text overlay, so the app feels like a demo with one finished level.",
+      "Destructive taps in kid reach: long-press-delete on home cards and the Edit pencil into adult note-entry — kid deletes Twinkle or lands in a form, parent reads it as broken."
+    ],
+    "do_not_do": [
+      "Do NOT build mic pitch detection for acoustic pianos for v1 — half-working pitch detection in a living room (TV noise, pedal sustain, octave errors) is a worse refund engine than honestly not having it.",
+      "Do NOT build locale-based song packs, language-picker onboarding, or any pack/IAP infrastructure — one catalog, all included, locale only sorts the grid.",
+      "Do NOT extend the 4-rung mastery ladder to all 9 songs before launch — the uniform stars+Pim result screen is the completeness fix; the ladder stays the Salta showcase.",
+      "Do NOT animate Pim across the app or reconcile the full mascot canon pre-launch — one static greeter pose + the existing reward videos is the whole v1 Pim budget."
+    ]
+  },
+  {
+    "persona": "Marco — senior solo-dev game programmer (tech stack + architecture)",
+    "headline": "The game core is solid and the mastery ladder is already song-generic — but the data layer is not ready for a catalog: the shipping build seeds exactly ONE song, seeding deletes user songs by title match, rung progress dies on every launch, and the en/es Localizable.strings are not even in the Xcode resources build phase, so nothing localizes today.",
+    "open_question_answers": [
+      {
+        "topic": "onboarding",
+        "recommendation": "Yes, reuse FallingNotesScene as the tutorial — I verified it is fully song-agnostic: it takes any Song, reads the shared clock from PlayerViewModel, and gets geometry from KeyboardLayout.default. The tutorial is just a 3-note 'song' (Do-Re-Mi) run at rung-1 settings (50bpm, full glow, ±600ms) launched from onboarding; the kid plays the actual game in minute one, no new engine, no new dependency. Keep exactly ONE parent page before it: two big buttons (mic vs USB MIDI) plus an illustrated device-placement picture. Kill the three text-bullet pages in OnboardingView.swift — they teach nothing a pre-reader can use. This is 1-2 days, not a project."
+      },
+      {
+        "topic": "songs",
+        "recommendation": "Ship ALL songs in the binary — each song's notes are ~1-2KB of JSON, so the entire 15-song catalog costs less than one Pim video frame. Packs, on-demand resources, or IAP gating is over-engineering for a €1 app; bundling cost is zero. Surface by locale: section the home grid (e.g. 'Your songs' = Locale-matched language first, then 'More songs'), no pick-your-language onboarding step. BUT the Song model needs surgery first: add a stable seedID and localized-title map, and stop keying seeds on raw title — SeedData.seedIfNeeded currently DELETES any song whose title matches a retired seed, which will eat a user-created 'Twinkle Twinkle Little Star'. 12-15 songs (4 EN global, 4 TR, 3-4 CA, 2-3 ES) is enough to not feel thin; 8 already exist in git history. Also add dotted notes + rests to NoteDuration (S effort) or half the Turkish repertoire won't transcribe; skip triplets."
+      },
+      {
+        "topic": "pim",
+        "recommendation": "From the tech side: do NOT add Lottie/Rive/Spine runtime for v1 — that is a dependency tax and binary cost for a €1 app. The code already has the cheap path built: SongResultView falls back to 'Mascot'/'MascotCheer' static assets, and LoopingVideoView (custom chroma-key player) exists and works. Cheap-but-effective = 2-3 static Pim poses (OpenArt) dropped into Assets for home header, onboarding guide, and empty states, plus the existing reward videos where they already play. Which poses and the canon reconciliation is Aiko's call, not mine — but the engineering answer is 'static PNGs, zero new dependencies.'"
+      },
+      {
+        "topic": "home",
+        "recommendation": "The LazyVGrid is fine — keep it. What makes HomeScreen feel like a dev tool is missing DATA, not missing design tech: there is no per-song progress to show because rungIndex lives only in memory (PlayerViewModel comment admits 'persisting best-rung across launches is backlog'). Add bestStars/bestRung as additive SwiftData fields (safe lightweight migration), render star/rung badges on SongCardView, add locale sections and a Pim header. Also move 'Add Song' and delete-via-context-menu behind a parental gate — a 5yo can currently delete every song with a long-press, and Kids Category will require the gate anyway."
+      },
+      {
+        "topic": "store",
+        "recommendation": "Four things must be true in-app before screenshot day, all verified gaps: (1) the catalog is restored — the current build seeds only Plim Plim (SeedData.createSeedSongs returns [plimPlim()]); a parent who pays €1 and sees one song refunds in the first minute; (2) the mastery ladder runs on every song — good news: MasteryLadder/Rung/HitJudge are already fully generic, only persistence and per-song reward gating are missing; (3) TR localization actually ships — the .lproj files exist on disk but are NOT in the PBXResourcesBuildPhase, so today every string renders in English regardless of device language; migrate to a String Catalog and wire it in; (4) mic input drives the game mode — see refund risks."
+      },
+      {
+        "topic": "launch",
+        "recommendation": "The local-only, no-backend, no-SDK architecture is the correct launch architecture — do not touch it. Zero third-party SDKs means Kids Category compliance is nearly free and there is no privacy-label work; keep it that way until the Kids decision lands, and do NOT add an analytics SDK before launch. Binary is small (~3MB of videos, abcjs, one Swift package). Launch gate = the device playtest in product/backlog.md passes + one crash-free TestFlight week with the restored catalog. That is the whole bar; everything else is post-launch iteration."
+      }
+    ],
+    "backlog_items": [
+      {
+        "title": "Song identity refactor: seedID + localized titles + safe seeding",
+        "what": "Add a stable seedID (string) and a localized-title map to the seed catalog; key SeedData.seedIfNeeded on seedID instead of title; never delete songs the user created (tag seeds vs user songs). Add language/region tag per seed song.",
+        "why": "Current title-keyed pruning deletes user songs that share a retired seed's title — data-loss-on-update is the worst refund class. Also the foundation every catalog/locale item below stands on.",
+        "impact_1to5": 5,
+        "effort_SML": "M"
+      },
+      {
+        "title": "Restore and expand the seed catalog to 12-15 songs with locale sections",
+        "what": "Re-activate the 8 retired songs (builders still in SeedData.swift), add ~4 Turkish and 1-2 Spanish public-domain songs, all bundled in-binary. Home grid gets two sections: locale-matched songs first, then the rest. Add dotted-note + rest support to NoteDuration where transcriptions need it.",
+        "why": "The shipping build has ONE song. Catalog thinness is the single biggest refund trigger for a paid app; notes cost ~1-2KB each so bundling everything is free.",
+        "impact_1to5": 5,
+        "effort_SML": "M",
+        "depends_on": "Song identity refactor"
+      },
+      {
+        "title": "Persist per-song progress (bestStars per rung, bestRung) + home badges",
+        "what": "Additive SwiftData fields on Song (or a small Progress model keyed by seedID), written from finishSong()/climbRung(); SongCardView renders stars/rung badge. Mastery ladder needs zero changes — it is already generic config in PlayerViewModel.swift.",
+        "why": "Today the kid loses the ladder on every app launch — the app feels broken on day 2, and the home screen has nothing to display. This is also the backlog.md 'beat-your-best' item.",
+        "impact_1to5": 4,
+        "effort_SML": "S"
+      },
+      {
+        "title": "Playable onboarding: tutorial song through FallingNotesScene",
+        "what": "Replace the 3 text pages with: one illustrated parent setup page (mic vs MIDI choice, device placement), then a 3-note tutorial 'song' played through the existing FallingNotesScene at rung-1 settings with full glow. Completion = the kid hit the notes.",
+        "why": "FTUE is the 2-minute refund window; the scene is already song-agnostic so this reuses the core loop instead of building a tutorial engine.",
+        "impact_1to5": 4,
+        "effort_SML": "M"
+      },
+      {
+        "title": "Route mic pitch detection into game-mode hit judging",
+        "what": "Feed PitchDetector.detectedNote into the same judging path as handleKeyPressed (minus sampler playback) when fallingNotesActive — debounce repeated detections of a held note. Today detectedNote only drives the legacy sheet-music checkDetectedNote() advance loop.",
+        "why": "The store promise is 'the app hears your real piano' — but acoustic-piano buyers without USB MIDI cannot play the falling-notes game at all. Broken core promise = refund.",
+        "impact_1to5": 4,
+        "effort_SML": "M"
+      },
+      {
+        "title": "String Catalog + Turkish localization, wired into the build",
+        "what": "Migrate to Localizable.xcstrings, add tr (and ca), and add it to the target — the existing en/es .lproj files are NOT in PBXResourcesBuildPhase, so no localization ships today. Localized song titles ride on the seedID refactor.",
+        "why": "TR+EN is a hard constraint in the brief and the launch geo is Turkey; an all-English app in the TR store reads as half-finished.",
+        "impact_1to5": 3,
+        "effort_SML": "S",
+        "depends_on": "Song identity refactor"
+      }
+    ],
+    "refund_risks": [
+      "Shipping build seeds exactly ONE song (SeedData.createSeedSongs = [plimPlim()]) — parent opens a €1 app, sees one song, refunds. The brief's '9 seeded songs' is stale.",
+      "Mic pitch detection does not drive the falling-notes game — acoustic-piano buyers without USB MIDI get a tap-only toy, breaking the listed core promise.",
+      "Seed pruning deletes songs by title match on every launch — a user-added song named like a retired seed silently vanishes after an update (data loss).",
+      "Mastery-ladder progress is in-memory only — every launch resets to rung 1, so on day 2 the app looks broken/shallow and the kid's achievement is gone."
+    ],
+    "do_not_do": [
+      "No song packs, on-demand resources, or IAP infrastructure — the whole catalog is <100KB of note data; ship everything in the binary and order by locale.",
+      "No Lottie/Rive/Spine runtime for Pim in v1 — static PNG poses plus the existing LoopingVideoView; every dependency is a tax you pay forever.",
+      "No backend, accounts, cloud sync, or analytics SDK before the Kids Category decision — local-only SwiftData is the compliance moat, not a limitation.",
+      "No pick-your-language onboarding step and no notation-engine expansion (triplets, key signatures, two-hand) — Locale-based ordering and dotted-notes+rests cover the v1 repertoire."
+    ]
+  },
+  {
+    "persona": "Luca — senior mobile marketing / UA / launch strategist (kids casual), game-marketing-luca",
+    "headline": "The product can earn its €1, but today it's a TR-first launch with zero Turkish songs, a mic feature that will be blamed as \"broken,\" and one gamified song — fix those three and the refund problem mostly disappears, because at €1 nobody refunds for value, they refund (and 1-star) for \"it doesn't work\" or \"it's a prototype.\"",
+    "open_question_answers": [
+      {
+        "topic": "onboarding",
+        "recommendation": "From my lens, onboarding has exactly one commercial job: prove the app works within 60 seconds of purchase, because 'mic didn't hear my piano' is your #1 refund/1-star driver. V1 = 3 beats: (1) Pim shows 'put the device on the piano' (illustration, no text wall), (2) mic permission with a pre-prompt explaining why, (3) the magic moment — 'play any key' and the app names the note it heard, live, with a troubleshooting fallback (move closer, reduce noise, or plug in MIDI). The kid-FTUE game layer is Defne's call; I only insist the parent-setup proof-of-life ships in v1. Current OnboardingView.swift is 3 text pages — that's a refund generator, not onboarding."
+      },
+      {
+        "topic": "songs",
+        "recommendation": "All songs included at €1 — no IAP, no packs-for-sale. That keeps the trust stack ('one price, no ads, no subscriptions, nothing to unlock') intact and Kids Category filing simple. Structure: add a language field to Song (Song.swift has none today — verified), default-sort by device locale with the rest below, optional language chips in onboarding. The catalog IS the wedge: Simply Piano/Yousician are English-centric subscriptions; you are 'folk songs your kid already knows, in your language, for €1.' Minimum to not feel thin: 12-15 songs with at least 3-5 in the buyer's language — which means 3 Turkish songs are mandatory before any TR push (you have zero; SeedData.swift confirms 6 EN/universal + 3 Catalan)."
+      },
+      {
+        "topic": "pim",
+        "recommendation": "Mostly outside my lane (Aiko/Diego own execution), but the marketing constraint is mine: Pim is your only brand asset and must appear in screenshot frame 1 and in the first 10 seconds of app use, or the icon is writing a check the app doesn't cash — that mismatch reads as 'asset-flip' to a parent and feeds refunds. Cheap version: reuse existing reward-video stills/poses as a static Pim greeter on home and as the onboarding guide. Do not commission new animation before Aiko reconciles the chibi-vs-painterly canon."
+      },
+      {
+        "topic": "home",
+        "recommendation": "Treat home as App Store screenshot frame #1 — that's the design brief. It must show, at a glance: Pim, stars/progress per song, and language-grouped song cards, so a parent screenshot-skimming the listing reads 'finished product with progression,' not 'dev tool' (current HomeScreen.swift is a 113-line plain grid). Visual execution is Aiko's; my acceptance test is brutal and simple: would this screen survive in a 1290×2796 store frame next to Pok Pok's? "
+      },
+      {
+        "topic": "store",
+        "recommendation": "Before screenshot day, four things must be true in-app: ≥12 songs with stars visible on home, the mic magic-moment onboarding, Pim present outside reward videos, and mastery on more than one song (one gamified song cannot honestly fill a 3-5 frame arc). Two decisions to make now, not at submission: file IN the Kids Category — you're local-only SwiftData with no analytics, so the 1.3 restrictions cost you nothing and parents browse that shelf on trust; and 'No Data Collected' on the privacy label is a marketing weapon — put 'no ads · no subscriptions · no data collected' as a dedicated trust frame. Then route keyword/metadata work to /jpm-aso."
+      },
+      {
+        "topic": "launch",
+        "recommendation": "No paid UA, full stop: €0.85 net per sale vs ~$1.41 casual iOS CPI (Liftoff 2025) is structurally underwater forever at €1 — your entire plan is organic, which is fine. Sequence: (1) quiet technical launch TR + non-EU (this is a crash/refund shakeout, NOT a retention read — TR metrics run 30-50% below global, ignore them); (2) first real marketing beat is niche-first Catalonia once EU is on: 3 Catalan kids songs in a piano app is genuinely rare — pitch Catalan parenting communities, criança-en-català blogs/Telegram groups, and Catalan family influencers with the 'Sol Solet on a real piano' story; (3) TR push only after Turkish songs ship; (4) submit an Apple Featuring Nomination on every release and a Common Sense Media submission at launch — as upside, never as the plan. Your 'good enough to launch' gate is the completeness checklist above plus a clean TestFlight device test, not metrics — at this volume cohort tables don't exist; your scoreboard is App Store Connect refund count and rating average."
+      }
+    ],
+    "backlog_items": [
+      {
+        "title": "Mic magic-moment setup check (onboarding step 3)",
+        "what": "Replace the 'you're all set' page with a live proof-of-life: 'play any key on your piano' — app displays the detected note in real time, with a fallback panel (move device onto piano, reduce room noise, plug in USB MIDI) if nothing is heard in ~10s. Reuse the existing pitch-detection pipeline.",
+        "why": "Kills the #1 refund driver for any mic-based app: parent buys, mic fails silently, app is 'broken,' refund + 1-star. Converts setup from a risk into the first wow moment.",
+        "impact_1to5": 5,
+        "effort_SML": "M"
+      },
+      {
+        "title": "Turkish song pack + language metadata + locale-default ordering",
+        "what": "Add a language/region field to Song, seed 3 Turkish kids songs (via the existing add-song pipeline) plus 2-3 more universal ones to reach 12+, and order the home grid by device locale (buyer's language first).",
+        "why": "TR is the primary launch geo and the catalog currently has zero Turkish songs — a TR parent opening to Catalan/English titles is a refund. Also unlocks the 'songs in YOUR language' positioning that is the whole marketing story.",
+        "impact_1to5": 5,
+        "effort_SML": "M"
+      },
+      {
+        "title": "Grown-Ups corner with rating ask + support escape hatch",
+        "what": "Parental-gated adult area: setup help (mic vs MIDI, device placement), a support mailto link, and the SKStoreReviewController prompt triggered after the kid's first 3-star mastery (second session or later), shown only on the adult side — never in kid flow, never gated, never repeated.",
+        "why": "Ratings are the real currency of a €1 app (refunds cost €0.85; a 1-star costs every future sale). A visible support path deflects 'broken → refund' into 'broken → email.' Fully compliant with Kids Category and no dark patterns.",
+        "impact_1to5": 4,
+        "effort_SML": "S"
+      },
+      {
+        "title": "Mastery ladder rollout to all seeded songs + stars on home",
+        "what": "Apply the existing Salta l'Esquirol 4-rung ladder template to the remaining seeded songs (per-song tempo floors) and surface best-stars-per-song badges on the home grid.",
+        "why": "One gamified song out of 9 reads as 'prototype' — the second-biggest refund driver — and you cannot shoot an honest 3-5 frame screenshot arc around a single song. Template exists; this is replication, not invention.",
+        "impact_1to5": 5,
+        "effort_SML": "L",
+        "depends_on": "Device-test gate in product/backlog.md (NOW section) must pass first; do not disturb the in-flight single-song work"
+      },
+      {
+        "title": "Store positioning pack (TR/EN listing + trust frame arc + Kids Category filing)",
+        "what": "Write the TR + EN listing copy around the wedge ('real piano, songs in your language, €1, no ads, no subscriptions, no data collected'), lock the screenshot frame arc (home-with-stars → falling notes → Pim celebration → trust frame), and document the Kids Category filing + privacy-label answers in product/store-config.md.",
+        "why": "The privacy label and one-time-price are the parent trust signals that convert browsers and pre-empt buyer's remorse; doing this after the in-app items means screenshots show truth, not promises.",
+        "impact_1to5": 4,
+        "effort_SML": "M",
+        "depends_on": "Items 1, 2 and 4 (screenshots must show the real app)"
+      }
+    ],
+    "refund_risks": [
+      "Mic pitch detection fails on the buyer's piano/room (or mic permission denied) and the app looks broken — the single biggest paid-app refund + 1-star driver",
+      "Thinness: 9 songs, only one gamified, dev-tool home screen — parent concludes 'unfinished prototype' within 2 minutes",
+      "Setup confusion: nothing teaches 'put the device on the piano' or mic-vs-MIDI, so the kid bounces and the parent blames the app",
+      "Language mismatch: TR (primary geo) buyers find zero Turkish songs; the 'your language' promise of a multilingual catalog backfires where it isn't true"
+    ],
+    "do_not_do": [
+      "No paid UA at any point at €1 — €0.85 net vs ~$1.41 casual iOS CPI is structurally underwater; don't even 'test $50 on Meta'",
+      "No freemium retrofit, no IAP song packs, no free-with-unlock — it breaks the one-price trust story, complicates Kids Category review, and invites the worst-converting cohort",
+      "Don't build the launch around Apple featuring or wait for it — nominate on every release and move on",
+      "No soft-launch metrics theater: don't delay launch waiting for D1/D7 cohort tables you'll never have at solo-€1 volume, and never read TR numbers as global signal"
+    ]
+  },
+  {
+    "persona": "ASO / Store Presence lead (jpm-aso + appstore-screenshots + appstore-release)",
+    "headline": "The app is accidentally almost Kids-Category-compliant (zero data collection, no network code) but has three silent submission blockers — no Turkish localization in an app whose primary market is Turkey, an iPad-only build that contradicts store-config.md's iPhone screenshot plan, and no privacy policy — all cheaper to fix than any screenshot.",
+    "open_question_answers": [
+      {
+        "topic": "store",
+        "recommendation": "Kids Category: NO for v1. It is a one-way door (leaving later requires Apple's blessing), it permanently forbids third-party analytics, and mic access inside Kids Category triggers extended review — the worst trade for a solo dev racing to launch. You lose almost nothing: paid €1 discovery is search-driven, not Kids-tab browsing (which skews free). Instead: age rating 4+, privacy nutrition label 'Data Not Collected' (true today — I verified no network/analytics code exists), and App Review notes stating pitch detection is on-device, nothing recorded or transmitted. Guideline 5.1.4 still applies because the metadata targets kids, but zero collection satisfies it for free."
+      },
+      {
+        "topic": "store",
+        "recommendation": "Metadata per locale: TR title 'Y La Piano – Çocuk Piyanosu' / subtitle 'Gerçek piyanoda şarkı öğren'; EN title 'Y La Piano – Piano for Kids' / subtitle 'Learn songs on a real piano' (all ≤30 chars). Keywords field (100 chars): never repeat title/subtitle words — TR: klavye,müzik,nota,ders,oyun,bebek,başlangıç,kulak; EN: keyboard,music,notes,toddler,lessons,midi,beginner,ear,training. Note the TR storefront also indexes English (UK) metadata, so EN keywords work double-duty in Turkey. ES/CA later: Catalan is not an App Store locale — put Catalan song-name terms (castanyera, cançons) inside the es-ES keywords field. Listing completeness checklist beyond text: privacy policy URL (REQUIRED, missing), support URL, age-rating questionnaire, privacy labels, iPad 13\" screenshots only (the app is TARGETED_DEVICE_FAMILY=2 — fix store-config.md, which wrongly plans iPhone 6.7\" frames)."
+      },
+      {
+        "topic": "store",
+        "recommendation": "What must exist in-app before screenshot day (the frame-arc gate): (1) home screen redesign shipped — the current LazyVGrid dev-grid would be frame 2 and would kill conversion or, worse, force you to screenshot something the buyer never sees, which is the #1 refund setup; (2) Pim visible on home + reward so the icon's mascot promise is kept; (3) tr.lproj exists so TR renders are real UI, not English screenshots on the Turkish storefront; (4) star/progress display on song cards so a 'progress' frame is honest; (5) a deterministic seed mechanism (launch argument) for each frame state. Frame arc: 4 frames — falling-notes hero mid-song, 'hears your real piano' (mic/MIDI), Pim reward celebration, song library with progress. Don't pad to 8."
+      },
+      {
+        "topic": "songs",
+        "recommendation": "Don't build locale-gated packs — ship all songs to everyone and localize the song TITLES per locale instead. Three of your nine songs already ARE Turkish classics under English names: Twinkle Twinkle = 'Daha Dün Annemizin', Old MacDonald = 'Ali Baba'nın Çiftliği', Frère Jacques = 'Tembel Çocuk'. That's a half-day strings change that makes the catalog feel native in your primary market, versus zero TR-recognizable songs today. Sort order by device locale (TR-recognized first on TR devices) is the only 'bundling' v1 needs. Nine-to-twelve visible songs is plenty for €1 — thinness perception comes from the dev-tool home screen and one-of-nine gamified songs, not the count."
+      },
+      {
+        "topic": "launch",
+        "recommendation": "Soft-launch sequencing, not perfection: submit to Turkey-only first (primary market, cheapest place to absorb a bad review or a rejection), watch 7 days for refunds/crashes/review feedback, then expand EN storefronts + EU in one release. Use the existing appstore-release flow (notes per locale, char-verified, stop before Submit). Biggest rejection risk is the reviewer questioning a kids-marketed app with mic access — pre-empt it entirely in the Review Notes field with a 2-line explanation plus a demo tip ('hum or play any tone near the iPad'). Gate launch on the screenshot-prereq list above, not on gamifying all nine songs."
+      },
+      {
+        "topic": "onboarding",
+        "recommendation": "From the store/review lens: keep a pre-permission priming screen BEFORE the iOS mic dialog (you have one — good), but add a 10-second live mic check ('play any key — see it light up') at the end of onboarding. It doubles as setup verification (device placement on the piano) and is your cheapest defense against the 'it doesn't hear my piano' refund, which for a mic-based app is the dominant refund category. Also localize the NSMicrophoneUsageDescription via InfoPlist.strings — today it exists in English only, which looks sloppy to a TR reviewer and a TR parent."
+      }
+    ],
+    "backlog_items": [
+      {
+        "title": "Submission compliance pack (no Kids Category)",
+        "what": "Host a static privacy policy page ('no data collected, mic processed on-device'), draft age-rating questionnaire answers, privacy nutrition label = Data Not Collected, App Review notes explaining on-device pitch detection, and localized NSMicrophoneUsageDescription via InfoPlist.strings (tr/en/es). Record the Kids-Category=NO decision in product/decisions/.",
+        "why": "These are hard submission blockers and the entire mic-with-kids review-risk mitigation; without them screenshots are moot.",
+        "impact_1to5": 5,
+        "effort_SML": "S"
+      },
+      {
+        "title": "Turkish in-app localization + locale-native song titles",
+        "what": "Add tr.lproj/Localizable.strings (~50 strings exist in en.lproj), and localize song display titles per locale — Twinkle→'Daha Dün Annemizin', Old MacDonald→'Ali Baba'nın Çiftliği', Frère Jacques→'Tembel Çocuk'. Sort recognized-local songs first by device locale.",
+        "why": "Primary market is Turkey and the app currently has zero Turkish strings — an English-only app is an instant TR refund; localized titles make the catalog feel native for free.",
+        "impact_1to5": 5,
+        "effort_SML": "S"
+      },
+      {
+        "title": "Store metadata pack (tr + en-US)",
+        "what": "Write title/subtitle/keywords/description/promotional text for tr and en-US, char-verified in code (title/subtitle ≤30, keywords ≤100, no word repeated across fields), saved to product/store-listing/texts/. Use the drafts from this review as the starting point.",
+        "why": "Search is the only acquisition channel for a €1 app with no marketing budget; metadata is also needed before the listing can be created at all.",
+        "impact_1to5": 4,
+        "effort_SML": "S"
+      },
+      {
+        "title": "Screenshot seed mechanism + store-config corrections",
+        "what": "Add launch arguments (e.g. -screenshotState home|playing|reward|ladder) that seed SwiftData with demo progress and jump to each frame state deterministically; document simctl status-bar override. Fix store-config.md: iPad-only (device family 2), so iPad 13\" 2048×2732 frames only — delete the iPhone 6.7\" plan.",
+        "why": "Fills the two open TODOs in store-config.md and makes screenshots reproducible after every UI change instead of hand-staged once.",
+        "impact_1to5": 4,
+        "effort_SML": "M"
+      },
+      {
+        "title": "Frame arc + Canva designs + first screenshot set",
+        "what": "Create the 'YLapiano App Store Images' Canva folder with 4 frames (falling-notes hero, hears-your-real-piano, Pim reward, song library with progress), composite simctl renders for tr + en-US, export to product/store-listing/screenshots/, and record design IDs in store-config.md.",
+        "why": "The listing's conversion surface; doing it last (after home redesign + Pim placement land) means screenshots show the real app — the core anti-refund principle.",
+        "impact_1to5": 5,
+        "effort_SML": "M",
+        "depends_on": "Screenshot seed mechanism + store-config corrections; home-screen redesign and Pim-on-home work from the design/mascot personas"
+      }
+    ],
+    "refund_risks": [
+      "TR buyers (the primary market) receive an English-only app — no tr.lproj exists today, only en + es",
+      "Screenshots overpromising gamification: only 1 of 9 songs has the mastery ladder; frames must show real states the buyer reaches in minute one",
+      "'It doesn't hear my piano' — mic pitch detection failing in a noisy room or with bad device placement, with no in-app mic check or troubleshooting",
+      "First-open mismatch: a polished store listing leading to the current dev-tool LazyVGrid home screen reads as 'thin app, refund'"
+    ],
+    "do_not_do": [
+      "Don't enroll in the Kids Category for v1 — one-way door, extended review for mic access, no Kids-tab upside for a paid app; revisit at €5 repricing",
+      "Don't go universal (iPhone) for store reach — the iPad-on-the-piano-stand use case is the product; building iPhone layouts is a multi-week trap",
+      "Don't produce an App Preview video or es-ES/Catalan listings at launch — tr + en-US screenshots only; Catalan isn't even an App Store locale",
+      "Don't add any analytics SDK before launch — 'Data Not Collected' is your fastest review path and your strongest privacy-label story for a kids app with a microphone"
+    ]
+  },
+  {
+    "persona": "Market Reality / Discovery PM (jpm-discovery lens) — competitive scan, pricing, catalog economics",
+    "headline": "The wedge is real — every credible competitor (Simply Piano, Yousician, Flowkey, Piano Maestro, Skoove) is a $60–170/yr freemium subscription and nobody serves local-language folk songs at a one-time price — but launching Turkey-first with zero Turkish songs in SeedData.swift and only 1 of 9 songs gamified is the actual refund machine, not missing polish.",
+    "open_question_answers": [
+      {
+        "topic": "songs",
+        "recommendation": "Ship ALL songs to ALL buyers — never locale-gate content; hidden songs make a €1 app feel thinner, and catalog size IS the perceived value at this price. Surface by locale: device language picks section ordering on home (TR device sees 'Türkçe şarkılar' first, then 'In English', 'En català'). The killer gap: launch geo is Turkey-first and the seed data has ZERO Turkish songs — add 4 (Mini Mini Bir Kuş, Ali Babanın Çiftliği, Yağ Satarım Bal Satarım, Kırmızı Balık) before any launch. Target 12–14 songs total for €1; that's enough if (and only if) every song works in game mode. Skip the pick-your-languages onboarding step for v1 — it's a setting nobody needs when everything is included."
+      },
+      {
+        "topic": "store",
+        "recommendation": "Positioning writes itself from the competitive scan: 'Real piano. No subscription. No ads. Songs in your language.' — that's the sentence every screenshot must prove, because subscription fatigue is the entire reason a parent picks €1-once over free-to-download Simply Piano. Before screenshot day, three things must be true in-app: every song launches the falling-notes game (screenshots will show game mode — if 8 of 9 songs don't have it, that's the oversell that triggers refunds), Turkish songs exist, and the home screen shows per-song stars so a 'progress' frame isn't fiction. Mention the song count and languages explicitly in the listing copy."
+      },
+      {
+        "topic": "launch",
+        "recommendation": "Soft-launch Turkey-only at €1, exactly as planned — but treat it as a review-collection sprint, not a revenue event. At this price the threat isn't refunds (Apple refunds on €1 are rare; 60% of parents don't even bother) — it's 1–2 star 'doesn't work / boş uygulama' reviews permanently poisoning a listing with 10 ratings. Get 10–15 honest ratings from TR friends/family + the Catalan circle in week one, fix whatever they hit, then open EU. Zero paid UA. Your only marketing asset is the true story — 'a dad built this for his daughter Deniz' — use it in the listing and one post in TR/Catalan parenting communities."
+      },
+      {
+        "topic": "onboarding",
+        "recommendation": "Market lens: competitors get you playing a real note inside 60 seconds — and your single biggest refund scenario is 'mic detection didn't hear my piano.' So v1 onboarding = a 90-second interactive mic check disguised as a game: Pim asks for the mic, parent places device on piano (one illustration), kid plays ANY key and the app celebrates naming the note, then 3 glowing-key hits → confetti. This simultaneously teaches the core interaction AND verifies the buyer's hardware works before they can conclude the app is broken. Include a 'didn't hear it?' fallback (move device / reduce noise / use USB MIDI). Replace the 3 text pages; pre-readers can't read them anyway."
+      },
+      {
+        "topic": "pim",
+        "recommendation": "Cheap version only: static Pim poses (export stills from the existing reward mp4s, keep one canon style) in three spots — onboarding guide, home-screen header, and the post-song result. Do NOT commission new animation or reconcile the icon/mascot canon before launch; no €1 buyer refunds over mascot style inconsistency, and the committee's Aiko track owns that later."
+      },
+      {
+        "topic": "home",
+        "recommendation": "From the market lens the home screen has one job: look like the screenshots and not like a dev tool. Minimum 'designed': language sections, star count per song card, Pim header, and a visible 'next song to try' nudge. That's it — it's a catalog browser for 12 songs, not a metagame map."
+      }
+    ],
+    "backlog_items": [
+      {
+        "title": "Turkish starter pack (4 songs)",
+        "what": "Seed 4 public-domain Turkish children's songs (Mini Mini Bir Kuş, Ali Babanın Çiftliği, Yağ Satarım Bal Satarım, Kırmızı Balık) via the existing SeedData.swift pipeline, with TR titles. Verify melodies/keys fit the current keyboard range.",
+        "why": "Turkey is launch geo #1 and the catalog currently has zero Turkish songs — 'not for us' is an instant refund/1-star from the primary market.",
+        "impact_1to5": 5,
+        "effort_SML": "M",
+        "depends_on": ""
+      },
+      {
+        "title": "Game mode for every seeded song",
+        "what": "Make every song launch the falling-notes game at rung-1 settings (slow tempo, glow, wide timing window), reusing the Salta l'Esquirol pipeline without requiring the full 4-rung ladder or per-song Pim videos. Generic star result + existing reward videos shared across songs.",
+        "why": "Screenshots will sell game mode; if 8 of 9 songs are plain play-through the app feels like a demo of itself — the #1 'thin app' refund trigger. Completeness = every song behaves the same.",
+        "impact_1to5": 5,
+        "effort_SML": "L",
+        "depends_on": ""
+      },
+      {
+        "title": "Interactive mic-check onboarding",
+        "what": "Replace the 3 text pages with: Pim intro → mic permission → device-placement illustration → 'play any key' detection moment (app names the heard note, celebrates) → 3 glowing-key hits → done. Include a no-detection fallback sheet (reposition / quiet room / USB MIDI) reachable later from settings.",
+        "why": "Mic detection failing silently on the buyer's piano is the most direct 'app is broken' refund path; verifying hardware inside a fun FTUE kills it.",
+        "impact_1to5": 5,
+        "effort_SML": "M",
+        "depends_on": ""
+      },
+      {
+        "title": "Locale-aware home sections + stars on cards",
+        "what": "Group the LazyVGrid into language sections ordered by device locale; show earned stars per song card and a static Pim header. No new metagame.",
+        "why": "Makes the catalog legible as 'songs in MY language' at first open and makes progress visible — the two things a parent scans in the first 2 minutes before deciding the purchase was worth it.",
+        "impact_1to5": 4,
+        "effort_SML": "S",
+        "depends_on": "Turkish starter pack (4 songs)"
+      },
+      {
+        "title": "No-subscription store listing pass",
+        "what": "Write TR+EN listing copy around 'Real piano · No subscription · No ads · Songs in your language', state the song count and languages, include the built-for-Deniz story, and fill the frame-arc + simulator seed TODOs in product/store-config.md.",
+        "why": "Subscription fatigue is the only reason a parent picks this over free-to-download Simply Piano; the listing must say it explicitly or the wedge is invisible. Listing honesty (real song count, real screenshots) is refund prevention.",
+        "impact_1to5": 4,
+        "effort_SML": "S",
+        "depends_on": "Game mode for every seeded song"
+      }
+    ],
+    "refund_risks": [
+      "Mic detection fails or seems to fail on the buyer's acoustic piano / noisy room with no in-app troubleshooting — parent concludes 'broken', refunds or 1-stars within minutes.",
+      "Turkey-first launch with zero Turkish songs: primary-market parents open the app and nothing is in their language.",
+      "Screenshot/listing shows the falling-notes game but 8 of 9 songs are plain play-through — classic oversell-then-disappoint, the strongest buyer's-remorse pattern at any price.",
+      "Text-heavy onboarding a pre-reader can't use and a parent can't follow (no device-placement guidance) — kid bounces in 2 minutes, the brief's exact refund scenario."
+    ],
+    "do_not_do": [
+      "Don't build IAP song packs, regional bundles, or locale-gated content — one price, everything included; gating makes a €1 app feel thinner and adds Kids-Category/parental-gate complexity.",
+      "Don't pursue €5 now: kill it for 2026. At €5 you compete with Simply Piano's free tier and would need 30+ songs, multi-song progression, and an established rating. Revisit only after ~100+ paid sales with ≥4.5 stars and reviews asking for more songs.",
+      "Don't add a backend, accounts, or third-party analytics to 'measure the market' — at this scale, sales + reviews ARE the analytics, and Kids Category may forbid the SDKs anyway.",
+      "Don't reconcile the Pim visual canon (chibi vs painterly) or commission new mascot art before launch — static reuse of existing assets is enough for v1."
+    ]
+  }
+]
