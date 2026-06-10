@@ -1,6 +1,6 @@
 # YLapiano — Store Config
 
-Per-app config read by the global `appstore-release` and `appstore-screenshots` skills.
+Per-app config read by the global `jpm-appstore-release` and `jpm-appstore-screenshots` skills.
 YLapiano is a **native iOS app** (SwiftUI, `Ylapiano.xcodeproj`) — gamified piano learning, built for Deniz. First solo paid App Store launch (€1 one-time paid).
 
 ## Platforms & store
@@ -17,14 +17,14 @@ YLapiano is a **native iOS app** (SwiftUI, `Ylapiano.xcodeproj`) — gamified pi
 - TR runs ~20-30% longer than EN; trim to fit char limits.
 - Copy approach: **solo pass** (no committee — a €1 single-song app doesn't warrant Salta's multi-persona copy review). Write TR natively ("sen"), no calques, no emoji.
 
-## Release (for `appstore-release`)
+## Release (for `jpm-appstore-release`)
 
 - **version.json:** repo root (currently `1.4.6` / build 6).
 - **Changelog:** `product/releases/RELEASES.md`.
 - **Release log / dated files:** `product/releases/` — create `APPSTORE.md` (live-version log, newest first) on first store release; dated file `product/releases/{YYYY-MM-DD}-v{version}.md`.
 - App Store "What's New" ≤4000 chars per locale. (No Play notes — iOS only.)
 
-## Screenshots (for `appstore-screenshots`)
+## Screenshots (for `jpm-appstore-screenshots`)
 
 - **Render source: iOS Simulator (`simctl`)** — native app, NOT Playwright.
   - Devices: iPhone 6.7" (e.g. iPhone 15 Pro Max) for `1290×2796`; iPad 12.9" for `2048×2732` (verify current required App Store sizes at submission time).
