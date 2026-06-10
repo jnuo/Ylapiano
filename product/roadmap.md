@@ -2,7 +2,11 @@
 
 **Source:** 13-agent committee — 9 personas (Defne, Aiko, Diego, Khalid, Mei, Marco, Luca, ASO/store, Discovery) → Reforge-growth chair synthesis → Marco effort pass → RICE scoring + Anya phasing. Full reports: `product/committee/2026-06-10-*.json`.
 
-**One-line strategy:** at €1 nobody refunds over value — they refund and 1-star over "broken" or "prototype." Refund-prevention in the first 5 minutes IS the growth strategy. The store listing is the acquisition loop; the rating average is the growth engine. ~7.5 weeks, ~27.5 solo-dev days to submission.
+**One-line strategy:** at €1 nobody refunds over value — they refund and 1-star over "broken" or "prototype." Refund-prevention in the first 5 minutes IS the growth strategy. The store listing is the acquisition loop; the rating average is the growth engine. ~7 weeks, ~24 solo-dev days to submission.
+
+> **P0 GATE PASSED — Onur tested build 6 on device 2026-06-10, feel approved.** Phase 1 unblocked.
+>
+> **DECIDED by Onur 2026-06-10: mic is OUT for v1.** No wiring attempt — strip the permission prompt and all "hears your piano" copy now (the committee's fallback branch). Input = USB MIDI + on-screen keys. B5 shrinks from 4 days to 0.5; revisit mic post-launch.
 
 ---
 
@@ -30,7 +34,7 @@ Every credible competitor (Simply Piano, Yousician, Flowkey) is a $60–170/yr E
 | Question             | Ruling                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Onboarding**       | Kill the 3 text pages. Two beats: (1) one illustrated parent page — placement diagram, mic-vs-MIDI, live "play any key" proof-of-life; (2) kid plays immediately — Pim points, 3-note tutorial through the existing song-agnostic FallingNotesScene at rung-1 forgiveness, flowing into the easiest song. The tutorial IS rung 1; no new engine.                                                                                                                             |
-| **Mic**              | Wire it for real (route PitchDetector into the game's hit-judging) with a hard kill criterion: if it fails the acoustic-piano device test, strip the permission page and ALL "hears your piano" copy and ship touch + USB MIDI honestly. The current dead-permission state never reaches review.                                                                                                                                                                             |
+| **Mic**              | ~~Wire it for real with a kill criterion~~ → **OVERRULED by Onur 2026-06-10: strip now.** Remove the mic permission page, the dead `PitchDetector` path from the user flow, and ALL "hears your piano" copy (app + listing). Ship USB MIDI + on-screen keys honestly. Revisit mic as a post-launch experiment only if reviews ask for it.                                                                                                                                    |
 | **Songs / bundling** | NO packs, NO IAP, NO language picker — everything in the binary (notes are ~KB). Locale-aware home sections ("Your songs" first), sorted easy→hard within. Restore the 8 builders + add 4 Turkish songs (Mini Mini Bir Kuş, Ali Babanın Çiftliği, Yağ Satarım Bal Satarım, Kırmızı Balık) → 12–14 songs, all ear-verified. Localized display titles (Twinkle = "Daha Dün Annemizin"). Every song gets game mode + stars+Pim result; the full 4-rung ladder stays Salta-only. |
 | **Pim**              | Canon = CHIBI (matches the reward videos; new chibi icon is 1 still vs 3 fragile video regens). One OpenArt session: new icon + greeting/pointing/listening/cheer stills. Retire Mascot.png (the third squirrel). 5–6 wordless chirps (pitched-up adult voice — never child-voice AI). Pim lives in exactly 4 places: icon, home header, onboarding, result. No rig, no Lottie, no new videos.                                                                               |
 | **Home screen**      | Keep the LazyVGrid — the problem is missing DATA. Stars row + rung badge on every card (turns 9 songs into 36+ visible challenges), Pim header on a warm band, locale sections, per-song picture icons, Add Song behind a parental gate, long-press delete gone. Acceptance test: survives as App Store frame #1 next to Pok Pok.                                                                                                                                            |
@@ -40,30 +44,30 @@ Every credible competitor (Simply Piano, Yousician, Flowkey) is a $60–170/yr E
 
 RICE = Reach% × Impact × Confidence ÷ effort-days. NOW ≈ 27.5 days total.
 
-| ID  | Item                                                                | Days | RICE | Tier          | Depends on   |
-| --- | ------------------------------------------------------------------- | ---- | ---- | ------------- | ------------ |
-| B19 | Store metadata + listing pack (tr + en-US)                          | 0.5  | 400  | NOW           | B18          |
-| B4  | Uniform game mode + stars/Pim result for every song                 | 1    | 300  | NOW           | B2, B3       |
-| B18 | Submission compliance pack (privacy URL, 4+, review notes)          | 1    | 300  | NOW           | —            |
-| B3  | Persist per-song progress (bestStars + bestRung)                    | 1    | 270  | NOW           | —            |
-| B1  | Song identity refactor: seedID + localized titles + safe seeding    | 1    | 200  | NOW           | —            |
-| B11 | Result-screen sound: star dings + tier fanfare                      | 0.5  | 200  | NOW           | B6           |
-| B10 | Kid Mode player screen: one big Play, adult controls gated          | 1.5  | 133  | NOW           | —            |
-| B6  | Unify audio session + engine-rendered count-in/metronome            | 1    | 120  | NOW           | —            |
-| B13 | String Catalog + Turkish localization actually in the build         | 2    | 105  | NOW           | B1           |
-| B2  | Catalog restore + expand to 12–14 songs (incl. 4 TR), ear-verified  | 3    | 100  | NOW           | B1           |
-| B7  | Pim canon lock: chibi icon + still pack (incl. MascotCheer)         | 1    | 100  | NOW           | —            |
-| B9  | Home screen v1: theme, Pim header, stars on cards, sections, gate   | 2    | 100  | NOW           | B1, B3, B7   |
-| B20 | Screenshot seed mechanism + store-config iPad-only fix              | 1    | 100  | NOW           | —            |
-| B21 | Screenshot frame-arc kit: 4 frames + trust frame, tr + en-US        | 2    | 100  | NOW           | B9, B19, B20 |
-| B8  | Playable FTUE: parent page + Pim-led glowing-key tutorial           | 3    | 80   | NOW           | B5, B6, B7   |
-| B22 | Cold-open kid playtest gate: 5 age-5 kids — **recruit now**         | 2    | 80   | NOW           | B8, B10      |
-| B5  | Mic for real: pitch → game judging + proof-of-life (kill criterion) | 4    | 48   | NOW           | —            |
-| B12 | Pim chirp pack: 5–6 wordless squirrel sounds                        | 1    | 40   | NEXT          | B7           |
-| B14 | Pre-reader pass: per-song picture icons, icon/audio over text       | 1    | 80   | NEXT          | B2           |
-| B15 | Home-card song previews (press to hear 4 bars)                      | 1    | 48   | NEXT (parked) | B6           |
-| B17 | Grown-Ups corner: setup help, support mailto, rating ask            | 1    | 32   | NEXT\*        | —            |
-| B16 | Motion pass: MotionTokens, card juice, reduced-motion audit         | 1    | 40   | LATER (v1.1)  | B7           |
+| ID  | Item                                                                  | Days | RICE | Tier          | Depends on   |
+| --- | --------------------------------------------------------------------- | ---- | ---- | ------------- | ------------ |
+| B19 | Store metadata + listing pack (tr + en-US)                            | 0.5  | 400  | NOW           | B18          |
+| B4  | Uniform game mode + stars/Pim result for every song                   | 1    | 300  | NOW           | B2, B3       |
+| B18 | Submission compliance pack (privacy URL, 4+, review notes)            | 1    | 300  | NOW           | —            |
+| B3  | Persist per-song progress (bestStars + bestRung)                      | 1    | 270  | NOW           | —            |
+| B1  | Song identity refactor: seedID + localized titles + safe seeding      | 1    | 200  | NOW           | —            |
+| B11 | Result-screen sound: star dings + tier fanfare                        | 0.5  | 200  | NOW           | B6           |
+| B10 | Kid Mode player screen: one big Play, adult controls gated            | 1.5  | 133  | NOW           | —            |
+| B6  | Unify audio session + engine-rendered count-in/metronome              | 1    | 120  | NOW           | —            |
+| B13 | String Catalog + Turkish localization actually in the build           | 2    | 105  | NOW           | B1           |
+| B2  | Catalog restore + expand to 12–14 songs (incl. 4 TR), ear-verified    | 3    | 100  | NOW           | B1           |
+| B7  | Pim canon lock: chibi icon + still pack (incl. MascotCheer)           | 1    | 100  | NOW           | —            |
+| B9  | Home screen v1: theme, Pim header, stars on cards, sections, gate     | 2    | 100  | NOW           | B1, B3, B7   |
+| B20 | Screenshot seed mechanism + store-config iPad-only fix                | 1    | 100  | NOW           | —            |
+| B21 | Screenshot frame-arc kit: 4 frames + trust frame, tr + en-US          | 2    | 100  | NOW           | B9, B19, B20 |
+| B8  | Playable FTUE: parent page + Pim-led glowing-key tutorial             | 3    | 80   | NOW           | B5, B6, B7   |
+| B22 | Cold-open kid playtest gate: 5 age-5 kids — **recruit now**           | 2    | 80   | NOW           | B8, B10      |
+| B5  | Strip mic: remove permission page + "hears your piano" copy (DECIDED) | 0.5  | 400  | NOW           | —            |
+| B12 | Pim chirp pack: 5–6 wordless squirrel sounds                          | 1    | 40   | NEXT          | B7           |
+| B14 | Pre-reader pass: per-song picture icons, icon/audio over text         | 1    | 80   | NEXT          | B2           |
+| B15 | Home-card song previews (press to hear 4 bars)                        | 1    | 48   | NEXT (parked) | B6           |
+| B17 | Grown-Ups corner: setup help, support mailto, rating ask              | 1    | 32   | NEXT\*        | —            |
+| B16 | Motion pass: MotionTokens, card juice, reduced-motion audit           | 1    | 40   | LATER (v1.1)  | B7           |
 
 \* B17's bare support mailto folds into B18's privacy page NOW so a week-1 "broken → email" path exists; the full Grown-Ups corner ships in Phase 3 if schedule holds, else v1.1.
 
@@ -89,8 +93,8 @@ gantt
     B3 persistence + B6 audio unify     :p1c, 2026-06-15, 2d
     B4 game mode + stars for all songs  :crit, p1d, after p1b, 2d
 
-    section P2 Mic verdict, FTUE, kid-safe player
-    B5 mic wiring + device test (KILL by wk4) :crit, p2a, 2026-06-29, 5d
+    section P2 FTUE, kid-safe player (mic stripped)
+    B5 strip mic + copy (DECIDED)       :crit, p2a, 2026-06-29, 1d
     B8 playable FTUE                    :crit, p2b, after p2a, 3d
     B10 player collapse + B11 dings     :p2c, 2026-06-29, 3d
     B12 chirps (audio lane)             :p2d, 2026-07-01, 2d
@@ -119,7 +123,7 @@ gantt
 
 ## Kill criteria
 
-1. **Mic kill (end of P2):** can't judge hits on a real acoustic piano → strip permission page + all "hears your piano" copy; ship touch + USB MIDI. No third state ships.
+1. ~~Mic kill~~ — **executed early by Onur's decision (2026-06-10): mic stripped, no wiring attempt.**
 2. **Playtest kill (P4 gate):** <4/5 kids reach a deliberate hit <90s unprompted, or <3/5 day-3 reopen → do NOT submit; fix FTUE/forgiveness, re-run with fresh kids. Two consecutive fails = rethink the core loop, not the schedule.
 3. **Data-loss hard stop:** any upgrade from build 6 losing user songs/progress blocks release. No exceptions.
 4. **Schedule kill (end of wk 5):** P1–P2 not both exited → cut B14, B12, B17 in that order. The submission date moves last.
@@ -139,7 +143,7 @@ gantt
 
 ## Open decisions for Onur (committee can't make these)
 
-1. **Mic reality check this week** — does pitch detection, once actually started, reliably name notes in your living room? This decides B5's branch early.
+1. ~~Mic reality check~~ — **RESOLVED 2026-06-10: Onur chose strip-now.** Consequence to accept: screenshot frame #2 and the listing wedge change from "hears your real piano" to "plays with your USB piano (MIDI) or on-screen keys."
 2. **Playtest recruiting** — can you line up 5 age-5 kids (not Deniz) within 2–3 weeks? If not, fallback = 3 kids + Deniz's classmates?
 3. **Who ear-verifies 12–14 transcriptions** — you at the piano, or MIDI playback + spot checks? Sets B2's real timeline.
 4. **Confirm two one-way-ish rulings:** Kids Category = NO, and iPad-only (no iPhone build) for v1. Yours to veto before B18/B20 lock them.
