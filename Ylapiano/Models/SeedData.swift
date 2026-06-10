@@ -13,15 +13,16 @@ struct SeedData {
     static func seedIfNeeded(context: ModelContext) {
         let descriptor = FetchDescriptor<Song>()
         let existing = (try? context.fetch(descriptor)) ?? []
-        let existingByTitle = Dictionary(existing.map { ($0.title, $0) }, uniquingKeysWith: { first, _ in first })
-
-        // Remove the songs we no longer ship (leaves any user-added songs alone).
-        for song in existing where retiredSeedTitles.contains(song.title) {
-            context.delete(song)
-        }
+        // Keyed on seedID, never title: titles can change between builds, and
+        // user-created songs may share a seed's title. seedID == nil → user song.
+        let existingBySeedID = Dictionary(
+            existing.compactMap { song in song.seedID.map { ($0, song) } },
+            uniquingKeysWith: { first, _ in first }
+        )
 
         for seed in createSeedSongs() {
-            if let current = existingByTitle[seed.title] {
+            guard let seedID = seed.seedID else { continue }
+            if let current = existingBySeedID[seedID] {
                 current.sortOrder = seed.sortOrder
             } else {
                 context.insert(seed)
