@@ -128,6 +128,13 @@ struct NoteEntry: Identifiable, Codable, Hashable {
 }
 
 extension Array where Element == NoteEntry {
+    /// Same musical content (pitch + duration sequence), ignoring entry UUIDs.
+    func musicallyEquals(_ other: [NoteEntry]) -> Bool {
+        count == other.count && zip(self, other).allSatisfy {
+            $0.solfege == $1.solfege && $0.octave == $1.octave && $0.duration == $1.duration
+        }
+    }
+
     /// Convert note array to ABC notation string
     func toABC(title: String = "", timeSignature: String = "2/4", key: String = "C", useSolfege: Bool = true, bpm: Int = 90, measuresPerLine: Int = 4) -> String {
         // Omit T: title — shown in nav bar instead. Keep Q: tempo for playback.

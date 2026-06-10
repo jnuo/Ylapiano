@@ -13,6 +13,25 @@ struct SeedData {
     static func seedIfNeeded(context: ModelContext) {
         let descriptor = FetchDescriptor<Song>()
         let existing = (try? context.fetch(descriptor)) ?? []
+        let seeds = createSeedSongs()
+
+        // One-time adoption for build-6 stores, whose seeds predate seedID.
+        // A song is recognized as ours only if title, bpm AND note content all
+        // match the shipped seed — a user song differing in any of them stays
+        // untouched.
+        for seed in seeds {
+            guard let seedID = seed.seedID else { continue }
+            for song in existing
+            where song.seedID == nil
+                && song.title == seed.title
+                && song.bpm == seed.bpm
+                && song.notes.musicallyEquals(seed.notes) {
+                song.seedID = seedID
+                song.language = seed.language
+                song.difficultyRank = seed.difficultyRank
+            }
+        }
+
         // Keyed on seedID, never title: titles can change between builds, and
         // user-created songs may share a seed's title. seedID == nil → user song.
         let existingBySeedID = Dictionary(
@@ -20,7 +39,7 @@ struct SeedData {
             uniquingKeysWith: { first, _ in first }
         )
 
-        for seed in createSeedSongs() {
+        for seed in seeds {
             guard let seedID = seed.seedID else { continue }
             if let current = existingBySeedID[seedID] {
                 current.sortOrder = seed.sortOrder

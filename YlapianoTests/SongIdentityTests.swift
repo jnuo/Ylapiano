@@ -61,6 +61,30 @@ final class SongIdentityTests: XCTestCase {
         XCTAssertEqual(songs.first(where: { $0.seedID == nil })?.bpm, 99, "user song was overwritten")
     }
 
+    // Sub-task 3: a build-6 store (seeds keyed only by title) adopts seedIDs
+    // in place — no duplicate insert, and user songs are untouched.
+    func testBuild6StoreSeedsAdoptIDsAndUserSongsSurvive() throws {
+        let context = try freshContext()
+        let canonical = SeedData.createSeedSongs().first!
+        // Build-6 seed: same title/bpm/notes, but no seedID (field didn't exist).
+        let legacySeed = Song(title: canonical.title, bpm: canonical.bpm, notes: canonical.notes)
+        let userSong = Song(title: "Deniz's Own Tune", bpm: 70)
+        context.insert(legacySeed)
+        context.insert(userSong)
+        try context.save()
+        let legacyID = legacySeed.id
+
+        SeedData.seedIfNeeded(context: context)
+
+        let songs = try context.fetch(FetchDescriptor<Song>())
+        XCTAssertEqual(songs.count, 2, "adoption must not insert a duplicate seed")
+        let adopted = songs.first(where: { $0.id == legacyID })
+        XCTAssertEqual(adopted?.seedID, canonical.seedID, "legacy seed did not adopt its seedID")
+        let user = songs.first(where: { $0.title == "Deniz's Own Tune" })
+        XCTAssertNotNil(user, "user song lost during adoption")
+        XCTAssertNil(user?.seedID, "user song wrongly tagged as seed")
+    }
+
     private func freshContext() throws -> ModelContext {
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         let container = try ModelContainer(for: Song.self, configurations: config)
