@@ -29,6 +29,11 @@ struct PlayerScreen: View {
     /// when resuming from a pause — the count-in is only for fresh starts.
     @State private var countdownText: String? = nil
 
+    /// Gates the heavy top panel (SpriteKit scene / abcjs web view) so the
+    /// navigation push renders instantly with a spinner, then builds the panel
+    /// one tick later instead of freezing the transition.
+    @State private var ready = false
+
     init(song: Song) {
         self.song = song
         _viewModel = State(initialValue: PlayerViewModel(song: song))
@@ -48,30 +53,29 @@ struct PlayerScreen: View {
             if song.notes.isEmpty {
                 emptyNotesView
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if !ready {
+                ProgressView()
+                    .controlSize(.large)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ZStack {
-                    ABCMusicView(
-                        abcNotation: song.notes.toABC(title: song.title, timeSignature: "2/4", useSolfege: viewModel.useSolfege, bpm: viewModel.metronome.bpm),
-                        isPlaying: viewModel.isPlaying,
-                        isPaused: viewModel.isPaused,
-                        bpm: viewModel.metronome.bpm,
-                        // In the falling-notes game the kid plays the melody and
-                        // the scene drives the beat (one clock, synced to the
-                        // blocks). Keep abcjs silent here so a second timebase
-                        // can't drift against the blocks — it still runs as the
-                        // timing cursor / end detector.
-                        playNotes: displayMode == .fallingNotes ? false : viewModel.playNotes,
-                        playMetronome: displayMode == .fallingNotes ? false : viewModel.playMetronome,
-                        onNoteChange: { index in
-                            viewModel.currentNoteIndex = index
-                        },
-                        onPlaybackEnd: {
-                            viewModel.stopPlaying()
-                        }
-                    )
-                    .opacity(displayMode == .sheetMusic ? 1 : 0)
-
-                    if displayMode == .fallingNotes {
+                    // abcjs is a WKWebView (heavy to spin up), so only build it in
+                    // sheet-music mode. Falling-notes mode drives the beat and the
+                    // end-of-song off the SpriteKit scene's own clock, so abcjs
+                    // isn't needed there — which is what kept the song screen from
+                    // opening instantly.
+                    if displayMode == .sheetMusic {
+                        ABCMusicView(
+                            abcNotation: song.notes.toABC(title: song.title, timeSignature: "2/4", useSolfege: viewModel.useSolfege, bpm: viewModel.metronome.bpm),
+                            isPlaying: viewModel.isPlaying,
+                            isPaused: viewModel.isPaused,
+                            bpm: viewModel.metronome.bpm,
+                            playNotes: viewModel.playNotes,
+                            playMetronome: viewModel.playMetronome,
+                            onNoteChange: { index in viewModel.currentNoteIndex = index },
+                            onPlaybackEnd: { viewModel.stopPlaying() }
+                        )
+                    } else {
                         FallingNotesView(
                             song: song,
                             playStartedAt: viewModel.playStartedAt,
@@ -168,16 +172,26 @@ struct PlayerScreen: View {
         // trip is unreliable enough to leave the overlay stuck on first run.
         // When we re-introduce a "Listen mode" the request will fire on the
         // toggle, not on view appear.
+        .task {
+            // Build the heavy panel one tick after the push so the transition
+            // never freezes; spinner shows until then.
+            guard !ready else { return }
+            try? await Task.sleep(for: .milliseconds(50))
+            ready = true
+        }
         .onAppear {
-            // Pre-render this song's tones so the first strike of each note
-            // doesn't synthesize a buffer inline mid-play (first-touch hitch).
-            // Distinct pitches only; tap velocity defaults to 100.
-            let pitches = Set(song.notes.map { Pitch(solfege: $0.solfege, octave: $0.octave) })
-            sampler.prewarm(Array(pitches))
             viewModel.fallingNotesActive = (displayMode == .fallingNotes)
             // Gameplay is landscape — the keyboard needs the width. The rest of
             // the app stays free-rotating; we restore that on the way out.
             OrientationGate.lockLandscape()
+            // Pre-render this song's tones AFTER the transition settles, so the
+            // synth work can't block the push. An un-cached note still
+            // synthesizes inline on first tap.
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(150))
+                let pitches = Set(song.notes.map { Pitch(solfege: $0.solfege, octave: $0.octave) })
+                sampler.prewarm(Array(pitches))
+            }
         }
         .onChange(of: displayMode) { _, newMode in
             // Only judge taps as hits while the falling-notes panel is showing.
@@ -728,7 +742,7 @@ private final class LoopingPlayerUIView: UIView {
         // unavailable we simply skip keying (video still plays) rather than crash.
         let filter = CIFilter(name: "CIColorCube")
         filter?.setValue(32, forKey: "inputCubeDimension")
-        filter?.setValue(Self.whiteKeyCubeData(dimension: 32), forKey: "inputCubeData")
+        filter?.setValue(Self.greenKeyCubeData(dimension: 32), forKey: "inputCubeData")
         self.keyFilter = filter
 
         super.init(frame: .zero)
@@ -776,11 +790,12 @@ private final class LoopingPlayerUIView: UIView {
         layer.contents = cgImage
     }
 
-    /// Premultiplied RGBA color cube: only *near-pure* white (bright AND
-    /// desaturated) keys to transparent, feathered at the edge. Pim's cream
-    /// belly (`min ≈ 0.92`) sits below the brightness gate, so it stays opaque —
-    /// only the flat white backdrop (`min ≈ 1.0`) is removed.
-    private static func whiteKeyCubeData(dimension dim: Int) -> Data {
+    /// Premultiplied RGBA color cube: keys out the chroma-green backdrop (green
+    /// clearly dominant over red+blue) to transparent, feathered at the edge,
+    /// plus a light despill that trims leftover green tint on kept pixels. Pim
+    /// is orange/cream — green never dominates there — so he stays fully opaque
+    /// while the flat green screen is removed cleanly.
+    private static func greenKeyCubeData(dimension dim: Int) -> Data {
         func smoothstep(_ edge0: Float, _ edge1: Float, _ x: Float) -> Float {
             let t = min(max((x - edge0) / (edge1 - edge0), 0), 1)
             return t * t * (3 - 2 * t)
@@ -792,13 +807,16 @@ private final class LoopingPlayerUIView: UIView {
             for g in 0..<dim {
                 for r in 0..<dim {
                     let rf = Float(r) / n, gf = Float(g) / n, bf = Float(b) / n
-                    let lo = min(rf, min(gf, bf)), hi = max(rf, max(gf, bf))
+                    let other = max(rf, bf)
+                    let greenness = gf - other          // how much green exceeds red/blue
                     var alpha: Float = 1
-                    if (hi - lo) < 0.09 && lo > 0.94 {     // bright + desaturated → backdrop only
-                        alpha = 1 - smoothstep(0.94, 0.995, lo)
+                    if gf > 0.30 && greenness > 0.08 {  // green-dominant → backdrop
+                        alpha = 1 - smoothstep(0.08, 0.22, greenness)
                     }
-                    cube.append(rf * alpha)                // premultiplied
-                    cube.append(gf * alpha)
+                    // Despill: pull excess green down so kept edges don't tint green.
+                    let og = greenness > 0 ? other + greenness * 0.4 : gf
+                    cube.append(rf * alpha)             // premultiplied
+                    cube.append(og * alpha)
                     cube.append(bf * alpha)
                     cube.append(alpha)
                 }

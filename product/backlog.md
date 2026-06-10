@@ -1,37 +1,29 @@
-# YLapiano — Falling-notes game backlog (Now / Next / Later)
+# YLapiano — backlog (Now / Next / Parked)
 
-**Goal (Onur, 2026-06):** make it **fun to play**, **convincing to re-play**, and a real path to **play better**. Three different jobs — don't conflate them.
+**Goal:** one song that's **fun to play**, **convincing to replay**, and a real path to **play better** — for a 5yo _and_ an adult.
 
-## NOW — built, verify on device
+## NOW — the gate (device test, build 6 on TestFlight)
 
-The _fun-to-play_ feel is largely done; confirm it before building on top.
+Everything below is blocked until this passes. Owner: Onur, on iPad.
 
-- Hit feel: note pop + particles + combo + celesta sparkle — ✅ committed
-- Metronome synced to the falling blocks (one clock, no drift) — ✅
-- 4-beat lead-in so note one is hittable (was: always late) — ✅
-- End-of-song result: 1–3 stars + one-tap replay — ✅ (mascot art = PARKED)
+- Does **rung 1** (50bpm, glow on, ±600ms) feel like a real 5yo floor?
+- Are **Salta l'Esquirol's notes correct** — esp. the held **Sol-vs-Mi**?
+- Do the **Pim reward videos** render clean (transparent, no white box / belly holes)?
 
-**Kill/keep gate:** play it. If landing notes doesn't feel good, fix the feel before anything below. (Owner: Onur, device test.)
+If the feel is off, fix it before anything below.
 
-## NEXT — the replay hook (the biggest lever for "convincing to re-play")
+## NEXT — once the gate passes
 
-A single end screen isn't a replay engine. The hook is **a beatable target**.
-Owner: **Defne** (design) → **Diego/Khalid** (juice). Revisit trigger: device test confirms the feel is fun.
-
-- **Beat your best:** persist best stars per song; the goal becomes "get 3."
-- **Near-miss clarity:** show _which_ notes were missed, gently, so the kid knows what to retry — not a dead-end screen.
-- **Make the retry irresistible:** "2 of 3 — one more!" with the replay button right there.
-
-## LATER — play better (mastery / progression)
-
-Owner: **Defne + Marco**. Trigger: replay hook proven to land in playtest.
-
-- Difficulty/tempo ramp: start slow, speed up as a song gets 3-starred.
-- Practice the notes they keep missing (miss-specific).
-- Guided → unguided as they improve.
+- **Beat-your-best:** persist best stars per song/rung; goal becomes "get 3." (not built)
+- **Mei playtest gate:** a 5yo _and_ an adult both improve across replays in one sitting, and replay unprompted, with a downward miss-curve.
 
 ## PARKED — revisit, don't drop
 
-- **Mascot identity (squirrel or not)** — Aiko's call. Decoration on the reward, _not_ the replay engine. Trigger: once the replay loop is proven, then polish art (OpenArt).
-- **Backing-track vs kid-plays** (Guitar-Hero-style) — flagged; decide with Defne if replay needs it.
-- **Score HUD / progression map / unlocks** — only if the star-replay loop proves out. Not before.
+- **Mascot canon:** the generated Pim is chibi; the app icon is painterly. Reconcile (re-anchor Pim, or update the icon). Aiko's call.
+- **Backing-track vs kid-plays** (Guitar-Hero style) — decide with Defne only if replay needs it.
+- **Score HUD / progression map / unlocks** — only if the loop proves out.
+- **Near-miss report** — cut from the kid screen; revisit only as an adult-tier (rung 3–4) feature.
+
+## Shipped (v1.4.6, build 6)
+
+Mastery ladder (4 rungs: tempo + guidance + timing), synced key-glow, per-tier Pim reward videos (transparent), landscape-locked gameplay, all-orientation support. The old "LATER: mastery/progression" tasks are now this.
