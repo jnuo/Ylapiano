@@ -11,10 +11,14 @@ pose **and** a ~2-second video. Output drops into `SongResultView` in
 
 Pim is an **existing, locked character** — a saved Character in OpenArt (warm,
 bouncy, patient forest squirrel who plays piano; cheers on a hit, waves "again"
-on a miss, **never scolds**). Canon look = the painterly piano squirrel (the app
-icon), NOT chibi. We are **posing and animating a locked character**, not
-designing one. (Static character identity is Aiko's lane; motion + reduced-motion
-is Diego's; this skill is the production pipeline.)
+on a miss, **never scolds**). **Canon look = CHIBI** (locked in B7, 2026-06-11):
+bright orange fur, cream belly patch, oversized head, big sparkly brown eyes,
+rosy blush cheeks, thick clean outlines, flat colors with soft cel shading —
+the look of the app icon, the MascotGreeting/Pointing/Cheer stills, and the
+PimResult videos. The old painterly squirrel is retired. We are **posing and
+animating a locked character**, not designing one. (Static character identity
+is Aiko's lane; motion + reduced-motion is Diego's; this skill is the
+production pipeline.)
 
 ## The consistency contract — the thing that makes or breaks this
 
@@ -38,7 +42,7 @@ forced. Every generation must:
 
 Shared **style suffix** to paste into every prompt:
 
-> `soft painterly children's-book illustration, warm autumn palette, gentle rounded forms, full body centered, square 1:1 composition, plain flat background, consistent with the Pim character reference`
+> `clean 2D cartoon chibi style, bold flat colors with soft cel shading, bright orange fur, cream belly patch, big sparkly brown eyes, rosy blush cheeks, thick clean outlines, full body centered, square 1:1 composition, plain solid pale gray background`
 
 ## The three tiers (motion brief — Diego)
 

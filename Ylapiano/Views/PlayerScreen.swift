@@ -549,10 +549,9 @@ struct PlayerScreen: View {
 
 /// End-of-song result — a celebration, not a static card. The squirrel reacts,
 /// the earned stars pop in ONE AT A TIME, and a perfect 3/3 fires a sparkle
-/// burst + a mascot wiggle. The mascot pose swaps per result: drop an
-/// OpenArt-generated **"MascotCheer"** (thumbs-up / high-five squirrel) into
-/// Assets and it shows for 3 stars — falls back to the normal "Mascot" until
-/// then. Stars never drop below 1; never a frown. Honors Reduce Motion.
+/// burst + a mascot wiggle. The mascot pose swaps per result: chibi-canon
+/// "MascotCheer" for 3 stars, "MascotGreeting" otherwise (B7 still pack).
+/// Stars never drop below 1; never a frown. Honors Reduce Motion.
 private struct SongResultView: View {
     let stars: Int
     /// The rung just played, e.g. "Find the beat" — names where the player is
@@ -586,11 +585,10 @@ private struct SongResultView: View {
         Bundle.main.url(forResource: "PimResult\(min(max(stars, 1), 3))", withExtension: "mp4")
     }
 
-    /// Still fallback (reduced motion, or before the clips are bundled). 3/3
-    /// swaps to a cheer pose if that asset exists; otherwise the default squirrel.
+    /// Still fallback when Reduce Motion is on or a reward clip is missing.
+    /// 3/3 shows the cheer pose; other tiers the greeting wave.
     private var mascotImage: UIImage {
-        let name = perfect ? "MascotCheer" : "Mascot"
-        return UIImage(named: name) ?? UIImage(named: "Mascot") ?? UIImage()
+        UIImage(named: perfect ? "MascotCheer" : "MascotGreeting") ?? UIImage()
     }
 
     var body: some View {
