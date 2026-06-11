@@ -123,6 +123,17 @@ final class PlayerViewModel {
     }
     var isComplete: Bool { currentNoteIndex >= notes.count }
 
+    /// abcjs reports note-change indices over SOUNDING notes only (it skips
+    /// rests); map one back to an index into the full `notes` array.
+    func entryIndex(forSoundingIndex soundingIndex: Int) -> Int {
+        var sounding = -1
+        for (index, note) in notes.enumerated() where !note.isRest {
+            sounding += 1
+            if sounding == soundingIndex { return index }
+        }
+        return notes.count
+    }
+
     init(song: Song) {
         self.song = song
         self.metronome = Metronome(bpm: song.bpm)
@@ -321,6 +332,10 @@ final class PlayerViewModel {
         guard currentNoteIndex < notes.count else { return }
         withAnimation(.spring(response: 0.3)) {
             currentNoteIndex += 1
+            // Rests expect no input — never park the cursor on one.
+            while currentNoteIndex < notes.count && notes[currentNoteIndex].isRest {
+                currentNoteIndex += 1
+            }
         }
         lastDetectionCorrect = nil
 

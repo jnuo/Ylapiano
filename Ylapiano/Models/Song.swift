@@ -164,10 +164,11 @@ struct NoteEntry: Identifiable, Codable, Hashable {
 
 extension Array where Element == NoteEntry {
     /// Same musical content (pitch + duration sequence), ignoring entry UUIDs.
+    /// Rests compare by duration only — their placeholder pitch is not music.
     func musicallyEquals(_ other: [NoteEntry]) -> Bool {
-        count == other.count && zip(self, other).allSatisfy {
-            $0.solfege == $1.solfege && $0.octave == $1.octave
-                && $0.duration == $1.duration && $0.isRest == $1.isRest
+        count == other.count && zip(self, other).allSatisfy { a, b in
+            guard a.duration == b.duration, a.isRest == b.isRest else { return false }
+            return a.isRest || (a.solfege == b.solfege && a.octave == b.octave)
         }
     }
 
@@ -185,11 +186,17 @@ extension Array where Element == NoteEntry {
 
         for note in self {
             noteLine += note.abcString + " "
-            lyricsLine += " " + (useSolfege ? note.solfege.rawValue : note.solfege.cde)
+            // ABC w: lyrics align to sounding notes only — a rest syllable
+            // would shift every later label one note left.
+            if !note.isRest {
+                lyricsLine += " " + (useSolfege ? note.solfege.rawValue : note.solfege.cde)
+            }
             currentBeats += note.duration.beats
             if currentBeats >= beatsPerMeasure {
                 noteLine += "|"
-                currentBeats = 0
+                // Carry the overflow (dotted notes straddle the bar) so
+                // barlines stay anchored to the beat grid.
+                while currentBeats >= beatsPerMeasure { currentBeats -= beatsPerMeasure }
                 measureCount += 1
                 // Force line break in ABC after measuresPerLine bars
                 if measureCount == measuresPerLine {

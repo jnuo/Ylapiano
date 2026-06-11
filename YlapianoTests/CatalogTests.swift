@@ -104,14 +104,17 @@ extension CatalogTests {
         }
     }
 
-    // Every seed melody must fit the playable envelope: C3–C5, melody only.
+    // Every sounding note must land on a real lane of the shipped keyboard —
+    // laneIndex(for:) is the exact gate the game uses (notes without a lane
+    // are silently dropped by FallingNotesScene).
     func testEverySeedFitsThePlayableEnvelope() {
+        let layout = KeyboardLayout.default
         for song in SeedData.createSeedSongs() {
             XCTAssertFalse(song.notes.isEmpty, "\(song.title) has no notes")
             for note in song.notes where !note.isRest {
-                let midi = note.solfege.midiNote(octave: note.octave)
-                XCTAssertTrue((48...72).contains(midi),
-                              "\(song.title): \(note.solfege.rawValue)\(note.octave) outside C3–C5")
+                let pitch = Pitch(solfege: note.solfege, octave: note.octave)
+                XCTAssertNotNil(layout.laneIndex(for: pitch),
+                                "\(song.title): \(note.solfege.rawValue)\(note.octave) has no lane on the shipped keyboard")
             }
         }
     }
