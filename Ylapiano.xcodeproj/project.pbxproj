@@ -43,10 +43,18 @@
 		AE000103 /* PimResult3.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = AE000113 /* PimResult3.mp4 */; };
 		EA112EAB9027B0A007DF32C5 /* ABCMusicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD5B0BBB0B3A88D01FCEF984 /* ABCMusicView.swift */; };
 		BT000001 /* SongIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100001 /* SongIdentityTests.swift */; };
+		BU000001 /* AddSongUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU100001 /* AddSongUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
 		BT500001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = AE000000 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = AE000001;
+			remoteInfo = Ylapiano;
+		};
+		BU500001 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = AE000000 /* Project object */;
 			proxyType = 1;
@@ -94,6 +102,8 @@
 		AE000113 /* PimResult3.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PimResult3.mp4"; path = "Resources/Reward/PimResult3.mp4"; sourceTree = "<group>"; };
 		BT100000 /* YlapianoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = YlapianoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BT100001 /* SongIdentityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongIdentityTests.swift; sourceTree = "<group>"; };
+		BU100000 /* YlapianoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = YlapianoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		BU100001 /* AddSongUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSongUITests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,6 +122,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		BU200002 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -120,6 +137,7 @@
 			children = (
 				AD000002 /* Ylapiano */,
 				BT300001 /* YlapianoTests */,
+				BU300001 /* YlapianoUITests */,
 				AD000003 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -151,6 +169,7 @@
 			children = (
 				AB000000 /* Ylapiano.app */,
 				BT100000 /* YlapianoTests.xctest */,
+				BU100000 /* YlapianoUITests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -161,6 +180,14 @@
 				BT100001 /* SongIdentityTests.swift */,
 			);
 			path = YlapianoTests;
+			sourceTree = "<group>";
+		};
+		BU300001 /* YlapianoUITests */ = {
+			isa = PBXGroup;
+			children = (
+				BU100001 /* AddSongUITests.swift */,
+			);
+			path = YlapianoUITests;
 			sourceTree = "<group>";
 		};
 		AD000004 /* Models */ = {
@@ -265,11 +292,34 @@
 		};
 /* End PBXNativeTarget section */
 
+		BU400001 /* YlapianoUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BU800001 /* Build configuration list for PBXNativeTarget "YlapianoUITests" */;
+			buildPhases = (
+				BU200001 /* Sources */,
+				BU200002 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				BU600001 /* PBXTargetDependency */,
+			);
+			name = YlapianoUITests;
+			productName = YlapianoUITests;
+			productReference = BU100000 /* YlapianoUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+
 /* Begin PBXTargetDependency section */
 		BT600001 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = AE000001 /* Ylapiano */;
 			targetProxy = BT500001 /* PBXContainerItemProxy */;
+		};
+		BU600001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AE000001 /* Ylapiano */;
+			targetProxy = BU500001 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -285,6 +335,10 @@
 						CreatedOnToolsVersion = 15.0;
 					};
 					BT400001 = {
+						CreatedOnToolsVersion = 15.0;
+						TestTargetID = AE000001;
+					};
+					BU400001 = {
 						CreatedOnToolsVersion = 15.0;
 						TestTargetID = AE000001;
 					};
@@ -309,6 +363,7 @@
 			targets = (
 				AE000001 /* Ylapiano */,
 				BT400001 /* YlapianoTests */,
+				BU400001 /* YlapianoUITests */,
 			);
 		};
 /* End PBXProject section */
@@ -370,6 +425,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				BT000001 /* SongIdentityTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		BU200001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BU000001 /* AddSongUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -538,6 +601,44 @@
 			};
 			name = Release;
 		};
+		BU700001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = K6QC8Q3253;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ylapiano.app.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 2;
+				TEST_TARGET_NAME = Ylapiano;
+			};
+			name = Debug;
+		};
+		BU700002 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = K6QC8Q3253;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.ylapiano.app.uitests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.9;
+				TARGETED_DEVICE_FAMILY = 2;
+				TEST_TARGET_NAME = Ylapiano;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -564,6 +665,15 @@
 			buildConfigurations = (
 				BT700001 /* Debug */,
 				BT700002 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BU800001 /* Build configuration list for PBXNativeTarget "YlapianoUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BU700001 /* Debug */,
+				BU700002 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
