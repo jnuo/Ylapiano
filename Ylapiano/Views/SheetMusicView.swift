@@ -91,7 +91,7 @@ struct SheetMusicView: View {
                     let y = staffTop + yOnStaff(for: staffPos)
                     let isActive = idx == currentNoteIndex
                     let isPast = idx < currentNoteIndex
-                    let filled = note.duration == .quarter || note.duration == .eighth
+                    let filled = note.duration.beats < 2.0   // quarter & shorter (incl. dotted) are solid
                     let color = isActive ? Color.orange : (isPast ? Color.gray.opacity(0.4) : Color.primary)
 
                     // Ledger lines

@@ -65,6 +65,7 @@ enum Solfege: String, Codable, CaseIterable, Identifiable {
 
 enum NoteDuration: String, Codable, CaseIterable, Identifiable {
     case whole, half, quarter, eighth
+    case dottedHalf, dottedQuarter, dottedEighth
 
     var id: String { rawValue }
 
@@ -74,6 +75,9 @@ enum NoteDuration: String, Codable, CaseIterable, Identifiable {
         case .half: return 2.0
         case .quarter: return 1.0
         case .eighth: return 0.5
+        case .dottedHalf: return 3.0
+        case .dottedQuarter: return 1.5
+        case .dottedEighth: return 0.75
         }
     }
 
@@ -83,6 +87,9 @@ enum NoteDuration: String, Codable, CaseIterable, Identifiable {
         case .half: return "Half"
         case .quarter: return "Quarter"
         case .eighth: return "Eighth"
+        case .dottedHalf: return "Dotted Half"
+        case .dottedQuarter: return "Dotted Quarter"
+        case .dottedEighth: return "Dotted Eighth"
         }
     }
 
@@ -92,6 +99,9 @@ enum NoteDuration: String, Codable, CaseIterable, Identifiable {
         case .half: return "𝅗𝅥"
         case .quarter: return "♩"
         case .eighth: return "♪"
+        case .dottedHalf: return "𝅗𝅥."
+        case .dottedQuarter: return "♩."
+        case .dottedEighth: return "♪."
         }
     }
 }
@@ -103,9 +113,31 @@ struct NoteEntry: Identifiable, Codable, Hashable {
     var solfege: Solfege
     var octave: Int
     var duration: NoteDuration
+    /// A rest: occupies time but plays no pitch. `solfege`/`octave` are
+    /// ignored while true. Absent in pre-B2 (build ≤10) notesData JSON.
+    var isRest: Bool = false
 
-    /// Convert to ABC notation pitch
+    init(id: UUID = UUID(), solfege: Solfege, octave: Int, duration: NoteDuration, isRest: Bool = false) {
+        self.id = id
+        self.solfege = solfege
+        self.octave = octave
+        self.duration = duration
+        self.isRest = isRest
+    }
+
+    // Custom decode: build-≤10 blobs have no isRest key.
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        solfege = try container.decode(Solfege.self, forKey: .solfege)
+        octave = try container.decode(Int.self, forKey: .octave)
+        duration = try container.decode(NoteDuration.self, forKey: .duration)
+        isRest = try container.decodeIfPresent(Bool.self, forKey: .isRest) ?? false
+    }
+
+    /// Convert to ABC notation pitch ("z" = rest)
     var abcPitch: String {
+        guard !isRest else { return "z" }
         let letter = solfege.cde
         switch octave {
         case 3: return letter + ","
@@ -123,6 +155,9 @@ struct NoteEntry: Identifiable, Codable, Hashable {
         case .half: return abcPitch + "2"
         case .quarter: return abcPitch
         case .eighth: return abcPitch + "/"
+        case .dottedHalf: return abcPitch + "3"
+        case .dottedQuarter: return abcPitch + "3/2"
+        case .dottedEighth: return abcPitch + "3/4"
         }
     }
 }
@@ -131,7 +166,8 @@ extension Array where Element == NoteEntry {
     /// Same musical content (pitch + duration sequence), ignoring entry UUIDs.
     func musicallyEquals(_ other: [NoteEntry]) -> Bool {
         count == other.count && zip(self, other).allSatisfy {
-            $0.solfege == $1.solfege && $0.octave == $1.octave && $0.duration == $1.duration
+            $0.solfege == $1.solfege && $0.octave == $1.octave
+                && $0.duration == $1.duration && $0.isRest == $1.isRest
         }
     }
 

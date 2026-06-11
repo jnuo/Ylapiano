@@ -269,6 +269,7 @@ final class PlayerViewModel {
         for note in notes {
             let dueBeat = cumulative + HitJudge.leadInBeats
             cumulative += note.duration.beats
+            if note.isRest { continue }   // nothing to guide during a rest
             if nowBeats >= dueBeat - leadGlowBeats && nowBeats <= dueBeat + windowBeats {
                 return note   // notes are in time order → first match is the earliest active
             }
@@ -544,6 +545,7 @@ final class HitJudge {
         for note in song.notes {
             let hitBeat = cumulativeBeats
             cumulativeBeats += note.duration.beats
+            if note.isRest { continue }   // rests take time but expect no press
             let pitch = Pitch(solfege: note.solfege, octave: note.octave)
             guard let lane = layout.laneIndex(for: pitch) else { continue }
             built.append(ScheduledHit(hitBeat: hitBeat, lane: lane, solfege: note.solfege))
