@@ -2,26 +2,63 @@ import Foundation
 import SwiftData
 
 struct SeedData {
-    /// Titles we used to seed but have since cut. Pruned from any existing
-    /// store so the app shows only the one song in active use. (Re-add from git
-    /// history when the repertoire grows again.)
-    private static let retiredSeedTitles: Set<String> = [
-        "Hot Cross Buns", "Mary Had a Little Lamb", "Twinkle Twinkle Little Star",
-        "Old MacDonald", "Frère Jacques", "Deniz's Lullaby", "La Castanyera", "Sol Solet"
+    /// Canonical (stored) seed titles by seedID, built once.
+    private static let canonicalTitles: [String: String] = Dictionary(
+        uniqueKeysWithValues: createSeedSongs().compactMap { song in
+            song.seedID.map { ($0, song.title) }
+        }
+    )
+
+    /// Display titles per language, keyed by seedID. Languages not listed fall
+    /// back to the canonical (stored) seed title. Placeholder translations —
+    /// final wording lands with B2 (catalog) / B13 (Turkish).
+    private static let localizedTitles: [String: [String: String]] = [
+        "plim-plim": [
+            "tr": "Plim Plim (Zıpla Sincap)",
+            "en": "Plim Plim (Jump, Little Squirrel)",
+        ],
     ]
+
+    static func localizedTitle(seedID: String, locale: Locale) -> String? {
+        guard let canonical = canonicalTitles[seedID] else { return nil }
+        let lang = locale.language.languageCode?.identifier ?? ""
+        return localizedTitles[seedID]?[lang] ?? canonical
+    }
 
     static func seedIfNeeded(context: ModelContext) {
         let descriptor = FetchDescriptor<Song>()
         let existing = (try? context.fetch(descriptor)) ?? []
-        let existingByTitle = Dictionary(existing.map { ($0.title, $0) }, uniquingKeysWith: { first, _ in first })
+        let seeds = createSeedSongs()
 
-        // Remove the songs we no longer ship (leaves any user-added songs alone).
-        for song in existing where retiredSeedTitles.contains(song.title) {
-            context.delete(song)
+        // One-time adoption for build-6 stores, whose seeds predate seedID.
+        // A song is recognized as ours only if title, bpm AND note content all
+        // match the shipped seed — a user song differing in any of them stays
+        // untouched.
+        for seed in seeds {
+            guard let seedID = seed.seedID else { continue }
+            let seedNotes = seed.notes
+            if let legacy = existing.first(where: {
+                $0.seedID == nil
+                    && $0.title == seed.title
+                    && $0.bpm == seed.bpm
+                    && $0.notes.musicallyEquals(seedNotes)
+            }) {
+                legacy.seedID = seedID
+                legacy.language = seed.language
+                legacy.difficultyRank = seed.difficultyRank
+            }
         }
 
-        for seed in createSeedSongs() {
-            if let current = existingByTitle[seed.title] {
+        // Keyed on seedID, never title: titles can change between builds, and
+        // user-created songs may share a seed's title. seedID == nil → user song.
+        let existingBySeedID = Dictionary(
+            existing.compactMap { song in song.seedID.map { ($0, song) } },
+            uniquingKeysWith: { first, _ in first }
+        )
+
+        for seed in seeds {
+            guard let seedID = seed.seedID else { continue }
+            if let current = existingBySeedID[seedID] {
                 current.sortOrder = seed.sortOrder
             } else {
                 context.insert(seed)
@@ -312,6 +349,9 @@ struct SeedData {
         Song(
             title: "Plim Plim (Salta l'Esquirol)",
             bpm: 60,
+            seedID: "plim-plim",
+            language: "ca",
+            difficultyRank: 1,
             notes: [
                 NoteEntry(solfege: .Do, octave: 4, duration: .quarter),
                 NoteEntry(solfege: .Mi, octave: 4, duration: .eighth),

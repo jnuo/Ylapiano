@@ -128,6 +128,13 @@ struct NoteEntry: Identifiable, Codable, Hashable {
 }
 
 extension Array where Element == NoteEntry {
+    /// Same musical content (pitch + duration sequence), ignoring entry UUIDs.
+    func musicallyEquals(_ other: [NoteEntry]) -> Bool {
+        count == other.count && zip(self, other).allSatisfy {
+            $0.solfege == $1.solfege && $0.octave == $1.octave && $0.duration == $1.duration
+        }
+    }
+
     /// Convert note array to ABC notation string
     func toABC(title: String = "", timeSignature: String = "2/4", key: String = "C", useSolfege: Bool = true, bpm: Int = 90, measuresPerLine: Int = 4) -> String {
         // Omit T: title — shown in nav bar instead. Keep Q: tempo for playback.
@@ -184,6 +191,13 @@ final class Song {
     var bpm: Int
     var notesData: Data
     var sortOrder: Int = 0
+    /// Stable identity for shipped seed songs; nil = user-created.
+    /// Defaults keep the SwiftData migration from build 6 lightweight.
+    var seedID: String? = nil
+    var language: String? = nil
+    var difficultyRank: Int = 0
+
+    var isSeed: Bool { seedID != nil }
 
     var notes: [NoteEntry] {
         get {
@@ -194,11 +208,16 @@ final class Song {
         }
     }
 
-    init(id: UUID = UUID(), title: String, bpm: Int, notes: [NoteEntry] = [], sortOrder: Int = 0) {
+    init(id: UUID = UUID(), title: String, bpm: Int,
+         seedID: String? = nil, language: String? = nil, difficultyRank: Int = 0,
+         notes: [NoteEntry] = [], sortOrder: Int = 0) {
         self.id = id
         self.title = title
         self.bpm = bpm
         self.notesData = (try? JSONEncoder().encode(notes)) ?? Data()
         self.sortOrder = sortOrder
+        self.seedID = seedID
+        self.language = language
+        self.difficultyRank = difficultyRank
     }
 }

@@ -1,5 +1,17 @@
 # Release Notes
 
+## v1.4.9 (build 9) — 2026-06-11
+
+### Features
+
+- Songs now have a stable identity (`seedID` + language + difficulty): built-in songs are matched by ID instead of title, so renaming a song or creating one with the same name can never delete or hijack a user's own song (#30)
+- Stores from build 6 adopt seed IDs automatically on first launch — verified with a real build-6 → build-9 upgrade simulation, user songs intact (#30)
+- Localized song titles (Turkish/English, placeholders) keyed by seedID, groundwork for the Turkish build (#30)
+
+### Other
+
+- First test infrastructure in the repo: unit test target (10 tests on song identity/seeding) + UI test target (scripted Add Song flow) (#30)
+
 ## v1.4.8 (build 8) — 2026-06-10
 
 ### Bug Fixes
