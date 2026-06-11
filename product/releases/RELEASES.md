@@ -1,5 +1,20 @@
 # Release Notes
 
+## v1.4.10 (build 10) — 2026-06-11
+
+### Features
+
+- New app icon: chibi Pim at the piano keys — the in-app character and the store icon are finally the same squirrel (#31)
+- Pim's look locked as canon (chibi): greeting / pointing / cheer stills generated from one OpenArt session, shipped as transparent assets for the result card and upcoming tutorial/home screens (#31)
+
+### Bug Fixes
+
+- Reduced-motion 3-star result no longer references a missing image — the cheer pose shows; other tiers show the greeting wave instead of the old off-model squirrel (#31)
+
+### Other
+
+- Retired the painterly Mascot imageset; asset-resolution tests guard the new pack (#31)
+
 ## v1.4.9 (build 9) — 2026-06-11
 
 ### Features
