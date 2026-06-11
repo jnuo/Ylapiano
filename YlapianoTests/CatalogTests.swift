@@ -62,3 +62,73 @@ final class CatalogTests: XCTestCase {
         XCTAssertEqual(NoteDuration.dottedEighth.beats, 0.75)
     }
 }
+
+// MARK: - Sub-task 2: the locked 13-song catalog
+
+extension CatalogTests {
+
+    // product/decisions/2026-06-10-song-list.md — exactly these, no extras.
+    static let lockedCatalog: [(seedID: String, language: String)] = [
+        // Catalan (5)
+        ("plim-plim", "ca"),
+        ("sol-solet", "ca"),
+        ("cargol-treu-banya", "ca"),
+        ("la-lluna-la-pruna", "ca"),
+        ("el-lleo-no-em-fa-por", "ca"),
+        // Turkish (4)
+        ("kirmizi-balik", "tr"),
+        ("ali-babanin-ciftligi", "tr"),
+        ("mini-mini-bir-kus", "tr"),
+        ("portakali-soydum", "tr"),
+        // English (4)
+        ("old-macdonald", "en"),
+        ("twinkle-twinkle", "en"),
+        ("wheels-on-the-bus", "en"),
+        ("itsy-bitsy-spider", "en"),
+    ]
+
+    func testCatalogIsExactlyTheLocked13() {
+        let seeds = SeedData.createSeedSongs()
+        XCTAssertEqual(seeds.count, 13, "catalog must be exactly the locked 13")
+
+        let byID = Dictionary(uniqueKeysWithValues: seeds.compactMap { s in s.seedID.map { ($0, s) } })
+        XCTAssertEqual(byID.count, 13, "every seed needs a unique seedID")
+
+        for expected in Self.lockedCatalog {
+            guard let song = byID[expected.seedID] else {
+                XCTFail("missing seed \(expected.seedID)")
+                continue
+            }
+            XCTAssertEqual(song.language, expected.language,
+                           "\(expected.seedID) has wrong language")
+        }
+    }
+
+    // Every seed melody must fit the playable envelope: C3–C5, melody only.
+    func testEverySeedFitsThePlayableEnvelope() {
+        for song in SeedData.createSeedSongs() {
+            XCTAssertFalse(song.notes.isEmpty, "\(song.title) has no notes")
+            for note in song.notes where !note.isRest {
+                let midi = note.solfege.midiNote(octave: note.octave)
+                XCTAssertTrue((48...72).contains(midi),
+                              "\(song.title): \(note.solfege.rawValue)\(note.octave) outside C3–C5")
+            }
+        }
+    }
+}
+
+// MARK: - Sub-task 3: difficultyRank easy→hard within each language
+
+extension CatalogTests {
+
+    func testDifficultyRanksStrictlyOrderedPerLanguage() {
+        let seeds = SeedData.createSeedSongs()
+        let byLanguage = Dictionary(grouping: seeds, by: { $0.language ?? "?" })
+
+        for (language, songs) in byLanguage {
+            let ranks = songs.map(\.difficultyRank).sorted()
+            XCTAssertEqual(ranks, Array(1...songs.count),
+                           "\(language) ranks must be exactly 1...\(songs.count), got \(ranks)")
+        }
+    }
+}
