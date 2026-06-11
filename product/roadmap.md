@@ -24,9 +24,9 @@ Every credible competitor (Simply Piano, Yousician, Flowkey) is a $60–170/yr E
 2. **Mic is a dead promise** — `PitchDetector.startListening()` is never called; the app requests a mic permission for a feature that doesn't function. Most refund-shaped gap in the product.
 3. **Progress wipes every launch** — rungIndex is in-memory only; day 2 the app looks broken.
 4. **Zero localization ships today** — the en/es .lproj files aren't in the resources build phase; TR-first launch, all-English app.
-5. **Seeding deletes user songs by title match** — data-loss-on-update, the worst refund class.
+5. ~~**Seeding deletes user songs by title match**~~ — FIXED in B1/#11 (v1.4.9): seeding keyed on seedID, adoption pass for build-6 stores.
 6. **Mute switch kills count-in/metronome** (system sound 1104) while piano notes keep playing — game looks broken at the exact first-play moment.
-7. **MascotCheer referenced at PlayerScreen.swift:592 but missing from Assets** — reduced-motion 3-star path is broken.
+7. ~~**MascotCheer referenced at PlayerScreen.swift:592 but missing from Assets**~~ — FIXED in B7/#25 (v1.4.10): chibi still pack shipped, fallback wired.
 8. **iPad-only build (TARGETED_DEVICE_FAMILY=2)** contradicts store-config.md's iPhone 6.7" screenshot plan.
 
 ## The six rulings

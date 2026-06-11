@@ -585,11 +585,10 @@ private struct SongResultView: View {
         Bundle.main.url(forResource: "PimResult\(min(max(stars, 1), 3))", withExtension: "mp4")
     }
 
-    /// Still fallback (reduced motion, or before the clips are bundled). 3/3
-    /// shows the cheer pose; other tiers the greeting wave.
+    /// Still fallback when Reduce Motion is on or a reward clip is missing.
+    /// 3/3 shows the cheer pose; other tiers the greeting wave.
     private var mascotImage: UIImage {
-        let name = perfect ? "MascotCheer" : "MascotGreeting"
-        return UIImage(named: name) ?? UIImage(named: "MascotGreeting") ?? UIImage()
+        UIImage(named: perfect ? "MascotCheer" : "MascotGreeting") ?? UIImage()
     }
 
     var body: some View {
