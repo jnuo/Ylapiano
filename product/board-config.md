@@ -14,7 +14,7 @@
 ## Verify method
 
 **iOS Simulator** — device **iPad Pro 13-inch (M4)** (app is iPad-only, `TARGETED_DEVICE_FAMILY=2`).
-`xcrun simctl boot` → `status_bar override --time 9:41 --batteryLevel 100` → build+install+launch → `simctl io booted screenshot` (stills) / `recordVideo` → `ffmpeg` to gif. Post the image/gif in chat before In Review.
+`xcrun simctl boot` → `status_bar override --time 9:41 --batteryLevel 100` → build+install+launch → stills via `simctl io booted screenshot --type=jpeg` (.jpg), video via `recordVideo` (.mov, raw — smoothest). Deliver both to `~/Downloads/` for Onur's review; convert to gif/png only for GitHub issue/PR embeds.
 
 ## Persona → skill map
 
