@@ -211,12 +211,6 @@ struct PlayerScreen: View {
             AddSongScreen(existingSong: song)
         }
         .overlay {
-            // Completion overlay
-            if viewModel.isComplete && viewModel.currentNoteIndex > 0 {
-                completionOverlay
-            }
-        }
-        .overlay {
             // Mic permission prompt
             if viewModel.pitchDetector.permissionDenied {
                 micPermissionOverlay
@@ -230,7 +224,7 @@ struct PlayerScreen: View {
             if viewModel.songFinished {
                 SongResultView(
                     stars: viewModel.resultStars,
-                    rungName: viewModel.currentRung.name,
+                    rungName: viewModel.resultRungName,
                     canClimb: viewModel.canClimb,
                     climbLabel: viewModel.climbLabel,
                     onReplay: { viewModel.replaySong() },
@@ -485,46 +479,6 @@ struct PlayerScreen: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    // MARK: - Completion Overlay
-
-    private var completionOverlay: some View {
-        ZStack {
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
-
-            VStack(spacing: 20) {
-                Image(systemName: "star.fill")
-                    .font(.system(size: 60))
-                    .foregroundStyle(.yellow)
-                    .symbolEffect(.bounce, options: .repeating)
-
-                Text("Great job!")
-                    .font(.system(.largeTitle, design: .rounded, weight: .bold))
-                    .foregroundStyle(.white)
-
-                Text("You played all the notes!")
-                    .font(.system(.title3, design: .rounded))
-                    .foregroundStyle(.white.opacity(0.8))
-
-                HStack(spacing: 16) {
-                    Button {
-                        viewModel.restart()
-                    } label: {
-                        Label("Play Again", systemImage: "arrow.counterclockwise")
-                            .font(.system(.headline, design: .rounded))
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .tint(.green)
-                }
-            }
-            .padding(40)
-            .background(
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(.ultraThinMaterial)
-            )
-        }
-    }
-
     // MARK: - Mic Permission
 
     private var micPermissionOverlay: some View {
@@ -559,7 +513,7 @@ private struct SongResultView: View {
     let stars: Int
     /// The rung just played, e.g. "Find the beat" — names where the player is
     /// on the ladder without numbers a 5yo can't read.
-    let rungName: String
+    let rungName: String?
     /// A clean 3-star run with a rung above → offer the climb. The headline CTA
     /// becomes "Faster!" / "Lights off!"; replay stays available beside it.
     let canClimb: Bool
@@ -631,14 +585,16 @@ private struct SongResultView: View {
                     .rotationEffect(.degrees(wiggle ? 5 : (card ? 0 : -8)))
                 }
 
-                Text(rungName.uppercased())
-                    .font(.system(.caption, design: .rounded, weight: .heavy))
-                    .tracking(1.5)
-                    .foregroundStyle(.white.opacity(0.85))
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 5)
-                    .background(Capsule().fill(.white.opacity(0.18)))
-                    .opacity(card ? 1 : 0)
+                if let rungName {
+                    Text(rungName.uppercased())
+                        .font(.system(.caption, design: .rounded, weight: .heavy))
+                        .tracking(1.5)
+                        .foregroundStyle(.white.opacity(0.85))
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 5)
+                        .background(Capsule().fill(.white.opacity(0.18)))
+                        .opacity(card ? 1 : 0)
+                }
 
                 HStack(spacing: 18) {
                     ForEach(0..<3, id: \.self) { index in
