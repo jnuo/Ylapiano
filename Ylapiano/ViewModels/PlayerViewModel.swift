@@ -78,6 +78,11 @@ final class PlayerViewModel {
 
     // MARK: - Mastery ladder
 
+    /// The full 4-rung ladder is Salta-only (B4 #21). Every other song —
+    /// including user-created ones — plays the fixed gentle config: full
+    /// glow, rung-1 windows, the song's own BPM.
+    var hasMasteryLadder: Bool { song.seedID == "plim-plim" }
+
     /// Which rung of the single-song ladder the player is on (0-based). Same
     /// song every rung; tempo + guidance + timing window scale. Held in memory
     /// for the sitting — persisting best-rung across launches is backlog.
@@ -86,7 +91,10 @@ final class PlayerViewModel {
     var isTopRung: Bool { rungIndex >= MasteryLadder.rungs.count - 1 }
     /// True only at the result screen when the player earned the climb: a clean
     /// 3-star run with a rung still above. Climbing is always the player's choice.
-    var canClimb: Bool { songFinished && resultStars >= 3 && !isTopRung }
+    var canClimb: Bool { hasMasteryLadder && songFinished && resultStars >= 3 && !isTopRung }
+    /// Rung name for the result screen — nil off the ladder, so non-Salta
+    /// songs show no ladder language.
+    var resultRungName: String? { hasMasteryLadder ? currentRung.name : nil }
     /// What the next rung changes, for the climb button. Losing the glow is the
     /// headline ("Lights off!"); otherwise it's always faster.
     var climbLabel: String {
@@ -147,10 +155,20 @@ final class PlayerViewModel {
     /// timing → hit windows. Called at init and before every fresh play, never
     /// mid-song.
     private func applyRung() {
-        let rung = currentRung
-        metronome.bpm = rung.bpm
-        guidedMode = rung.guidance != .none
-        hitJudge.setWindows(hitMs: rung.hitMs, perfectMs: rung.perfectMs)
+        if hasMasteryLadder {
+            let rung = currentRung
+            metronome.bpm = rung.bpm
+            guidedMode = rung.guidance != .none
+            hitJudge.setWindows(hitMs: rung.hitMs, perfectMs: rung.perfectMs)
+        } else {
+            // Fixed gentle config: rung-1 guidance + windows, but the song's
+            // own kid-friendly tempo from the catalog (rung BPMs are
+            // Salta-tuned; forcing 50 everywhere kills the songs' feel).
+            let gentle = MasteryLadder.rungs[0]
+            metronome.bpm = song.bpm
+            guidedMode = gentle.guidance != .none
+            hitJudge.setWindows(hitMs: gentle.hitMs, perfectMs: gentle.perfectMs)
+        }
     }
 
     func startPlaying() {
@@ -217,8 +235,14 @@ final class PlayerViewModel {
 
         resultTotal = hitJudge.totalNotes
         resultRight = hitJudge.rightTaps
-        resultStars = Self.stars(right: resultRight, total: resultTotal)
         resultMissed = hitJudge.missedSolfege()   // snapshot before reset() clears it
+        setResult(stars: Self.stars(right: resultRight, total: resultTotal))
+    }
+
+    /// Freeze the end-of-song result and raise the result screen. finishSong's
+    /// last step; also the seam tests use to drive result-dependent logic.
+    func setResult(stars: Int) {
+        resultStars = stars
         withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
             songFinished = true
         }
