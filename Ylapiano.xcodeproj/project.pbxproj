@@ -45,6 +45,7 @@
 		BT000001 /* SongIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100001 /* SongIdentityTests.swift */; };
 		BT000002 /* MascotAssetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100002 /* MascotAssetTests.swift */; };
 		BT000003 /* CatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100003 /* CatalogTests.swift */; };
+		BT000004 /* GameModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100004 /* GameModeTests.swift */; };
 		BU000001 /* AddSongUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU100001 /* AddSongUITests.swift */; };
 /* End PBXBuildFile section */
 
@@ -106,6 +107,7 @@
 		BT100001 /* SongIdentityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongIdentityTests.swift; sourceTree = "<group>"; };
 		BT100002 /* MascotAssetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MascotAssetTests.swift; sourceTree = "<group>"; };
 		BT100003 /* CatalogTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogTests.swift; sourceTree = "<group>"; };
+		BT100004 /* GameModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameModeTests.swift; sourceTree = "<group>"; };
 		BU100000 /* YlapianoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = YlapianoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BU100001 /* AddSongUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSongUITests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -184,6 +186,7 @@
 				BT100001 /* SongIdentityTests.swift */,
 				BT100002 /* MascotAssetTests.swift */,
 				BT100003 /* CatalogTests.swift */,
+				BT100004 /* GameModeTests.swift */,
 			);
 			path = YlapianoTests;
 			sourceTree = "<group>";
@@ -433,6 +436,7 @@
 				BT000001 /* SongIdentityTests.swift in Sources */,
 				BT000002 /* MascotAssetTests.swift in Sources */,
 				BT000003 /* CatalogTests.swift in Sources */,
+				BT000004 /* GameModeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
