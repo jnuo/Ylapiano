@@ -47,6 +47,7 @@
 		BT000003 /* CatalogTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100003 /* CatalogTests.swift */; };
 		BT000004 /* GameModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100004 /* GameModeTests.swift */; };
 		BU000001 /* AddSongUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU100001 /* AddSongUITests.swift */; };
+		BU000002 /* SongResultUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU100002 /* SongResultUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -110,6 +111,7 @@
 		BT100004 /* GameModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameModeTests.swift; sourceTree = "<group>"; };
 		BU100000 /* YlapianoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = YlapianoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BU100001 /* AddSongUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSongUITests.swift; sourceTree = "<group>"; };
+		BU100002 /* SongResultUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongResultUITests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -195,6 +197,7 @@
 			isa = PBXGroup;
 			children = (
 				BU100001 /* AddSongUITests.swift */,
+				BU100002 /* SongResultUITests.swift */,
 			);
 			path = YlapianoUITests;
 			sourceTree = "<group>";
@@ -445,6 +448,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				BU000001 /* AddSongUITests.swift in Sources */,
+				BU000002 /* SongResultUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
