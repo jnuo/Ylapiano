@@ -150,6 +150,8 @@ final class FallingNotesScene: SKScene {
             let lengthBeats = entry.duration.beats
             cumulativeBeats += lengthBeats
 
+            if entry.isRest { continue }   // a rest is a gap, not a block
+
             let pitch = Pitch(solfege: entry.solfege, octave: entry.octave)
             guard let lane = layout.laneIndex(for: pitch) else {
                 continue

@@ -77,7 +77,9 @@ final class SongIdentityTests: XCTestCase {
         SeedData.seedIfNeeded(context: context)
 
         let songs = try context.fetch(FetchDescriptor<Song>())
-        XCTAssertEqual(songs.count, 2, "adoption must not insert a duplicate seed")
+        let seedCount = SeedData.createSeedSongs().count
+        XCTAssertEqual(songs.count, seedCount + 1,
+                       "adoption must not insert a duplicate seed (catalog + 1 user song)")
         let adopted = songs.first(where: { $0.id == legacyID })
         XCTAssertEqual(adopted?.seedID, canonical.seedID, "legacy seed did not adopt its seedID")
         let user = songs.first(where: { $0.title == "Deniz's Own Tune" })
@@ -99,7 +101,8 @@ final class SongIdentityTests: XCTestCase {
         let songs = try context.fetch(FetchDescriptor<Song>())
         XCTAssertEqual(songs.filter { $0.seedID == canonical.seedID }.count, 1,
                        "exactly one copy may adopt the seedID")
-        XCTAssertEqual(songs.count, 2, "no extra seed insert, no deletion")
+        XCTAssertEqual(songs.count, SeedData.createSeedSongs().count + 1,
+                       "no extra seed insert, no deletion (catalog + leftover copy)")
     }
 
     // Sub-task 4: localized titles are keyed by seedID per language.

@@ -91,8 +91,18 @@ struct SheetMusicView: View {
                     let y = staffTop + yOnStaff(for: staffPos)
                     let isActive = idx == currentNoteIndex
                     let isPast = idx < currentNoteIndex
-                    let filled = note.duration == .quarter || note.duration == .eighth
+                    let filled = note.duration.beats < 2.0   // quarter & shorter (incl. dotted) are solid
                     let color = isActive ? Color.orange : (isPast ? Color.gray.opacity(0.4) : Color.primary)
+
+                    if note.isRest {
+                        // A rest occupies time but plays nothing — draw the
+                        // rest glyph mid-staff, no notehead/stem/label.
+                        Text("𝄽")
+                            .font(.system(size: lineSpacing * 2.4))
+                            .foregroundStyle(color)
+                            .position(x: x, y: staffTop + yOnStaff(for: 6))
+                            .id(idx)
+                    } else {
 
                     // Ledger lines
                     if staffPos <= 0 {
@@ -141,6 +151,8 @@ struct SheetMusicView: View {
                         .font(.system(size: isActive ? 11 : 9, weight: .bold, design: .rounded))
                         .foregroundStyle(isActive ? .orange : .secondary)
                         .position(x: x, y: staffTop + staffHeight + 18)
+
+                    }
                 }
             }
         }

@@ -72,7 +72,9 @@ struct PlayerScreen: View {
                             bpm: viewModel.metronome.bpm,
                             playNotes: viewModel.playNotes,
                             playMetronome: viewModel.playMetronome,
-                            onNoteChange: { index in viewModel.currentNoteIndex = index },
+                            onNoteChange: { index in
+                                viewModel.currentNoteIndex = viewModel.entryIndex(forSoundingIndex: index)
+                            },
                             onPlaybackEnd: { viewModel.stopPlaying() }
                         )
                     } else {
@@ -189,7 +191,8 @@ struct PlayerScreen: View {
             // synthesizes inline on first tap.
             Task { @MainActor in
                 try? await Task.sleep(for: .milliseconds(150))
-                let pitches = Set(song.notes.map { Pitch(solfege: $0.solfege, octave: $0.octave) })
+                let pitches = Set(song.notes.filter { !$0.isRest }
+                    .map { Pitch(solfege: $0.solfege, octave: $0.octave) })
                 sampler.prewarm(Array(pitches))
             }
         }
