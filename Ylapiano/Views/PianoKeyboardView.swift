@@ -2,10 +2,7 @@ import SwiftUI
 
 struct PianoKeyboardView: View {
     let useSolfege: Bool
-    let highlightedNote: Solfege?
-    let highlightedOctave: Int?
     let expectedNote: NoteEntry?
-    let isCorrect: Bool?
     let guidedMode: Bool
     /// Opacity of the "play this next" yellow glow. The mastery ladder dims it
     /// as guidance fades (rung 3) before turning it off entirely (rung 4, where
@@ -79,20 +76,12 @@ struct PianoKeyboardView: View {
 
     private func whiteKeyView(note: Solfege, octave: Int, keyWidth: CGFloat, keyHeight: CGFloat) -> some View {
         let pitch = Pitch(solfege: note, octave: octave)
-        let isHighlighted = highlightedNote == note && highlightedOctave == octave
         let isExpected = guidedMode && expectedNote?.solfege == note && expectedNote?.octave == octave
-        let matchesExpectedPitch = highlightedNote == note // Match regardless of octave for young learners
         let isPressed = pressedKeys.contains(pitch.midi)
 
         let backgroundColor: Color = {
-            if isHighlighted {
-                if let isCorrect {
-                    return isCorrect ? Color.green.opacity(0.7) : Color.red.opacity(0.7)
-                }
-                return matchesExpectedPitch ? Color.green.opacity(0.7) : Color.red.opacity(0.7)
-            }
             if isPressed { return Color(white: 0.82) }
-            if isExpected && !isHighlighted {
+            if isExpected {
                 return Color.yellow.opacity(guidanceOpacity)
             }
             return .white
@@ -105,7 +94,7 @@ struct PianoKeyboardView: View {
 
             Text(label)
                 .font(.system(size: min(keyWidth * 0.35, 13), weight: .bold, design: .rounded))
-                .foregroundStyle(isHighlighted ? .white : .gray)
+                .foregroundStyle(.gray)
 
             if octave == 4 && note == .Do {
                 Circle()
@@ -124,18 +113,9 @@ struct PianoKeyboardView: View {
             RoundedRectangle(cornerRadius: 6)
                 .strokeBorder(.gray.opacity(0.2), lineWidth: 0.5)
         )
-        .overlay {
-            if isHighlighted {
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(backgroundColor.opacity(0.3))
-                    .blur(radius: 8)
-                    .allowsHitTesting(false)
-            }
-        }
         .scaleEffect(isPressed ? 0.96 : 1.0)
         .contentShape(Rectangle())
         .onTapGesture { onKeyTap(pitch) }
-        .animation(.easeInOut(duration: 0.12), value: isHighlighted)
         .animation(.spring(response: 0.18, dampingFraction: 0.7), value: isPressed)
     }
 
@@ -179,10 +159,7 @@ struct PianoKeyboardView: View {
 #Preview {
     PianoKeyboardView(
         useSolfege: true,
-        highlightedNote: .Mi,
-        highlightedOctave: 4,
         expectedNote: NoteEntry(solfege: .Mi, octave: 4, duration: .quarter),
-        isCorrect: true,
         guidedMode: true,
         pressedKeys: []
     )

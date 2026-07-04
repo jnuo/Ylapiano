@@ -24,9 +24,11 @@ final class Metronome {
     }
 
     private func prepareAudio() {
-        // Configure audio session for playback + recording simultaneously
+        // Playback only — the record-capable category here was mic-pipeline
+        // legacy (B5 #27 deleted the mic). B6 owns unifying this with
+        // `AudioSession.configurePlayback()`; keep the minimal flip here.
         let session = AVAudioSession.sharedInstance()
-        try? session.setCategory(.playAndRecord, options: [.defaultToSpeaker, .allowBluetooth])
+        try? session.setCategory(.playback)
         try? session.setActive(true)
     }
 
