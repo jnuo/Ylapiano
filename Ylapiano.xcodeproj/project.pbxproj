@@ -55,6 +55,9 @@
 		B27T0001 /* PimIdleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B27T1001 /* PimIdleTests.swift */; };
 		B11A0001 /* ResultSounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11A1001 /* ResultSounds.swift */; };
 		B11T0001 /* ResultSoundTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11T1001 /* ResultSoundTests.swift */; };
+		B31A0001 /* IntroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B31A1001 /* IntroView.swift */; };
+		B31A0002 /* PimIntro.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = B31A1002 /* PimIntro.mp4 */; };
+		B31T0001 /* IntroTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B31T1001 /* IntroTests.swift */; };
 		BT000007 /* SampledPianoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100007 /* SampledPianoTests.swift */; };
 		BT000008 /* MicFreeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100008 /* MicFreeTests.swift */; };
 		BT000009 /* AudioSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100009 /* AudioSessionTests.swift */; };
@@ -134,6 +137,9 @@
 		B27T1001 /* PimIdleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PimIdleTests.swift; sourceTree = "<group>"; };
 		B11A1001 /* ResultSounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultSounds.swift; sourceTree = "<group>"; };
 		B11T1001 /* ResultSoundTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultSoundTests.swift; sourceTree = "<group>"; };
+		B31A1001 /* IntroView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroView.swift; sourceTree = "<group>"; };
+		B31A1002 /* PimIntro.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PimIntro.mp4"; path = "Resources/Intro/PimIntro.mp4"; sourceTree = "<group>"; };
+		B31T1001 /* IntroTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroTests.swift; sourceTree = "<group>"; };
 		BT100007 /* SampledPianoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampledPianoTests.swift; sourceTree = "<group>"; };
 		BT100008 /* MicFreeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicFreeTests.swift; sourceTree = "<group>"; };
 		BT100009 /* AudioSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionTests.swift; sourceTree = "<group>"; };
@@ -201,6 +207,7 @@
 				AE000111 /* PimResult1.mp4 */,
 				AE000112 /* PimResult2.mp4 */,
 				AE000113 /* PimResult3.mp4 */,
+				B31A1002 /* PimIntro.mp4 */,
 				AE000211 /* UprightPianoKW-small-20190703.sf2 */,
 			);
 			path = Ylapiano;
@@ -233,6 +240,7 @@
 				BT100011 /* ArtSystemTests.swift */,
 				B27T1001 /* PimIdleTests.swift */,
 				B11T1001 /* ResultSoundTests.swift */,
+				B31T1001 /* IntroTests.swift */,
 			);
 			path = YlapianoTests;
 			sourceTree = "<group>";
@@ -268,6 +276,7 @@
 				AB000012 /* MetronomeBarView.swift */,
 				AB000013 /* SongCardView.swift */,
 				B27A1001 /* PimIdleView.swift */,
+				B31A1001 /* IntroView.swift */,
 				AB00B902 /* SongIconView.swift */,
 				AB000015 /* NoteEntryRow.swift */,
 				AB000018 /* OnboardingView.swift */,
@@ -440,6 +449,7 @@
 				AE000101 /* PimResult1.mp4 in Resources */,
 				AE000102 /* PimResult2.mp4 in Resources */,
 				AE000103 /* PimResult3.mp4 in Resources */,
+				B31A0002 /* PimIntro.mp4 in Resources */,
 				AE000201 /* UprightPianoKW-small-20190703.sf2 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -463,6 +473,7 @@
 				AA000012 /* MetronomeBarView.swift in Sources */,
 				AA000013 /* SongCardView.swift in Sources */,
 				B27A0001 /* PimIdleView.swift in Sources */,
+				B31A0001 /* IntroView.swift in Sources */,
 				AA00B901 /* Theme.swift in Sources */,
 				AA00B902 /* SongIconView.swift in Sources */,
 				AA000014 /* PlayerViewModel.swift in Sources */,
@@ -502,6 +513,7 @@
 				BT000011 /* ArtSystemTests.swift in Sources */,
 				B27T0001 /* PimIdleTests.swift in Sources */,
 				B11T0001 /* ResultSoundTests.swift in Sources */,
+				B31T0001 /* IntroTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
