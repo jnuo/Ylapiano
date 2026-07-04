@@ -51,6 +51,8 @@
 		BT000005 /* EarCheckRenderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100005 /* EarCheckRenderTests.swift */; };
 		BT000006 /* SeedRefreshTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100006 /* SeedRefreshTests.swift */; };
 		B26T0001 /* NextSongPickerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26T1001 /* NextSongPickerTests.swift */; };
+		B27A0001 /* PimIdleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B27A1001 /* PimIdleView.swift */; };
+		B27T0001 /* PimIdleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B27T1001 /* PimIdleTests.swift */; };
 		BT000007 /* SampledPianoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100007 /* SampledPianoTests.swift */; };
 		BT000008 /* MicFreeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100008 /* MicFreeTests.swift */; };
 		BT000009 /* AudioSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100009 /* AudioSessionTests.swift */; };
@@ -126,6 +128,8 @@
 		BT100005 /* EarCheckRenderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarCheckRenderTests.swift; sourceTree = "<group>"; };
 		BT100006 /* SeedRefreshTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedRefreshTests.swift; sourceTree = "<group>"; };
 		B26T1001 /* NextSongPickerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextSongPickerTests.swift; sourceTree = "<group>"; };
+		B27A1001 /* PimIdleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PimIdleView.swift; sourceTree = "<group>"; };
+		B27T1001 /* PimIdleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PimIdleTests.swift; sourceTree = "<group>"; };
 		BT100007 /* SampledPianoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampledPianoTests.swift; sourceTree = "<group>"; };
 		BT100008 /* MicFreeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicFreeTests.swift; sourceTree = "<group>"; };
 		BT100009 /* AudioSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionTests.swift; sourceTree = "<group>"; };
@@ -223,6 +227,7 @@
 				BT100009 /* AudioSessionTests.swift */,
 				BT100010 /* ProgressPersistenceTests.swift */,
 				BT100011 /* ArtSystemTests.swift */,
+				B27T1001 /* PimIdleTests.swift */,
 			);
 			path = YlapianoTests;
 			sourceTree = "<group>";
@@ -257,6 +262,7 @@
 				AB000009 /* PianoKeyboardView.swift */,
 				AB000012 /* MetronomeBarView.swift */,
 				AB000013 /* SongCardView.swift */,
+				B27A1001 /* PimIdleView.swift */,
 				AB00B902 /* SongIconView.swift */,
 				AB000015 /* NoteEntryRow.swift */,
 				AB000018 /* OnboardingView.swift */,
@@ -450,6 +456,7 @@
 				AA000010 /* Metronome.swift in Sources */,
 				AA000012 /* MetronomeBarView.swift in Sources */,
 				AA000013 /* SongCardView.swift in Sources */,
+				B27A0001 /* PimIdleView.swift in Sources */,
 				AA00B901 /* Theme.swift in Sources */,
 				AA00B902 /* SongIconView.swift in Sources */,
 				AA000014 /* PlayerViewModel.swift in Sources */,
@@ -486,6 +493,7 @@
 				BT000009 /* AudioSessionTests.swift in Sources */,
 				BT000010 /* ProgressPersistenceTests.swift in Sources */,
 				BT000011 /* ArtSystemTests.swift in Sources */,
+				B27T0001 /* PimIdleTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

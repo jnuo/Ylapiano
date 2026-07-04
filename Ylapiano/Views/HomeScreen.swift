@@ -32,8 +32,19 @@ struct HomeScreen: View {
 
     var body: some View {
         ScrollView {
-            // #38 (Pim idle) lands here as a header slot above the grid —
-            // deliberately not built in B9.
+            // #38 (B27) — Pim idles in the header's left slot (per B9's home
+            // art system): blink + breathe + occasional tilt, the "this app
+            // is alive" signal. Card motion stays B9's star-pop — Pim never
+            // competes with the grid.
+            HStack(alignment: .bottom) {
+                PimIdleView()
+                    .frame(width: 116, height: 116)
+                Spacer()
+            }
+            .padding(.horizontal)
+            .padding(.top, 4)
+            .accessibilityIdentifier("PimIdleHeader")
+
             LazyVGrid(columns: columns, spacing: 16) {
                 ForEach(songs) { song in
                     songCard(song)
