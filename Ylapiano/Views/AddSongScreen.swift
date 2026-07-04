@@ -26,6 +26,11 @@ struct AddSongScreen: View {
         !title.trimmingCharacters(in: .whitespaces).isEmpty && bpm > 0
     }
 
+    /// B10 (PR #33 residual): on the mastery-ladder song the RUNG owns the
+    /// tempo — a BPM edit here silently did nothing. Instead of pretending,
+    /// the editor now says so and disables the control.
+    private var tempoIsLadderOwned: Bool { existingSong?.hasMasteryLadder == true }
+
     var body: some View {
         NavigationStack {
             Form {
@@ -38,32 +43,43 @@ struct AddSongScreen: View {
                         Text("BPM")
                             .font(.system(.body, design: .rounded))
                         Spacer()
-                        HStack(spacing: 12) {
-                            Button {
-                                if bpm > 40 { bpm -= 5 }
-                            } label: {
-                                Image(systemName: "minus.circle.fill")
-                                    .font(.title2)
-                                    .foregroundStyle(.blue)
-                            }
-                            .buttonStyle(.plain)
+                        if tempoIsLadderOwned {
+                            Text("Set by the mastery ladder")
+                                .font(.system(.footnote, design: .rounded))
+                                .foregroundStyle(.secondary)
+                        } else {
+                            HStack(spacing: 12) {
+                                Button {
+                                    if bpm > 40 { bpm -= 5 }
+                                } label: {
+                                    Image(systemName: "minus.circle.fill")
+                                        .font(.title2)
+                                        .foregroundStyle(.blue)
+                                }
+                                .buttonStyle(.plain)
 
-                            Text("\(bpm)")
-                                .font(.system(.title3, design: .rounded, weight: .bold))
-                                .frame(width: 50)
+                                Text("\(bpm)")
+                                    .font(.system(.title3, design: .rounded, weight: .bold))
+                                    .frame(width: 50)
 
-                            Button {
-                                if bpm < 220 { bpm += 5 }
-                            } label: {
-                                Image(systemName: "plus.circle.fill")
-                                    .font(.title2)
-                                    .foregroundStyle(.blue)
+                                Button {
+                                    if bpm < 220 { bpm += 5 }
+                                } label: {
+                                    Image(systemName: "plus.circle.fill")
+                                        .font(.title2)
+                                        .foregroundStyle(.blue)
+                                }
+                                .buttonStyle(.plain)
                             }
-                            .buttonStyle(.plain)
                         }
                     }
                 } header: {
                     Label("Song Info", systemImage: "music.note")
+                } footer: {
+                    if tempoIsLadderOwned {
+                        Text("This song's tempo climbs with the mastery ladder — each rung sets its own speed.")
+                            .font(.system(.caption, design: .rounded))
+                    }
                 }
 
                 // Quick input section
@@ -168,7 +184,9 @@ struct AddSongScreen: View {
     private func save() {
         if let existingSong {
             existingSong.title = title
-            existingSong.bpm = bpm
+            // Ladder songs: tempo is rung-owned; never write a value the
+            // player will ignore (B10, PR #33 residual).
+            if !tempoIsLadderOwned { existingSong.bpm = bpm }
             existingSong.notes = notes
         } else {
             let descriptor = FetchDescriptor<Song>()

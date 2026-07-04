@@ -4,6 +4,10 @@ import AVKit
 import CoreImage
 import SwiftMIDIIO
 
+/// Which top panel the player shows. File-scope (not nested) because the
+/// grown-ups drawer binds to it too (B10).
+enum DisplayMode { case sheetMusic, fallingNotes }
+
 /// Thin shell around one play session. Exists for the B26 next-song handoff:
 /// tapping the result screen's handoff card swaps `currentSong`, and the
 /// `.id(currentSong.id)` below gives the session a fresh SwiftUI identity —
@@ -62,12 +66,21 @@ struct PlayerSessionView: View {
     /// below subscribes to its event stream while this screen is on screen.
     @EnvironmentObject private var midi: MIDIBridge
 
-    /// Which top-panel view the user has chosen: the existing ABC sheet music
-    /// (default) or the new Sprint 3 falling-notes lane.
+    /// Which top-panel view is active: the ABC sheet music or the
+    /// falling-notes lane.
     // Falling-notes is the front door — the game IS the app, not a hidden tab.
-    // Sheet music stays available via the toolbar toggle.
+    // Sheet music stays available, but only through the grown-ups drawer (B10).
     @State private var displayMode: DisplayMode = .fallingNotes
-    private enum DisplayMode { case sheetMusic, fallingNotes }
+
+    /// B10 — the grown-ups drawer is up. The drawer is an in-screen OVERLAY
+    /// panel, deliberately NOT a `.sheet`: adding any sheet modifier beyond
+    /// the existing edit sheet (a second `.sheet`, or converting to
+    /// `.sheet(item:)` — any variant, any binding host) silently kills
+    /// hit-testing of the result overlay's buttons on iOS 18.5 SwiftUI (the
+    /// B26 handoff tap went dead; found bisecting #22). Keep this screen at
+    /// exactly ONE sheet — the editor — and present everything else as an
+    /// overlay.
+    @State private var showingGrownUpsDrawer = false
 
     /// 3-2-1-Go pre-roll. Non-`nil` means the overlay is on screen; while it
     /// is, the metronome and falling-notes scene stay paused so the kid has
@@ -98,8 +111,12 @@ struct PlayerSessionView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Single compact toolbar row
-            toolbarRow
+            // B10 kid surface: the only controls a kid sees are the big Play
+            // (overlaid on the stage below), Pause while playing, the nav-bar
+            // back button, and the inert-to-taps grown-up gate. Everything
+            // adult-dense (BPM, toggles, pickers, edit, stop) lives in the
+            // hold-gated drawer.
+            kidTopBar
                 .padding(.horizontal, 12)
                 .padding(.top, 2)
 
@@ -132,7 +149,10 @@ struct PlayerSessionView: View {
                             onNoteChange: { index in
                                 viewModel.currentNoteIndex = viewModel.entryIndex(forSoundingIndex: index)
                             },
-                            onPlaybackEnd: { viewModel.stopPlaying() }
+                            // B10 (PR #33 residual): sheet playback no longer
+                            // ends in silence — a no-stars toast + soft ding
+                            // acknowledge the run (stars stay game-only).
+                            onPlaybackEnd: { viewModel.finishSheetPlayback() }
                         )
                     } else {
                         FallingNotesView(
@@ -148,6 +168,24 @@ struct PlayerSessionView: View {
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // B10 — the ONE big obvious control. Icon, not text; center
+                // stage; starts (with count-in) or resumes. Hidden while
+                // playing so nothing covers the falling notes.
+                .overlay {
+                    if !viewModel.isPlaying, countdownText == nil, !viewModel.songFinished {
+                        bigPlayButton
+                    }
+                }
+                // B10 sheet-run acknowledgement toast (no stars — see
+                // finishSheetPlayback). Auto-dismisses after a beat.
+                .overlay(alignment: .bottom) {
+                    if viewModel.sheetRunEnded {
+                        sheetRunToast
+                            .padding(.bottom, 18)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
+                }
+                .animation(.spring(response: 0.35, dampingFraction: 0.8), value: viewModel.sheetRunEnded)
             }
 
             // Current note indicator — only in sheet-music mode. In
@@ -249,6 +287,9 @@ struct PlayerSessionView: View {
         .onDisappear {
             viewModel.stopPlaying()
         }
+        // The screen's ONE and only sheet — the song editor, exactly as it
+        // shipped pre-B10. See `showingGrownUpsDrawer`'s doc comment: any
+        // additional sheet modifier here breaks the result overlay's taps.
         .sheet(isPresented: $viewModel.showingEditSheet) {
             AddSongScreen(existingSong: song)
         }
@@ -270,6 +311,25 @@ struct PlayerSessionView: View {
                 )
             }
         }
+        // B10 — the grown-ups drawer, an overlay panel (NOT a sheet; see
+        // `showingGrownUpsDrawer`). Above the result overlay: an adult opened
+        // it deliberately, it wins.
+        .overlay {
+            if showingGrownUpsDrawer {
+                GrownUpsDrawerView(
+                    viewModel: viewModel,
+                    displayMode: $displayMode,
+                    midiConnected: midi.isConnected,
+                    onEditSong: {
+                        showingGrownUpsDrawer = false
+                        viewModel.showingEditSheet = true
+                    },
+                    onClose: { showingGrownUpsDrawer = false }
+                )
+                .transition(.opacity.combined(with: .scale(scale: 0.96)))
+            }
+        }
+        .animation(.spring(response: 0.28, dampingFraction: 0.85), value: showingGrownUpsDrawer)
     }
 
     #if DEBUG
@@ -290,144 +350,70 @@ struct PlayerSessionView: View {
     }
     #endif
 
-    // MARK: - Toolbar Row
+    // MARK: - Kid surface (B10)
 
-    private var toolbarRow: some View {
+    /// The slim strip a kid sees above the stage: Pause while playing (the
+    /// one in-play control — it can't break anything), and the grown-up gate
+    /// (inert to taps; a 2.5 s hold opens the drawer). Nothing else.
+    private var kidTopBar: some View {
         HStack(spacing: 14) {
-            // Primary button: Play / Pause / Resume.  Fresh starts get a
-            // count-in; resumes do not.
-            Button {
-                if viewModel.isPlaying { viewModel.pausePlaying() }
-                else if viewModel.isPaused { viewModel.resumePlaying() }
-                else if countdownText == nil { startWithCountdown() }
-            } label: {
-                HStack(spacing: 6) {
-                    Image(systemName: viewModel.isPlaying ? "pause.fill" : "play.fill")
-                    Text(viewModel.isPlaying ? "Pause" : (viewModel.isPaused ? "Resume" : "Play"))
-                        .font(.system(.subheadline, design: .rounded, weight: .semibold))
-                }
-                .frame(minWidth: 90, minHeight: 44)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(viewModel.isPlaying ? .orange : .green)
-
-            // Stop button: only when active
-            if viewModel.isActive {
+            if viewModel.isPlaying {
                 Button {
-                    viewModel.stopPlaying()
+                    viewModel.pausePlaying()
                 } label: {
-                    Image(systemName: "stop.fill")
-                        .frame(width: 44, height: 44)
+                    Image(systemName: "pause.fill")
+                        .font(.system(.title3, weight: .bold))
+                        .frame(width: 56, height: 44)
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(.red)
+                .tint(.orange)
+                .accessibilityLabel("Pause")
             }
-
-            // BPM stepper — clear label, big tap targets
-            HStack(spacing: 4) {
-                Button { if viewModel.metronome.bpm > 40 { viewModel.metronome.bpm -= 5 } } label: {
-                    Image(systemName: "minus")
-                        .font(.system(.body, weight: .bold))
-                        .frame(width: 44, height: 44)
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(.blue)
-
-                Menu {
-                    ForEach([45, 60, 75, 90, 120, 150], id: \.self) { preset in
-                        Button {
-                            viewModel.metronome.bpm = preset
-                        } label: {
-                            if viewModel.metronome.bpm == preset {
-                                Label("\(preset) BPM", systemImage: "checkmark")
-                            } else {
-                                Text("\(preset) BPM")
-                            }
-                        }
-                    }
-                } label: {
-                    VStack(spacing: 0) {
-                        Text("\(viewModel.metronome.bpm)")
-                            .font(.system(.body, design: .rounded, weight: .bold))
-                            .monospacedDigit()
-                            .foregroundStyle(.primary)
-                        Text("BPM")
-                            .font(.system(.caption2, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(width: 50, height: 44)
-                }
-                .buttonStyle(.plain)
-
-                Button { if viewModel.metronome.bpm < 220 { viewModel.metronome.bpm += 5 } } label: {
-                    Image(systemName: "plus")
-                        .font(.system(.body, weight: .bold))
-                        .frame(width: 44, height: 44)
-                }
-                .buttonStyle(.plain)
-                .foregroundStyle(.blue)
-            }
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color(uiColor: .tertiarySystemFill))
-            )
 
             Spacer()
 
-            // MIDI connection indicator — gray when no keyboard is
-            // connected, coral when at least one USB MIDI source is alive.
-            // No animation per Sprint 2 minimum-viable scope; the full
-            // banner + chime + character look-up ships in v1.1.
-            Image(systemName: "pianokeys")
-                .font(.system(.title3))
-                .foregroundStyle(midi.isConnected ? Palette.deepRed : .gray)
-                .accessibilityLabel(midi.isConnected ? "MIDI keyboard connected" : "No MIDI keyboard connected")
-                .frame(width: 36, height: 44)
+            GrownUpGateButton { showingGrownUpsDrawer = true }
+        }
+        .frame(height: 48)
+    }
 
-            // Sound toggles — labeled pill buttons with obvious on/off state
-            soundToggle(
-                label: "Play Piano",
-                icon: "speaker.wave.2.fill",
-                iconOff: "speaker.slash.fill",
-                isOn: viewModel.playNotes,
-                color: .blue
-            ) { viewModel.playNotes.toggle() }
+    /// The ONE big kid control: a 150 pt icon-only circle, center stage.
+    /// Fresh start runs the count-in; a pause resumes without one.
+    private var bigPlayButton: some View {
+        Button {
+            if viewModel.isPaused { viewModel.resumePlaying() }
+            else if countdownText == nil { startWithCountdown() }
+        } label: {
+            Image(systemName: "play.fill")
+                .font(.system(size: 64, weight: .heavy))
+                .foregroundStyle(.white)
+                .frame(width: 150, height: 150)
+                .background(Circle().fill(Palette.leafGreen))
+                .shadow(color: .black.opacity(0.25), radius: 12, y: 6)
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(viewModel.isPaused ? "Resume" : "Play")
+        .accessibilityIdentifier("BigPlayButton")
+    }
 
-            soundToggle(
-                label: "Metronome",
-                icon: "metronome.fill",
-                iconOff: "metronome",
-                isOn: viewModel.playMetronome,
-                color: .orange
-            ) { viewModel.playMetronome.toggle() }
-
-            // Notation format — compact segmented
-            Picker("Notation", selection: Binding(
-                get: { viewModel.useSolfege },
-                set: { _ in viewModel.toggleNotation() }
-            )) {
-                Text("Do Re Mi").tag(true)
-                Text("C D E").tag(false)
-            }
-            .pickerStyle(.segmented)
-            .frame(width: 160)
-
-            // Display mode — sheet music vs. falling-notes game lane
-            Picker("Display", selection: $displayMode) {
-                Image(systemName: "music.note.list").tag(DisplayMode.sheetMusic)
-                Image(systemName: "rectangle.stack.fill").tag(DisplayMode.fallingNotes)
-            }
-            .pickerStyle(.segmented)
-            .frame(width: 110)
-
-            // Edit — subtle, last
-            Button { viewModel.showingEditSheet = true } label: {
-                Image(systemName: "pencil")
-                    .font(.system(.body, weight: .semibold))
-                    .frame(width: 44, height: 44)
-            }
-            .buttonStyle(.plain)
-            .foregroundStyle(.secondary)
+    /// B10 sheet-run acknowledgement — the run gets a moment, not stars
+    /// (stars require judged play). Plays a soft ding on appear and clears
+    /// itself after a beat.
+    private var sheetRunToast: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "music.note")
+            Text("Nice practicing!")
+                .font(.system(.title3, design: .rounded, weight: .bold))
+        }
+        .foregroundStyle(.white)
+        .padding(.horizontal, 22)
+        .padding(.vertical, 12)
+        .background(Capsule().fill(Palette.coral))
+        .shadow(color: .black.opacity(0.2), radius: 8, y: 3)
+        .task {
+            sampler.playStarDing(2)
+            try? await Task.sleep(for: .seconds(2.5))
+            viewModel.acknowledgeSheetRun()
         }
     }
 
@@ -456,32 +442,6 @@ struct PlayerSessionView: View {
             countdownText = nil
             viewModel.startPlaying()
         }
-    }
-
-    private func soundToggle(
-        label: String,
-        icon: String,
-        iconOff: String,
-        isOn: Bool,
-        color: Color,
-        action: @escaping () -> Void
-    ) -> some View {
-        Button(action: action) {
-            HStack(spacing: 6) {
-                Image(systemName: isOn ? icon : iconOff)
-                    .font(.body)
-                Text(label)
-                    .font(.system(.footnote, design: .rounded, weight: .semibold))
-            }
-            .padding(.horizontal, 12)
-            .frame(height: 44)
-            .foregroundStyle(isOn ? .white : color)
-            .background(
-                Capsule()
-                    .fill(isOn ? color : color.opacity(0.12))
-            )
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Current Note Indicator
@@ -514,7 +474,7 @@ struct PlayerSessionView: View {
                         .fill(.ultraThinMaterial)
                 )
             } else if song.notes.isEmpty {
-                Text("No notes — tap edit to add some!")
+                Text("No notes yet — ask a grown-up to add some.")
                     .font(.system(.caption, design: .rounded))
                     .foregroundStyle(.secondary)
             }
@@ -531,14 +491,193 @@ struct PlayerSessionView: View {
             Text("No notes yet")
                 .font(.system(.title3, design: .rounded, weight: .semibold))
                 .foregroundStyle(.secondary)
-            Button("Add Notes") {
+            // B10 sub-task 4: the note editor is grown-up territory — even
+            // from the empty state, the only way in is a deliberate hold.
+            GrownUpGateButton(label: "Hold to add notes") {
                 viewModel.showingEditSheet = true
             }
-            .buttonStyle(.borderedProminent)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
+}
+
+// MARK: - Grown-ups drawer (B10 #22)
+
+/// Everything the old adult-dense toolbar held, now behind the hold gate:
+/// tempo, sound toggles, notation, display mode, MIDI status, edit, stop.
+/// A kid never sees this; a parent holds the gate 2.5 s to open it.
+///
+/// Presented as an in-screen OVERLAY panel, deliberately not a `.sheet` —
+/// see `showingGrownUpsDrawer` in `PlayerSessionView` for the iOS 18.5 bug
+/// a second sheet triggers.
+private struct GrownUpsDrawerView: View {
+    @Bindable var viewModel: PlayerViewModel
+    @Binding var displayMode: DisplayMode
+    let midiConnected: Bool
+    let onEditSong: () -> Void
+    let onClose: () -> Void
+
+    var body: some View {
+        ZStack {
+            // Dim scrim; tapping outside the panel closes the drawer.
+            Color.black.opacity(0.35)
+                .ignoresSafeArea()
+                .onTapGesture { onClose() }
+
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    Text("Grown-ups")
+                        .font(.system(.title3, design: .rounded, weight: .heavy))
+                    Spacer()
+                    Button("Done") { onClose() }
+                        .font(.system(.body, design: .rounded, weight: .semibold))
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+
+                Divider()
+
+                ScrollView {
+                    VStack(spacing: 4) {
+                        row("BPM") {
+                            HStack(spacing: 4) {
+                                Button {
+                                    viewModel.setBPM(viewModel.metronome.bpm - 5)
+                                } label: {
+                                    Image(systemName: "minus")
+                                        .font(.system(.body, weight: .bold))
+                                        .frame(width: 44, height: 44)
+                                }
+                                .buttonStyle(.plain)
+                                .foregroundStyle(.blue)
+
+                                Menu {
+                                    ForEach([45, 60, 75, 90, 120, 150], id: \.self) { preset in
+                                        Button {
+                                            viewModel.setBPM(preset)
+                                        } label: {
+                                            if viewModel.metronome.bpm == preset {
+                                                Label("\(preset) BPM", systemImage: "checkmark")
+                                            } else {
+                                                Text("\(preset) BPM")
+                                            }
+                                        }
+                                    }
+                                } label: {
+                                    Text("\(viewModel.metronome.bpm)")
+                                        .font(.system(.title3, design: .rounded, weight: .bold))
+                                        .monospacedDigit()
+                                        .frame(width: 60, height: 44)
+                                }
+                                .buttonStyle(.plain)
+
+                                Button {
+                                    viewModel.setBPM(viewModel.metronome.bpm + 5)
+                                } label: {
+                                    Image(systemName: "plus")
+                                        .font(.system(.body, weight: .bold))
+                                        .frame(width: 44, height: 44)
+                                }
+                                .buttonStyle(.plain)
+                                .foregroundStyle(.blue)
+                            }
+                            .background(
+                                RoundedRectangle(cornerRadius: 10)
+                                    .fill(Color(uiColor: .tertiarySystemFill))
+                            )
+                        }
+
+                        Divider()
+
+                        Toggle("Play Piano", isOn: $viewModel.playNotes)
+                            .padding(.horizontal, 20)
+                            .frame(height: 52)
+                        Toggle("Metronome", isOn: $viewModel.playMetronome)
+                            .padding(.horizontal, 20)
+                            .frame(height: 52)
+
+                        Divider()
+
+                        row("Notation") {
+                            Picker("Notation", selection: $viewModel.useSolfege) {
+                                Text("Do Re Mi").tag(true)
+                                Text("C D E").tag(false)
+                            }
+                            .pickerStyle(.segmented)
+                            .frame(width: 200)
+                        }
+                        row("View") {
+                            Picker("View", selection: $displayMode) {
+                                Text("Falling notes").tag(DisplayMode.fallingNotes)
+                                Text("Sheet music").tag(DisplayMode.sheetMusic)
+                            }
+                            .pickerStyle(.segmented)
+                            .frame(width: 240)
+                        }
+
+                        Divider()
+
+                        Button {
+                            onEditSong()
+                        } label: {
+                            HStack {
+                                Label("Edit Song", systemImage: "pencil")
+                                Spacer()
+                            }
+                            .padding(.horizontal, 20)
+                            .frame(height: 52)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .foregroundStyle(.blue)
+
+                        row("MIDI Keyboard") {
+                            Text(midiConnected ? "Connected" : "Not connected")
+                                .foregroundStyle(midiConnected ? Palette.deepRed : .secondary)
+                        }
+
+                        if viewModel.isActive {
+                            Divider()
+                            Button(role: .destructive) {
+                                viewModel.stopPlaying()
+                                onClose()
+                            } label: {
+                                HStack {
+                                    Label("Stop Song", systemImage: "stop.fill")
+                                    Spacer()
+                                }
+                                .padding(.horizontal, 20)
+                                .frame(height: 52)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundStyle(.red)
+                        }
+                    }
+                    .padding(.vertical, 8)
+                }
+            }
+            .font(.system(.body, design: .rounded))
+            .frame(maxWidth: 520, maxHeight: 640)
+            .background(RoundedRectangle(cornerRadius: 22).fill(Color(uiColor: .systemBackground)))
+            .shadow(color: .black.opacity(0.25), radius: 24, y: 8)
+            .padding(32)
+            .accessibilityIdentifier("GrownUpsDrawer")
+        }
+    }
+
+    /// One label-left, control-right row.
+    private func row<Content: View>(_ label: String, @ViewBuilder content: () -> Content) -> some View {
+        HStack {
+            Text(label)
+            Spacer()
+            content()
+        }
+        .padding(.horizontal, 20)
+        .frame(minHeight: 52)
+    }
 }
 
 /// End-of-song result — a celebration, not a static card. The squirrel reacts,
@@ -721,7 +860,30 @@ private struct SongResultView: View {
     /// song. Springs in with a Back.Out-style overshoot (~350 ms) after the
     /// star sequence; static appear under Reduce Motion (`runSequence` just
     /// sets `handoff` without animation).
+    ///
+    /// The interactive card is only MOUNTED once `handoff` flips — before the
+    /// spring it must not exist at all. The earlier always-mounted version
+    /// (scaleEffect/opacity driven by `handoff`, later patched with
+    /// `allowsHitTesting` + `accessibilityHidden`) left a full-frame,
+    /// zero-opacity button in the tree during the multi-second star sequence:
+    /// an accessibility query found it (XCUITest's element tree ignores
+    /// `accessibilityHidden` on an identified button here), computed hit
+    /// point {-1, -1} on the invisible view, and the tap landed nowhere —
+    /// the deterministic NextSongHandoffUITests failure in #57. A `hidden()`
+    /// ghost keeps the layout slot from the first frame so the result card
+    /// never resizes when the card springs in.
     private func handoffCard(_ next: Song, hero: Bool) -> some View {
+        ZStack {
+            handoffCardContent(next, hero: hero)
+                .hidden()
+            if handoff {
+                handoffCardContent(next, hero: hero)
+                    .transition(.scale(scale: 0.25).combined(with: .opacity))
+            }
+        }
+    }
+
+    private func handoffCardContent(_ next: Song, hero: Bool) -> some View {
         HStack(alignment: .bottom, spacing: 4) {
             // Pim points to the right — the card sits where he points.
             Image("MascotPointing")
@@ -738,8 +900,6 @@ private struct SongResultView: View {
             .accessibilityLabel("Play \(next.title) next")
             .accessibilityIdentifier("NextSongHandoffCard")
         }
-        .scaleEffect(handoff ? 1 : 0.25)
-        .opacity(handoff ? 1 : 0)
     }
 
     @MainActor

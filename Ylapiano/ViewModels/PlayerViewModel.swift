@@ -75,8 +75,26 @@ final class PlayerViewModel {
 
     /// The full 4-rung ladder is Salta-only (B4 #21). Every other song —
     /// including user-created ones — plays the fixed gentle config: full
-    /// glow, rung-1 windows, the song's own BPM.
-    var hasMasteryLadder: Bool { song.seedID == "plim-plim" }
+    /// glow, rung-1 windows, the song's own BPM. Ownership of the rule lives
+    /// on `Song` (B10) so the song editor can honestly disable its BPM field
+    /// for ladder songs.
+    var hasMasteryLadder: Bool { song.hasMasteryLadder }
+
+    /// B10 — an adult-chosen tempo from the grown-ups drawer. PR #33 residual:
+    /// `applyRung()` used to clobber a user-adjusted BPM on every fresh play.
+    /// The override now survives fresh plays and replays; a rung climb clears
+    /// it (the climb's whole promise is "Faster!" — the new rung must own the
+    /// tempo again).
+    private(set) var bpmOverride: Int?
+
+    /// Set the tempo from the grown-ups drawer: applies immediately AND
+    /// persists across fresh plays until the drawer changes it again or a
+    /// rung climb resets tempo ownership to the ladder.
+    func setBPM(_ bpm: Int) {
+        let clamped = min(max(bpm, 40), 220)
+        bpmOverride = clamped
+        metronome.bpm = clamped
+    }
 
     /// Which rung of the single-song ladder the player is on (0-based). Same
     /// song every rung; tempo + guidance + timing window scale. Restored from
@@ -157,7 +175,9 @@ final class PlayerViewModel {
     private func applyRung() {
         if hasMasteryLadder {
             let rung = currentRung
-            metronome.bpm = rung.bpm
+            // An adult drawer override outranks the rung tempo until a climb
+            // clears it (B10, PR #33 residual) — guidance/windows stay rung-owned.
+            metronome.bpm = bpmOverride ?? rung.bpm
             guidedMode = rung.guidance != .none
             hitJudge.setWindows(hitMs: rung.hitMs, perfectMs: rung.perfectMs)
         } else {
@@ -165,7 +185,7 @@ final class PlayerViewModel {
             // own kid-friendly tempo from the catalog (rung BPMs are
             // Salta-tuned; forcing 50 everywhere kills the songs' feel).
             let gentle = MasteryLadder.rungs[0]
-            metronome.bpm = song.bpm
+            metronome.bpm = bpmOverride ?? song.bpm
             guidedMode = gentle.guidance != .none
             hitJudge.setWindows(hitMs: gentle.hitMs, perfectMs: gentle.perfectMs)
         }
@@ -175,6 +195,7 @@ final class PlayerViewModel {
         applyRung()
         isPlaying = true
         isPaused = false
+        sheetRunEnded = false
         currentNoteIndex = 0
         accumulatedBeforePause = 0
         playStartedAt = Date()
@@ -237,6 +258,26 @@ final class PlayerViewModel {
         setResult(stars: Self.stars(right: resultRight, total: resultTotal))
     }
 
+    /// B10 (PR #33 residual: "sheet-music mode ends with no feedback"). Stars
+    /// stay game-only — unjudged sheet playback must never mint them — but a
+    /// run may not end in silence either. This flag raises a brief
+    /// "Nice practicing!" toast (plus a soft ding at the call site); it clears
+    /// on acknowledgement or the next fresh play.
+    private(set) var sheetRunEnded = false
+
+    /// Sheet-music playback ran out. Stop cleanly and raise the lightweight
+    /// (no-stars) acknowledgement instead of ending in silence.
+    func finishSheetPlayback() {
+        guard isPlaying else { return }
+        stopPlaying()
+        sheetRunEnded = true
+    }
+
+    /// The toast was shown long enough — drop it.
+    func acknowledgeSheetRun() {
+        sheetRunEnded = false
+    }
+
     /// Freeze the end-of-song result and raise the result screen. finishSong's
     /// last step; also the seam tests use to drive result-dependent logic.
     /// Persisting here (not in finishSong) keeps every completed run — real or
@@ -265,6 +306,9 @@ final class PlayerViewModel {
     func climbRung() {
         guard canClimb else { return }
         rungIndex += 1
+        // The climb is an explicit tempo change ("Faster!") — a stale adult
+        // override may not silently cancel it. The rung owns tempo again.
+        bpmOverride = nil
         if rungIndex > song.bestRung {
             song.bestRung = rungIndex
             persistProgress()
