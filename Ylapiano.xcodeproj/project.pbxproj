@@ -41,6 +41,7 @@
 		AE000101 /* PimResult1.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = AE000111 /* PimResult1.mp4 */; };
 		AE000102 /* PimResult2.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = AE000112 /* PimResult2.mp4 */; };
 		AE000103 /* PimResult3.mp4 in Resources */ = {isa = PBXBuildFile; fileRef = AE000113 /* PimResult3.mp4 */; };
+		AE000201 /* UprightPianoKW-small-20190703.sf2 in Resources */ = {isa = PBXBuildFile; fileRef = AE000211 /* UprightPianoKW-small-20190703.sf2 */; };
 		EA112EAB9027B0A007DF32C5 /* ABCMusicView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AD5B0BBB0B3A88D01FCEF984 /* ABCMusicView.swift */; };
 		BT000001 /* SongIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100001 /* SongIdentityTests.swift */; };
 		BT000002 /* MascotAssetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100002 /* MascotAssetTests.swift */; };
@@ -48,6 +49,7 @@
 		BT000004 /* GameModeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100004 /* GameModeTests.swift */; };
 		BT000005 /* EarCheckRenderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100005 /* EarCheckRenderTests.swift */; };
 		BT000006 /* SeedRefreshTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100006 /* SeedRefreshTests.swift */; };
+		BT000007 /* SampledPianoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100007 /* SampledPianoTests.swift */; };
 		BU000001 /* AddSongUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU100001 /* AddSongUITests.swift */; };
 		BU000002 /* SongResultUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU100002 /* SongResultUITests.swift */; };
 /* End PBXBuildFile section */
@@ -106,6 +108,7 @@
 		AE000111 /* PimResult1.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PimResult1.mp4"; path = "Resources/Reward/PimResult1.mp4"; sourceTree = "<group>"; };
 		AE000112 /* PimResult2.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PimResult2.mp4"; path = "Resources/Reward/PimResult2.mp4"; sourceTree = "<group>"; };
 		AE000113 /* PimResult3.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PimResult3.mp4"; path = "Resources/Reward/PimResult3.mp4"; sourceTree = "<group>"; };
+		AE000211 /* UprightPianoKW-small-20190703.sf2 */ = {isa = PBXFileReference; lastKnownFileType = file; name = "UprightPianoKW-small-20190703.sf2"; path = "Resources/Audio/UprightPianoKW-small-20190703.sf2"; sourceTree = "<group>"; };
 		BT100000 /* YlapianoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = YlapianoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BT100001 /* SongIdentityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongIdentityTests.swift; sourceTree = "<group>"; };
 		BT100002 /* MascotAssetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MascotAssetTests.swift; sourceTree = "<group>"; };
@@ -113,6 +116,7 @@
 		BT100004 /* GameModeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GameModeTests.swift; sourceTree = "<group>"; };
 		BT100005 /* EarCheckRenderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EarCheckRenderTests.swift; sourceTree = "<group>"; };
 		BT100006 /* SeedRefreshTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedRefreshTests.swift; sourceTree = "<group>"; };
+		BT100007 /* SampledPianoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampledPianoTests.swift; sourceTree = "<group>"; };
 		BU100000 /* YlapianoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = YlapianoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BU100001 /* AddSongUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSongUITests.swift; sourceTree = "<group>"; };
 		BU100002 /* SongResultUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongResultUITests.swift; sourceTree = "<group>"; };
@@ -172,6 +176,7 @@
 				AE000111 /* PimResult1.mp4 */,
 				AE000112 /* PimResult2.mp4 */,
 				AE000113 /* PimResult3.mp4 */,
+				AE000211 /* UprightPianoKW-small-20190703.sf2 */,
 			);
 			path = Ylapiano;
 			sourceTree = "<group>";
@@ -195,6 +200,7 @@
 				BT100004 /* GameModeTests.swift */,
 				BT100005 /* EarCheckRenderTests.swift */,
 				BT100006 /* SeedRefreshTests.swift */,
+				BT100007 /* SampledPianoTests.swift */,
 			);
 			path = YlapianoTests;
 			sourceTree = "<group>";
@@ -398,6 +404,7 @@
 				AE000101 /* PimResult1.mp4 in Resources */,
 				AE000102 /* PimResult2.mp4 in Resources */,
 				AE000103 /* PimResult3.mp4 in Resources */,
+				AE000201 /* UprightPianoKW-small-20190703.sf2 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -448,6 +455,7 @@
 				BT000004 /* GameModeTests.swift in Sources */,
 				BT000005 /* EarCheckRenderTests.swift in Sources */,
 				BT000006 /* SeedRefreshTests.swift in Sources */,
+				BT000007 /* SampledPianoTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -21,10 +21,11 @@ import AVFoundation
 ///
 /// Faithfulness: onsets are spaced by `duration.beats * 60 / bpm` — exactly
 /// the spacing the falling-notes engine uses — and rests advance time
-/// silently. Each struck tone rings its full natural decay (~1.5 s), same
-/// as live play where buffers self-decay. The tone itself is the current
-/// 4-harmonic synth placeholder (#34 swaps in Salamander later) — fine for
-/// checking pitches and rhythm, which is what the ear-check is for.
+/// silently. Each struck tone rings 1.5 s then releases (~1 s tail), close
+/// to live play where tapped notes ring and auto-release. The tone is the
+/// REAL sampled piano (B23, #34): `renderTone` renders offline through the
+/// same `AVAudioUnitSampler` + bundled Upright Piano KW SoundFont the app
+/// plays live.
 @MainActor
 final class EarCheckRenderTests: XCTestCase {
 
@@ -126,7 +127,7 @@ final class EarCheckRenderTests: XCTestCase {
         let secondsPerBeat = 60.0 / Double(song.bpm)
         let totalBeats = notes.reduce(0.0) { $0 + $1.duration.beats }
 
-        // Cache one tone per distinct pitch — same buffers the app caches.
+        // Render one tone per distinct pitch, reused across onsets.
         var tones: [UInt8: AVAudioPCMBuffer] = [:]
         for note in notes where !note.isRest {
             let pitch = Pitch(solfege: note.solfege, octave: note.octave)
@@ -225,11 +226,11 @@ final class EarCheckRenderTests: XCTestCase {
         notesData exactly — duration.beats at the song's BPM, rests honored —
         so what you hear is the timing the app plays.
 
-        Sound: the current sampler is a 4-harmonic SYNTH PLACEHOLDER (#34
-        swaps in the Salamander piano later). That's fine for this ear-check —
-        you're verifying PITCHES and RHYTHM, not tone quality. Each struck
-        note rings its natural ~1.5 s decay regardless of note value, same as
-        the app live.
+        Sound: the REAL sampled piano (B23, #34) — FreePats "Upright Piano
+        KW" (CC0), rendered through the same AVAudioUnitSampler + SoundFont
+        the app plays live. The synth placeholder is retired. Each struck
+        note rings ~1.5 s then releases regardless of note value, matching
+        the app's tapped-note feel.
 
         Re-render after any transcription edit: scripts/render-ear-check.sh
         (or the xcodebuild -only-testing:YlapianoTests/EarCheckRenderTests
