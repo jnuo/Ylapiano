@@ -70,6 +70,9 @@ struct YlapianoApp: App {
             ContentView()
                 .environmentObject(sampler)
                 .environmentObject(midi)
+                // B28 (#39) — one launch = one session for the rating
+                // engine's "never the first session" rule. Idempotent.
+                .onAppear { ReviewAsk.registerSessionOnce() }
         }
         .modelContainer(sharedModelContainer)
     }

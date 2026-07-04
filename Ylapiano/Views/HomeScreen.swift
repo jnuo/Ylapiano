@@ -13,6 +13,9 @@ struct HomeScreen: View {
     @State private var showingAddSong = false
     @State private var showingSpike = false
     @State private var hasSeeded = false
+    /// B17 (#7) — the Grown-Ups corner is up. Entered ONLY through the hold
+    /// gate below; a kid-style tap on the gate does nothing.
+    @State private var showingGrownUpsCorner = false
 
     // B9 return-home star-pop: remember the star count the kid last SAW per
     // song (in-memory — a cold launch just baselines, no pop), and mark songs
@@ -92,6 +95,14 @@ struct HomeScreen: View {
                         : Text("No MIDI keyboard connected"))
             }
 
+            // B17 (#7) — the Grown-Ups corner entry: the same reusable B10
+            // hold gate the player uses, tucked in the top corner where it
+            // doesn't compete with the song cards. Inert to kid taps; a
+            // deliberate 2.5 s hold opens the corner.
+            ToolbarItem(placement: .topBarTrailing) {
+                GrownUpGateButton { showingGrownUpsCorner = true }
+            }
+
             #if DEBUG
             // Sync-spike entry point is a dev tool — never ship in Release.
             ToolbarItem(placement: .topBarTrailing) {
@@ -109,6 +120,9 @@ struct HomeScreen: View {
         }
         .sheet(isPresented: $showingAddSong) {
             AddSongScreen()
+        }
+        .sheet(isPresented: $showingGrownUpsCorner) {
+            GrownUpsCornerView()
         }
         #if DEBUG
         .fullScreenCover(isPresented: $showingSpike) {

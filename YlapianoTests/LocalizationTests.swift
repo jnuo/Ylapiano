@@ -134,6 +134,18 @@ final class LocalizationTests: XCTestCase {
             "Play on screen or a USB piano", "Get instant feedback", "Next",
             "You're all set!", "Pick a song and start playing. Have fun!",
             "Let's Go!", "Skip intro",
+            // Grown-Ups corner (B17 #7)
+            "How it works",
+            "Pick a song and press play. Notes fall toward the piano keys, and your child plays each one as it lands — right notes earn up to 3 stars. There is no losing; every finished song ends in a little celebration.",
+            "USB piano",
+            "Plug a USB MIDI keyboard into the iPad and it connects by itself — the piano-keys icon at the top turns red when it's live. No keyboard around? The on-screen keys work just the same.",
+            "The mastery ladder",
+            "One song — Plim Plim — climbs a 4-step ladder: each step is a bit faster, the key glow fades, and the timing gets stricter. A 3-star run offers the climb, and your child decides when to take it.",
+            "Support", "Get help", "Email us",
+            "Rate Ylapiano", "Write a review",
+            "Love it? Ratings help other families find Ylapiano.",
+            "Piano sound: Upright Piano KW, recorded from a real Kawai upright piano by the FreePats project. Released under CC0 — thank you.",
+            "Version %@",
         ]
         let keys = Set(try Self.loadCatalog().strings.keys)
         let missing = expected.subtracting(keys)
