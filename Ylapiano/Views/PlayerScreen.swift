@@ -563,6 +563,8 @@ private struct SongResultView: View {
     let onPlayNext: (Song) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// B11 — star dings + tier fanfare play through the shared engine.
+    @EnvironmentObject private var sampler: PianoSampler
 
     @State private var card = false        // card + mascot enter
     @State private var revealed = 0        // earned stars shown so far
@@ -576,11 +578,18 @@ private struct SongResultView: View {
     private var perfect: Bool { stars >= 3 }
 
 
-    /// Per-tier reward clip — Pim reacts to how the kid did (1★ = "hmm, again!",
-    /// 2★ = clap, 3★ = jump-cheer). Looks up `PimResult1/2/3.mp4` in the bundle;
-    /// `nil` until that asset is added, so the still fallback below keeps working.
+    /// B11 — one random draw per presentation from the tier's celebration
+    /// pool (`PimReactionPool`; "hmm" never plays on a completion). `@State`'s
+    /// initial value is computed once per view identity, so the clip stays
+    /// put across re-renders instead of reshuffling on every state change.
+    @State private var rewardClip = Int.random(in: 0..<Int.max)
+
+    /// Per-tier reward clip — Pim reacts to how the kid did, drawn from the
+    /// tier's variety pool (1★ = clap only, warm; 2★/3★ = clap or jump-cheer).
+    /// `nil` if the clip is missing, so the still fallback below keeps working.
     private var tierVideoURL: URL? {
-        Bundle.main.url(forResource: "PimResult\(min(max(stars, 1), 3))", withExtension: "mp4")
+        let pool = PimReactionPool.clips(forStars: stars)
+        return Bundle.main.url(forResource: pool[rewardClip % pool.count], withExtension: "mp4")
     }
 
     /// Still fallback when Reduce Motion is on or a reward clip is missing.
@@ -735,21 +744,34 @@ private struct SongResultView: View {
 
     @MainActor
     private func runSequence() async {
+        let beat = ResultSoundDesign.starBeatMilliseconds
         guard !reduceMotion else {
             card = true
             revealed = stars
             celebrate = perfect
             burst = 0           // no motion burst in reduced mode
             handoff = true      // static appear — no spring under Reduce Motion
+            // Sound is not motion (B11): the celebration still PLAYS under
+            // Reduce Motion — rising dings on the star beat, then the fanfare.
+            for i in 0..<max(stars, 1) {
+                sampler.playStarDing(i)
+                try? await Task.sleep(for: .milliseconds(beat))
+            }
+            sampler.playResultFanfare(stars: stars)
             return
         }
         withAnimation(.spring(response: 0.45, dampingFraction: 0.6)) { card = true }
         try? await Task.sleep(for: .milliseconds(320))
-        // Reveal earned stars one at a time — pop, beat, pop, beat.
+        // Reveal earned stars one at a time — pop, beat, pop, beat. Each pop
+        // lands with its ding — one warm piano note, rising Do–Mi–Sol (B11).
         for i in 1...max(stars, 1) {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.45)) { revealed = i }
-            try? await Task.sleep(for: .milliseconds(340))
+            sampler.playStarDing(i - 1)
+            try? await Task.sleep(for: .milliseconds(beat))
         }
+        // Tier fanfare, one beat after the last star: 1★ warm, 2★ brighter,
+        // 3★ full flourish (random variation) under the sparkle burst.
+        sampler.playResultFanfare(stars: stars)
         if perfect {
             // Perfect run: sparkle burst + a happy wiggle.
             celebrate = true
