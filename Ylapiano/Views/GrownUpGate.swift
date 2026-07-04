@@ -65,7 +65,9 @@ final class HoldGateModel {
 /// grown-ups"). First consumer is the player's grown-ups drawer; Add Song and
 /// the B17 Grown-Ups corner reuse this same component.
 struct GrownUpGateButton: View {
-    var label: String = "Hold for grown-ups"
+    /// LocalizedStringKey so both the default and call-site literals resolve
+    /// through the String Catalog (B13).
+    var label: LocalizedStringKey = "Hold for grown-ups"
     var onUnlock: () -> Void
 
     @State private var model = HoldGateModel()

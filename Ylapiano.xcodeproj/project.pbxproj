@@ -70,6 +70,9 @@
 		BU000002 /* SongResultUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU100002 /* SongResultUITests.swift */; };
 		B26T0002 /* NextSongHandoffUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26T1002 /* NextSongHandoffUITests.swift */; };
 		BU000003 /* OnboardingUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU100003 /* OnboardingUITests.swift */; };
+		B13A0001 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = B13A1001 /* Localizable.xcstrings */; };
+		B13T0001 /* LocalizationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B13T1001 /* LocalizationTests.swift */; };
+		B13U0001 /* TurkishScreenshotsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B13U1001 /* TurkishScreenshotsUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -145,6 +148,9 @@
 		B10T1002 /* KidModePlayerUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KidModePlayerUITests.swift; sourceTree = "<group>"; };
 		B31A1001 /* IntroView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroView.swift; sourceTree = "<group>"; };
 		B31A1002 /* PimIntro.mp4 */ = {isa = PBXFileReference; lastKnownFileType = file; name = "PimIntro.mp4"; path = "Resources/Intro/PimIntro.mp4"; sourceTree = "<group>"; };
+		B13A1001 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = Localizable.xcstrings; path = Resources/Localizable.xcstrings; sourceTree = "<group>"; };
+		B13T1001 /* LocalizationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalizationTests.swift; sourceTree = "<group>"; };
+		B13U1001 /* TurkishScreenshotsUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TurkishScreenshotsUITests.swift; sourceTree = "<group>"; };
 		B31T1001 /* IntroTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroTests.swift; sourceTree = "<group>"; };
 		BT100007 /* SampledPianoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampledPianoTests.swift; sourceTree = "<group>"; };
 		BT100008 /* MicFreeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicFreeTests.swift; sourceTree = "<group>"; };
@@ -214,6 +220,7 @@
 				AE000112 /* PimResult2.mp4 */,
 				AE000113 /* PimResult3.mp4 */,
 				B31A1002 /* PimIntro.mp4 */,
+				B13A1001 /* Localizable.xcstrings */,
 				AE000211 /* UprightPianoKW-small-20190703.sf2 */,
 			);
 			path = Ylapiano;
@@ -248,6 +255,7 @@
 				B11T1001 /* ResultSoundTests.swift */,
 				B10T1001 /* GrownUpGateTests.swift */,
 				B31T1001 /* IntroTests.swift */,
+				B13T1001 /* LocalizationTests.swift */,
 			);
 			path = YlapianoTests;
 			sourceTree = "<group>";
@@ -260,6 +268,7 @@
 				B26T1002 /* NextSongHandoffUITests.swift */,
 				BU100003 /* OnboardingUITests.swift */,
 				B10T1002 /* KidModePlayerUITests.swift */,
+				B13U1001 /* TurkishScreenshotsUITests.swift */,
 			);
 			path = YlapianoUITests;
 			sourceTree = "<group>";
@@ -429,6 +438,7 @@
 			knownRegions = (
 				en,
 				es,
+				tr,
 				Base,
 			);
 			mainGroup = AD000001;
@@ -459,6 +469,7 @@
 				AE000102 /* PimResult2.mp4 in Resources */,
 				AE000103 /* PimResult3.mp4 in Resources */,
 				B31A0002 /* PimIntro.mp4 in Resources */,
+				B13A0001 /* Localizable.xcstrings in Resources */,
 				AE000201 /* UprightPianoKW-small-20190703.sf2 in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -525,6 +536,7 @@
 				B11T0001 /* ResultSoundTests.swift in Sources */,
 				B10T0001 /* GrownUpGateTests.swift in Sources */,
 				B31T0001 /* IntroTests.swift in Sources */,
+				B13T0001 /* LocalizationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -537,6 +549,7 @@
 				B26T0002 /* NextSongHandoffUITests.swift in Sources */,
 				BU000003 /* OnboardingUITests.swift in Sources */,
 				B10T0002 /* KidModePlayerUITests.swift in Sources */,
+				B13U0001 /* TurkishScreenshotsUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

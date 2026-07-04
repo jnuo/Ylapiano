@@ -33,7 +33,7 @@ struct SongCardView: View {
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .padding(.top, 8)
 
-            Text(song.title)
+            Text(song.displayTitle)
                 .font(.system(.footnote, design: .rounded, weight: .semibold))
                 .foregroundStyle(Palette.ink.opacity(0.8))
                 .lineLimit(1)
@@ -54,7 +54,7 @@ struct SongCardView: View {
                 .shadow(color: Palette.ink.opacity(0.12), radius: 6, x: 0, y: 3)
         )
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(song.title), \(earned) of 3 stars")
+        .accessibilityLabel("\(song.displayTitle), \(earned) of 3 stars")
         .task(id: animateFromStars) { await revealStars() }
     }
 

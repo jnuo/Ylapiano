@@ -56,7 +56,9 @@ final class NextSongHandoffUITests: XCTestCase {
         ]
         app.launch()
 
-        let salta = app.staticTexts["Plim Plim (Salta l'Esquirol)"].firstMatch
+        // B13: cards show the localized DISPLAY title — under the en test
+        // locale plim-plim's descriptive parenthetical localizes.
+        let salta = app.staticTexts["Plim Plim (Jump, Little Squirrel)"].firstMatch
         XCTAssertTrue(salta.waitForExistence(timeout: 10), "Salta card on home screen")
         salta.tap()
 

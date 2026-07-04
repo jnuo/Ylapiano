@@ -10,12 +10,24 @@ struct SeedData {
     )
 
     /// Display titles per language, keyed by seedID. Languages not listed fall
-    /// back to the canonical (stored) seed title. Placeholder translations —
-    /// final wording lands with B2 (catalog) / B13 (Turkish).
+    /// back to the canonical (stored) seed title. Final wording (B13 #18):
+    ///  • Turkish and Catalan seeds keep their native titles in every locale —
+    ///    they're proper nouns, so no entries here.
+    ///  • plim-plim: the base name is the proper noun; only the descriptive
+    ///    parenthetical ("jump, little squirrel") localizes.
+    ///  • twinkle-twinkle: "Küçük Yıldız" is the Turkish nursery version sung
+    ///    to this same melody. The other English songs (Old MacDonald, Wheels
+    ///    on the Bus, Itsy Bitsy Spider) have no canonical Turkish version on
+    ///    this melody — their English titles stay everywhere. (Ali Baba'nın
+    ///    Çiftliği is culturally Old MacDonald's counterpart but a DIFFERENT
+    ///    tune, and it's already its own catalog song.)
     private static let localizedTitles: [String: [String: String]] = [
         "plim-plim": [
             "tr": "Plim Plim (Zıpla Sincap)",
             "en": "Plim Plim (Jump, Little Squirrel)",
+        ],
+        "twinkle-twinkle": [
+            "tr": "Küçük Yıldız",
         ],
     ]
 

@@ -1,0 +1,1453 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%@, %lld of 3 stars" : {
+      "comment" : "Accessibility label of a home-screen song card: title + earned stars.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, %2$lld of 3 stars"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, 3 yıldızdan %2$lld"
+          }
+        }
+      }
+    },
+    "%lld BPM" : {
+      "comment" : "Tempo preset in the grown-ups drawer menu. BPM is a unit — same in every locale.",
+      "shouldTranslate" : false,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld BPM"
+          }
+        }
+      }
+    },
+    "Add as Eighth Notes" : {
+      "comment" : "Song editor: add the quick-input notes as eighth notes.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add as Eighth Notes"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir como Corcheas"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sekizlik Olarak Ekle"
+          }
+        }
+      }
+    },
+    "Add as Quarter Notes" : {
+      "comment" : "Song editor: add the quick-input notes as quarter notes.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add as Quarter Notes"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir como Negras"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dörtlük Olarak Ekle"
+          }
+        }
+      }
+    },
+    "Add Note" : {
+      "comment" : "Song editor: append one note row.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Note"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir Nota"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nota Ekle"
+          }
+        }
+      }
+    },
+    "Add Song" : {
+      "comment" : "Home screen: the dashed add-song card.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Song"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Añadir Canción"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şarkı Ekle"
+          }
+        }
+      }
+    },
+    "BPM" : {
+      "comment" : "Tempo unit label — same in every locale.",
+      "shouldTranslate" : false,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BPM"
+          }
+        }
+      }
+    },
+    "C D E" : {
+      "comment" : "Notation picker option: letter note names — universal.",
+      "shouldTranslate" : false,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "C D E"
+          }
+        }
+      }
+    },
+    "Cancel" : {
+      "comment" : "Song editor toolbar: dismiss without saving.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vazgeç"
+          }
+        }
+      }
+    },
+    "Connected" : {
+      "comment" : "Grown-ups drawer: MIDI keyboard status.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connected"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağlı"
+          }
+        }
+      }
+    },
+    "Do Do Sol Sol La La Sol" : {
+      "comment" : "Quick-input placeholder — solfège example, universal.",
+      "shouldTranslate" : false,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do Do Sol Sol La La Sol"
+          }
+        }
+      }
+    },
+    "Do Re Mi" : {
+      "comment" : "Notation picker option: solfège note names — universal.",
+      "shouldTranslate" : false,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do Re Mi"
+          }
+        }
+      }
+    },
+    "Done" : {
+      "comment" : "Grown-ups drawer: close button.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tamam"
+          }
+        }
+      }
+    },
+    "Dotted Eighth" : {
+      "comment" : "Note duration name (song editor picker).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dotted Eighth"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noktalı Sekizlik"
+          }
+        }
+      }
+    },
+    "Dotted Half" : {
+      "comment" : "Note duration name (song editor picker).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dotted Half"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noktalı İkilik"
+          }
+        }
+      }
+    },
+    "Dotted Quarter" : {
+      "comment" : "Note duration name (song editor picker).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dotted Quarter"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Noktalı Dörtlük"
+          }
+        }
+      }
+    },
+    "Duration" : {
+      "comment" : "Note row: duration picker accessibility label.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duration"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Süre"
+          }
+        }
+      }
+    },
+    "Edit Song" : {
+      "comment" : "Grown-ups drawer action + song editor title when editing.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Song"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Editar Canción"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şarkıyı Düzenle"
+          }
+        }
+      }
+    },
+    "Eighth" : {
+      "comment" : "Note duration name (song editor picker).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Eighth"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Corchea"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sekizlik"
+          }
+        }
+      }
+    },
+    "Falling notes" : {
+      "comment" : "Grown-ups drawer: view picker — the falling-notes game panel.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Falling notes"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Düşen notalar"
+          }
+        }
+      }
+    },
+    "Faster!" : {
+      "comment" : "Result screen climb CTA: the next rung is faster. Kid-facing.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Faster!"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daha hızlı!"
+          }
+        }
+      }
+    },
+    "Find the beat" : {
+      "comment" : "Mastery-ladder rung 2 name. Shown uppercased on the result screen.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Find the beat"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ritmi yakala"
+          }
+        }
+      }
+    },
+    "Follow songs note by note" : {
+      "comment" : "Onboarding page 1, feature row.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Follow songs note by note"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sigue las canciones nota a nota"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şarkıları nota nota takip et"
+          }
+        }
+      }
+    },
+    "Get instant feedback" : {
+      "comment" : "Onboarding page 1, feature row.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get instant feedback"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Feedback al instante"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nasıl çaldığını anında gör"
+          }
+        }
+      }
+    },
+    "Go!" : {
+      "comment" : "Count-in overlay final beat: 3, 2, 1, Go!",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go!"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Başla!"
+          }
+        }
+      }
+    },
+    "Grown-ups" : {
+      "comment" : "Title of the hold-gated grown-ups drawer in the player.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Grown-ups"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Büyükler"
+          }
+        }
+      }
+    },
+    "Half" : {
+      "comment" : "Note duration name (song editor picker).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Half"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Blanca"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İkilik"
+          }
+        }
+      }
+    },
+    "Hear a preview of %@" : {
+      "comment" : "Accessibility label of the speaker chip on a song card. %@ = song title.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hear a preview of %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ şarkısından bir parça dinle"
+          }
+        }
+      }
+    },
+    "Hold for grown-ups" : {
+      "comment" : "The grown-up gate label: press and hold 2.5 s to open adult controls. Only readers parse it.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hold for grown-ups"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Büyükler için basılı tut"
+          }
+        }
+      }
+    },
+    "Hold to add notes" : {
+      "comment" : "Grown-up gate label on the empty-notes player state.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hold to add notes"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nota eklemek için basılı tut"
+          }
+        }
+      }
+    },
+    "Learn piano the fun way!" : {
+      "comment" : "Onboarding page 1 headline.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Learn piano the fun way!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Aprende piano de forma divertida!"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piyanoyu eğlene eğlene öğren!"
+          }
+        }
+      }
+    },
+    "Learn the keys" : {
+      "comment" : "Mastery-ladder rung 1 name. Shown uppercased on the result screen.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Learn the keys"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuşları öğren"
+          }
+        }
+      }
+    },
+    "Let's Go!" : {
+      "comment" : "Onboarding final CTA.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Let's Go!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Vamos!"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hadi başlayalım!"
+          }
+        }
+      }
+    },
+    "Lights off!" : {
+      "comment" : "Result screen climb CTA: the next rung turns the key-glow guidance off. Kid-facing.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Lights off!"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Işıkları kapat!"
+          }
+        }
+      }
+    },
+    "Master it" : {
+      "comment" : "Mastery-ladder rung 4 name. Shown uppercased on the result screen.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Master it"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ustalaş"
+          }
+        }
+      }
+    },
+    "Metronome" : {
+      "comment" : "Grown-ups drawer: metronome toggle.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Metronome"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Metronom"
+          }
+        }
+      }
+    },
+    "MIDI Keyboard" : {
+      "comment" : "Grown-ups drawer: MIDI status row label.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MIDI Keyboard"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MIDI Klavye"
+          }
+        }
+      }
+    },
+    "MIDI keyboard connected" : {
+      "comment" : "Accessibility label of the home toolbar piano-keys glyph when a MIDI keyboard is connected.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MIDI keyboard connected"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MIDI klavyesi bağlı"
+          }
+        }
+      }
+    },
+    "New Song" : {
+      "comment" : "Song editor title when creating.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Song"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nueva Canción"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yeni Şarkı"
+          }
+        }
+      }
+    },
+    "Next" : {
+      "comment" : "Onboarding page 1 CTA.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Siguiente"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "İleri"
+          }
+        }
+      }
+    },
+    "No MIDI keyboard connected" : {
+      "comment" : "Accessibility label of the home toolbar piano-keys glyph when no MIDI keyboard is connected.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No MIDI keyboard connected"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "MIDI klavyesi bağlı değil"
+          }
+        }
+      }
+    },
+    "No notes added yet. Use Quick Input above or tap + below." : {
+      "comment" : "Song editor: empty notes list.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No notes added yet. Use Quick Input above or tap + below."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No hay notas todavía. Usa Entrada Rápida arriba o pulsa + abajo."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Henüz nota eklenmedi. Yukarıdaki Hızlı Giriş'i kullan ya da aşağıdaki +'ya dokun."
+          }
+        }
+      }
+    },
+    "No notes yet" : {
+      "comment" : "Player empty state title: the song has no notes.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No notes yet"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin notas"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Henüz nota yok"
+          }
+        }
+      }
+    },
+    "No notes yet — ask a grown-up to add some." : {
+      "comment" : "Sheet-music mode note indicator when the song has no notes. Kid-facing, read aloud by a parent.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No notes yet — ask a grown-up to add some."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Henüz nota yok. Bir büyüğün eklesin."
+          }
+        }
+      }
+    },
+    "Not connected" : {
+      "comment" : "Grown-ups drawer: MIDI keyboard status.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not connected"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bağlı değil"
+          }
+        }
+      }
+    },
+    "Notation" : {
+      "comment" : "Grown-ups drawer: Do-Re-Mi vs C-D-E picker row.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notation"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nota adları"
+          }
+        }
+      }
+    },
+    "Note" : {
+      "comment" : "Note row: solfège picker accessibility label.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Note"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nota"
+          }
+        }
+      }
+    },
+    "Notes (%lld)" : {
+      "comment" : "Song editor: notes section header with count.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes (%lld)"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notalar (%lld)"
+          }
+        }
+      }
+    },
+    "Oct" : {
+      "comment" : "Note row: octave stepper abbreviation.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Oct"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Okt"
+          }
+        }
+      }
+    },
+    "Pause" : {
+      "comment" : "Accessibility label of the in-play pause button.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pause"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Duraklat"
+          }
+        }
+      }
+    },
+    "Pick a song and start playing. Have fun!" : {
+      "comment" : "Onboarding page 2 body.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick a song and start playing. Have fun!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Elige una canción y empieza a tocar! ¡Diviértete!"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bir şarkı seç ve çalmaya başla. İyi eğlenceler!"
+          }
+        }
+      }
+    },
+    "Play" : {
+      "comment" : "Accessibility label of the big play button (fresh start).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çal"
+          }
+        }
+      }
+    },
+    "Play %@ next" : {
+      "comment" : "Accessibility label of the next-song handoff card. %@ = song title.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play %@ next"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sıradaki şarkı: %@"
+          }
+        }
+      }
+    },
+    "Play again" : {
+      "comment" : "Accessibility label of the result screen replay button.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play again"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "Tocar otra vez"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yeniden çal"
+          }
+        }
+      }
+    },
+    "Play it" : {
+      "comment" : "Mastery-ladder rung 3 name (guidance fading). Shown uppercased on the result screen.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play it"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kendin çal"
+          }
+        }
+      }
+    },
+    "Play on screen or a USB piano" : {
+      "comment" : "Onboarding page 1, feature row.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play on screen or a USB piano"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca en pantalla o con un piano USB"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ekranda ya da USB piyanoda çal"
+          }
+        }
+      }
+    },
+    "Play Piano" : {
+      "comment" : "Grown-ups drawer: toggle for the app sounding the song's notes during playback.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play Piano"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piyano sesi"
+          }
+        }
+      }
+    },
+    "Play:" : {
+      "comment" : "Sheet-music mode: prefix before the current note name.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play:"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca:"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Çal:"
+          }
+        }
+      }
+    },
+    "Quarter" : {
+      "comment" : "Note duration name (song editor picker).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quarter"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Negra"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dörtlük"
+          }
+        }
+      }
+    },
+    "Quick Input" : {
+      "comment" : "Song editor: quick-input section header.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick Input"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Entrada Rápida"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hızlı Giriş"
+          }
+        }
+      }
+    },
+    "Resume" : {
+      "comment" : "Accessibility label of the big play button while paused.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Devam et"
+          }
+        }
+      }
+    },
+    "Save" : {
+      "comment" : "Song editor toolbar: save the song.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Guardar"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kaydet"
+          }
+        }
+      }
+    },
+    "Set by the mastery ladder" : {
+      "comment" : "Song editor: shown instead of the BPM stepper on the mastery-ladder song.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Set by the mastery ladder"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ustalık merdiveni belirler"
+          }
+        }
+      }
+    },
+    "Sheet music" : {
+      "comment" : "Grown-ups drawer: view picker — the notation panel.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sheet music"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nota sayfası"
+          }
+        }
+      }
+    },
+    "Skip intro" : {
+      "comment" : "Accessibility label of the tap-anywhere intro overlay.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip intro"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Girişi atla"
+          }
+        }
+      }
+    },
+    "Song Info" : {
+      "comment" : "Song editor: title/BPM section header.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Song Info"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Info de Canción"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şarkı Bilgisi"
+          }
+        }
+      }
+    },
+    "Song Title" : {
+      "comment" : "Song editor: title field placeholder.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Song Title"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Título de la Canción"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şarkı Adı"
+          }
+        }
+      }
+    },
+    "Stop preview" : {
+      "comment" : "Accessibility label of the speaker chip while its preview is playing.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop preview"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dinlemeyi durdur"
+          }
+        }
+      }
+    },
+    "Stop Song" : {
+      "comment" : "Grown-ups drawer: stop the running song.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop Song"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Şarkıyı Durdur"
+          }
+        }
+      }
+    },
+    "Sync spike" : {
+      "comment" : "DEBUG-only dev tool toolbar button — never ships in Release.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sync spike"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Senkron testi"
+          }
+        }
+      }
+    },
+    "Nice practicing!" : {
+      "comment" : "Toast after an unjudged sheet-music run — warm, no stars. Kid-facing.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nice practicing!"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Güzel çalıştın!"
+          }
+        }
+      }
+    },
+    "This song's tempo climbs with the mastery ladder — each rung sets its own speed." : {
+      "comment" : "Song editor footer on the mastery-ladder song.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This song's tempo climbs with the mastery ladder — each rung sets its own speed."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bu şarkının temposunu ustalık merdiveni belirler. Her basamağın kendi hızı var."
+          }
+        }
+      }
+    },
+    "Type notes separated by spaces:" : {
+      "comment" : "Song editor: quick-input hint.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type notes separated by spaces:"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Escribe las notas separadas por espacios:"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notaları boşlukla ayırarak yaz:"
+          }
+        }
+      }
+    },
+    "View" : {
+      "comment" : "Grown-ups drawer: falling-notes vs sheet-music picker row.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Görünüm"
+          }
+        }
+      }
+    },
+    "Whole" : {
+      "comment" : "Note duration name (song editor picker).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Whole"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Redonda"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Birlik"
+          }
+        }
+      }
+    },
+    "Ylapiano" : {
+      "comment" : "Brand wordmark — never translated.",
+      "shouldTranslate" : false,
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ylapiano"
+          }
+        }
+      }
+    },
+    "You're all set!" : {
+      "comment" : "Onboarding page 2 headline.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're all set!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Todo listo!"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Her şey hazır!"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}
