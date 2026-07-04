@@ -7,8 +7,8 @@ import SwiftData
 /// The bundle owns every intrinsic field of a seed song (title, notesData,
 /// bpm, language, difficultyRank, sortOrder) and re-asserts them on every
 /// launch. The store owns only user STATE: the row identity that carries it
-/// (Song.id) today, bestStars/bestRung when B3 lands, and user-created songs
-/// (seedID == nil). Seeds that left the bundle — a stale seedID, or a
+/// (Song.id), the B3 progress fields (bestStars/bestRung), and user-created
+/// songs (seedID == nil). Seeds that left the bundle — a stale seedID, or a
 /// pre-seedID row matching a frozen build-6 shape — are retired.
 final class SeedRefreshTests: XCTestCase {
 
@@ -44,8 +44,8 @@ final class SeedRefreshTests: XCTestCase {
 
     // Store-is-state: a content refresh mutates the existing row in place —
     // it never deletes + reinserts. Row identity (Song.id) is the anchor the
-    // B3 progress fields (bestStars/bestRung) will hang off; anything not in
-    // the refreshed content list survives by construction.
+    // B3 progress fields (bestStars/bestRung) hang off; anything not in the
+    // refreshed content list survives by construction.
     func testStateCarrierSurvivesContentRefresh() throws {
         let context = try freshContext()
         SeedData.seedIfNeeded(context: context)
@@ -54,6 +54,8 @@ final class SeedRefreshTests: XCTestCase {
         let rowID = seeded.id
         let persistentID = seeded.persistentModelID
         seeded.bpm = 42 // stale content, forces a real refresh
+        seeded.bestStars = 3 // B3 state fields — must survive the refresh
+        seeded.bestRung = 2
         try context.save()
 
         SeedData.seedIfNeeded(context: context)
@@ -62,6 +64,8 @@ final class SeedRefreshTests: XCTestCase {
         XCTAssertEqual(refreshed.id, rowID, "refresh must not replace the row")
         XCTAssertEqual(refreshed.persistentModelID, persistentID,
                        "refresh must mutate in place, not delete + reinsert")
+        XCTAssertEqual(refreshed.bestStars, 3, "bestStars is state — refresh must not touch it")
+        XCTAssertEqual(refreshed.bestRung, 2, "bestRung is state — refresh must not touch it")
     }
 
     // A user song is never refreshed — even one that shares a seed's title

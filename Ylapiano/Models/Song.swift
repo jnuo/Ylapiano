@@ -240,6 +240,15 @@ final class Song {
     var language: String? = nil
     var difficultyRank: Int = 0
 
+    /// B3 progress — user STATE, never touched by SeedData.refreshContent.
+    /// Best stars across all completed runs (0 = never finished) and highest
+    /// mastery-ladder rung reached (0-based index; meaningful only where
+    /// hasMasteryLadder). Only upgrades are ever written. Defaults keep the
+    /// migration from earlier stores lightweight, same as seedID above.
+    /// B9 reads these straight off the row for the home-screen cards.
+    var bestStars: Int = 0
+    var bestRung: Int = 0
+
     var isSeed: Bool { seedID != nil }
 
     var notes: [NoteEntry] {
