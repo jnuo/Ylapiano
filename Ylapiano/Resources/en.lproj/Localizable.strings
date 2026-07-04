@@ -35,22 +35,12 @@
 /* Onboarding */
 "Learn piano the fun way!" = "Learn piano the fun way!";
 "Follow songs note by note" = "Follow songs note by note";
-"Listens to your piano playing" = "Listens to your piano playing";
+"Play on screen or a USB piano" = "Play on screen or a USB piano";
 "Get instant feedback" = "Get instant feedback";
 "Next" = "Next";
-"Microphone Access" = "Microphone Access";
-"Ylapiano listens to your piano through the microphone to know which notes you play." = "Ylapiano listens to your piano through the microphone to know which notes you play.";
-"Allow Microphone" = "Allow Microphone";
-"Microphone enabled" = "Microphone enabled";
-"Permission denied" = "Permission denied";
-"You can enable it later in Settings." = "You can enable it later in Settings.";
 "You're all set!" = "You're all set!";
 "Pick a song and start playing. Have fun!" = "Pick a song and start playing. Have fun!";
 "Let's Go!" = "Let's Go!";
-
-/* Mic Permission */
-"Microphone Access Needed" = "Microphone Access Needed";
-"Go to Settings > Ylapiano to enable microphone access." = "Go to Settings > Ylapiano to enable microphone access.";
 
 /* Note Durations */
 "Whole" = "Whole";

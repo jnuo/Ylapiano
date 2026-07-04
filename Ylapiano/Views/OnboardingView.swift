@@ -1,11 +1,8 @@
 import SwiftUI
-import AVFoundation
 
 struct OnboardingView: View {
     @Binding var hasCompletedOnboarding: Bool
     @State private var currentPage = 0
-    @State private var micPermissionGranted = false
-    @State private var micPermissionDenied = false
 
     var body: some View {
         ZStack {
@@ -26,13 +23,9 @@ struct OnboardingView: View {
                 welcomePage
                     .tag(0)
 
-                // Page 2: Microphone
-                microphonePage
-                    .tag(1)
-
-                // Page 3: Ready
+                // Page 2: Ready
                 readyPage
-                    .tag(2)
+                    .tag(1)
             }
             .tabViewStyle(.page(indexDisplayMode: .always))
             .indexViewStyle(.page(backgroundDisplayMode: .always))
@@ -60,7 +53,7 @@ struct OnboardingView: View {
 
             VStack(alignment: .leading, spacing: 12) {
                 featureRow(icon: "music.note.list", text: "Follow songs note by note")
-                featureRow(icon: "mic.fill", text: "Listens to your piano playing")
+                featureRow(icon: "pianokeys", text: "Play on screen or a USB piano")
                 featureRow(icon: "hand.thumbsup.fill", text: "Get instant feedback")
             }
             .padding(.top, 20)
@@ -69,70 +62,6 @@ struct OnboardingView: View {
 
             Button {
                 withAnimation { currentPage = 1 }
-            } label: {
-                Text("Next")
-                    .font(.system(.title3, design: .rounded, weight: .bold))
-                    .frame(width: 200)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-            .tint(.blue)
-
-            Spacer().frame(height: 40)
-        }
-        .padding(.horizontal, 40)
-    }
-
-    // MARK: - Microphone Page
-
-    private var microphonePage: some View {
-        VStack(spacing: 30) {
-            Spacer()
-
-            Image(systemName: "mic.circle.fill")
-                .font(.system(size: 80))
-                .foregroundStyle(micPermissionGranted ? .green : .orange)
-                .symbolEffect(.bounce, value: micPermissionGranted)
-
-            Text("Microphone Access")
-                .font(.system(.title, design: .rounded, weight: .bold))
-
-            Text("Ylapiano listens to your piano through the microphone to know which notes you play.")
-                .font(.system(.body, design: .rounded))
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 400)
-
-            if micPermissionGranted {
-                Label("Microphone enabled", systemImage: "checkmark.circle.fill")
-                    .font(.system(.headline, design: .rounded))
-                    .foregroundStyle(.green)
-            } else if micPermissionDenied {
-                VStack(spacing: 8) {
-                    Label("Permission denied", systemImage: "xmark.circle.fill")
-                        .font(.system(.headline, design: .rounded))
-                        .foregroundStyle(.red)
-                    Text("You can enable it later in Settings.")
-                        .font(.system(.caption, design: .rounded))
-                        .foregroundStyle(.secondary)
-                }
-            } else {
-                Button {
-                    requestMicPermission()
-                } label: {
-                    Label("Allow Microphone", systemImage: "mic.fill")
-                        .font(.system(.headline, design: .rounded))
-                        .frame(width: 220)
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
-                .tint(.orange)
-            }
-
-            Spacer()
-
-            Button {
-                withAnimation { currentPage = 2 }
             } label: {
                 Text("Next")
                     .font(.system(.title3, design: .rounded, weight: .bold))
@@ -194,15 +123,6 @@ struct OnboardingView: View {
                 .frame(width: 36)
             Text(text)
                 .font(.system(.body, design: .rounded))
-        }
-    }
-
-    private func requestMicPermission() {
-        AVAudioApplication.requestRecordPermission { granted in
-            DispatchQueue.main.async {
-                micPermissionGranted = granted
-                micPermissionDenied = !granted
-            }
         }
     }
 }

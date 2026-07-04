@@ -106,8 +106,6 @@ struct PlayerScreen: View {
             // Piano pinned to bottom
             PianoKeyboardView(
                 useSolfege: viewModel.useSolfege,
-                highlightedNote: viewModel.pitchDetector.detectedNote,
-                highlightedOctave: viewModel.pitchDetector.detectedOctave,
                 // Falling-notes mode now glows the target key off the SAME clock
                 // as the bars (`guidanceNote`, sampled from `elapsedSeconds` +
                 // lead-in) — the synced rung-1/2 guidance the ladder calls for.
@@ -117,7 +115,6 @@ struct PlayerScreen: View {
                 expectedNote: displayMode == .fallingNotes
                     ? viewModel.guidanceNote
                     : (viewModel.isActive ? viewModel.currentNote : nil),
-                isCorrect: viewModel.lastDetectionCorrect,
                 guidedMode: viewModel.guidedMode,
                 guidanceOpacity: viewModel.currentRung.guidance.glowOpacity ?? 0.35,
                 onKeyTap: { pitch in
@@ -156,24 +153,8 @@ struct PlayerScreen: View {
             }
         }
         .animation(.spring(response: 0.32, dampingFraction: 0.68), value: countdownText)
-        .overlay {
-            // Feedback overlay
-            if let flash = viewModel.feedbackFlash {
-                Rectangle()
-                    .fill(flash.opacity(0.15))
-                    .ignoresSafeArea()
-                    .allowsHitTesting(false)
-                    .transition(.opacity)
-            }
-        }
         .navigationTitle(song.title)
         .navigationBarTitleDisplayMode(.inline)
-        // Mic permission used to be auto-requested here for the legacy
-        // listen-and-detect pitch flow. The new tap-to-play + sampler flow
-        // doesn't need mic at all, and on Mac Catalyst the permission round
-        // trip is unreliable enough to leave the overlay stuck on first run.
-        // When we re-introduce a "Listen mode" the request will fire on the
-        // toggle, not on view appear.
         .task {
             // Build the heavy panel one tick after the push so the transition
             // never freezes; spinner shows until then.
@@ -204,17 +185,8 @@ struct PlayerScreen: View {
             viewModel.stopPlaying()
             OrientationGate.unlock()   // back to free rotation outside gameplay
         }
-        .onChange(of: viewModel.pitchDetector.detectedNote) { _, _ in
-            viewModel.checkDetectedNote()
-        }
         .sheet(isPresented: $viewModel.showingEditSheet) {
             AddSongScreen(existingSong: song)
-        }
-        .overlay {
-            // Mic permission prompt
-            if viewModel.pitchDetector.permissionDenied {
-                micPermissionOverlay
-            }
         }
         .overlay {
             // End-of-song result — the squirrel mascot + earned stars, and (on
@@ -479,29 +451,6 @@ struct PlayerScreen: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
-    // MARK: - Mic Permission
-
-    private var micPermissionOverlay: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "mic.slash.fill")
-                .font(.system(size: 40))
-                .foregroundStyle(.red)
-
-            Text("Microphone Access Needed")
-                .font(.system(.headline, design: .rounded))
-
-            Text("Go to Settings > Ylapiano to enable microphone access.")
-                .font(.system(.subheadline, design: .rounded))
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .padding(30)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(.ultraThinMaterial)
-        )
-        .padding()
-    }
 }
 
 /// End-of-song result — a celebration, not a static card. The squirrel reacts,

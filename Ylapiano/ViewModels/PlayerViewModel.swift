@@ -6,7 +6,6 @@ import SwiftMIDIIO
 final class PlayerViewModel {
     let song: Song
     let metronome: Metronome
-    let pitchDetector: PitchDetector
 
     var currentNoteIndex = 0
     var useSolfege = true
@@ -40,11 +39,7 @@ final class PlayerViewModel {
     }
 
     var isActive: Bool { isPlaying || isPaused }
-    var lastDetectionCorrect: Bool?
     var showingEditSheet = false
-
-    // Feedback animation
-    var feedbackFlash: Color?
 
     // MARK: - Falling-notes hit detection (juice slice)
 
@@ -112,8 +107,8 @@ final class PlayerViewModel {
     private var guidanceTimer: Timer?
 
     /// MIDI numbers currently in their brief "just pressed" visual state.
-    /// Lifted out of `PianoKeyboardView` so tap gestures, MIDI events, and
-    /// the future pitch-detection input all converge on one source of truth.
+    /// Lifted out of `PianoKeyboardView` so tap gestures and MIDI events
+    /// converge on one source of truth.
     /// Auto-cleared 180 ms after insertion for tap callers (no note-off
     /// ever arrives); MIDI callers clear it explicitly via
     /// `handleKeyReleased`.
@@ -145,7 +140,6 @@ final class PlayerViewModel {
     init(song: Song) {
         self.song = song
         self.metronome = Metronome(bpm: song.bpm)
-        self.pitchDetector = PitchDetector()
         self.hitJudge = HitJudge(song: song)
         applyRung()   // open on rung 1's tempo / guidance / windows
     }
@@ -176,7 +170,6 @@ final class PlayerViewModel {
         isPlaying = true
         isPaused = false
         currentNoteIndex = 0
-        lastDetectionCorrect = nil
         accumulatedBeforePause = 0
         playStartedAt = Date()
         resetHitState()
@@ -205,7 +198,6 @@ final class PlayerViewModel {
     func stopPlaying() {
         isPlaying = false
         isPaused = false
-        lastDetectionCorrect = nil
         playStartedAt = nil
         accumulatedBeforePause = 0
         resetHitState()
@@ -327,47 +319,6 @@ final class PlayerViewModel {
         startPlaying()
     }
 
-    func checkDetectedNote() {
-        guard let currentNote = currentNote,
-              let detectedNote = pitchDetector.detectedNote else {
-            lastDetectionCorrect = nil
-            return
-        }
-
-        // Compare solfège (ignore octave for young learners — matching pitch class is enough)
-        let correct = detectedNote == currentNote.solfege
-        lastDetectionCorrect = correct
-
-        if correct {
-            // Flash green and advance
-            feedbackFlash = .green
-            advanceToNextNote()
-        } else {
-            feedbackFlash = .red
-        }
-
-        // Clear flash after delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-            self?.feedbackFlash = nil
-        }
-    }
-
-    func advanceToNextNote() {
-        guard currentNoteIndex < notes.count else { return }
-        withAnimation(.spring(response: 0.3)) {
-            currentNoteIndex += 1
-            // Rests expect no input — never park the cursor on one.
-            while currentNoteIndex < notes.count && notes[currentNoteIndex].isRest {
-                currentNoteIndex += 1
-            }
-        }
-        lastDetectionCorrect = nil
-
-        if isComplete {
-            stopPlaying()
-        }
-    }
-
     /// Unified "a key was struck" entry point. Used by tap gestures (with a
     /// fixed default velocity) and by `handleMIDIEvent` (with the velocity
     /// from the MIDI note-on). Plays the sampler, marks the on-screen key
@@ -455,10 +406,6 @@ final class PlayerViewModel {
 
     func toggleNotation() {
         useSolfege.toggle()
-    }
-
-    func requestMicPermission() {
-        pitchDetector.requestPermission()
     }
 }
 
