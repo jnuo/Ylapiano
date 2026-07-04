@@ -249,7 +249,7 @@ struct PlayerSessionView: View {
             }
         }
         .animation(.spring(response: 0.32, dampingFraction: 0.68), value: countdownText)
-        .navigationTitle(song.title)
+        .navigationTitle(song.displayTitle)
         .navigationBarTitleDisplayMode(.inline)
         .task {
             // Build the heavy panel one tick after the push so the transition
@@ -304,6 +304,7 @@ struct PlayerSessionView: View {
                     rungName: viewModel.resultRungName,
                     canClimb: viewModel.canClimb,
                     climbLabel: viewModel.climbLabel,
+                    climbIsLightsOff: viewModel.climbIsLightsOff,
                     nextSong: nextSong,
                     onReplay: { viewModel.replaySong() },
                     onClimb: { viewModel.climbRung() },
@@ -392,7 +393,8 @@ struct PlayerSessionView: View {
                 .shadow(color: .black.opacity(0.25), radius: 12, y: 6)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(viewModel.isPaused ? "Resume" : "Play")
+        // Explicit Text(...) so both branches localize (B13).
+        .accessibilityLabel(viewModel.isPaused ? Text("Resume") : Text("Play"))
         .accessibilityIdentifier("BigPlayButton")
     }
 
@@ -437,7 +439,7 @@ struct PlayerSessionView: View {
                 countdownText = "\(n)"
             }
             try? await Task.sleep(nanoseconds: beatNs)
-            countdownText = "Go!"
+            countdownText = String(localized: "Go!")
             try? await Task.sleep(nanoseconds: beatNs / 2)
             countdownText = nil
             viewModel.startPlaying()
@@ -668,8 +670,9 @@ private struct GrownUpsDrawerView: View {
         }
     }
 
-    /// One label-left, control-right row.
-    private func row<Content: View>(_ label: String, @ViewBuilder content: () -> Content) -> some View {
+    /// One label-left, control-right row. LocalizedStringKey so the literal
+    /// labels resolve through the String Catalog (B13).
+    private func row<Content: View>(_ label: LocalizedStringKey, @ViewBuilder content: () -> Content) -> some View {
         HStack {
             Text(label)
             Spacer()
@@ -693,7 +696,11 @@ private struct SongResultView: View {
     /// A clean 3-star run with a rung above → offer the climb. The headline CTA
     /// becomes "Faster!" / "Lights off!"; replay stays available beside it.
     let canClimb: Bool
+    /// Already-localized climb CTA text (the view model owns the wording).
     let climbLabel: String
+    /// Semantic flavor of the climb — drives the icon. A flag, not a string
+    /// compare against the label, which localization would break (B13).
+    let climbIsLightsOff: Bool
     /// B26 — the song the handoff card offers. nil = no card (no other
     /// catalog song, or a context-less preview).
     let nextSong: Song?
@@ -775,7 +782,9 @@ private struct SongResultView: View {
                 }
 
                 if let rungName {
-                    Text(rungName.uppercased())
+                    // localizedUppercase: Turkish dotted/dotless i uppercases
+                    // wrong under the locale-insensitive uppercased() (B13).
+                    Text(rungName.localizedUppercase)
                         .font(.system(.caption, design: .rounded, weight: .heavy))
                         .tracking(1.5)
                         .foregroundStyle(.white.opacity(0.85))
@@ -824,7 +833,7 @@ private struct SongResultView: View {
                     if canClimb {
                         Button(action: onClimb) {
                             HStack(spacing: 10) {
-                                Image(systemName: climbLabel == "Lights off!" ? "lightbulb.slash.fill" : "hare.fill")
+                                Image(systemName: climbIsLightsOff ? "lightbulb.slash.fill" : "hare.fill")
                                 Text(climbLabel)
                                     .font(.system(.title3, design: .rounded, weight: .heavy))
                             }
@@ -897,7 +906,7 @@ private struct SongResultView: View {
                     .frame(width: hero ? 180 : 128, height: hero ? 196 : 140)
             }
             .buttonStyle(.plain)
-            .accessibilityLabel("Play \(next.title) next")
+            .accessibilityLabel("Play \(next.displayTitle) next")
             .accessibilityIdentifier("NextSongHandoffCard")
         }
     }

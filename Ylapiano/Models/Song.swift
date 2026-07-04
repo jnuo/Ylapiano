@@ -81,15 +81,17 @@ enum NoteDuration: String, Codable, CaseIterable, Identifiable {
         }
     }
 
+    /// Localized duration name for the song editor's picker (B13). The keys
+    /// live in Localizable.xcstrings; the en values equal the keys.
     var displayName: String {
         switch self {
-        case .whole: return "Whole"
-        case .half: return "Half"
-        case .quarter: return "Quarter"
-        case .eighth: return "Eighth"
-        case .dottedHalf: return "Dotted Half"
-        case .dottedQuarter: return "Dotted Quarter"
-        case .dottedEighth: return "Dotted Eighth"
+        case .whole: return String(localized: "Whole")
+        case .half: return String(localized: "Half")
+        case .quarter: return String(localized: "Quarter")
+        case .eighth: return String(localized: "Eighth")
+        case .dottedHalf: return String(localized: "Dotted Half")
+        case .dottedQuarter: return String(localized: "Dotted Quarter")
+        case .dottedEighth: return String(localized: "Dotted Eighth")
         }
     }
 
@@ -250,6 +252,15 @@ final class Song {
     var bestRung: Int = 0
 
     var isSeed: Bool { seedID != nil }
+
+    /// Title to SHOW (B13): seed songs localize through SeedData's
+    /// per-language display titles (falling back to the canonical stored
+    /// title); user songs are whatever the user typed. The stored `title`
+    /// stays canonical — seeding, refresh and legacy matching all key off it.
+    var displayTitle: String {
+        guard let seedID else { return title }
+        return SeedData.localizedTitle(seedID: seedID, locale: .current) ?? title
+    }
 
     /// The single mastery-ladder song (B4 #21). The ladder owns this song's
     /// tempo / guidance / timing windows; every other song plays the gentle

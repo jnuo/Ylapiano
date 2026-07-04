@@ -116,7 +116,9 @@ struct OnboardingView: View {
 
     // MARK: - Helpers
 
-    private func featureRow(icon: String, text: String) -> some View {
+    // LocalizedStringKey so the literal feature lines resolve through the
+    // String Catalog (B13) — a String parameter would render verbatim.
+    private func featureRow(icon: String, text: LocalizedStringKey) -> some View {
         HStack(spacing: 14) {
             Image(systemName: icon)
                 .font(.title2)

@@ -85,7 +85,11 @@ struct HomeScreen: View {
                 Image(systemName: "pianokeys")
                     .font(.system(.title3))
                     .foregroundStyle(midi.isConnected ? Palette.deepRed : .gray)
-                    .accessibilityLabel(midi.isConnected ? "MIDI keyboard connected" : "No MIDI keyboard connected")
+                    // Explicit Text(...) so both branches localize — a bare
+                    // String ternary would resolve to the verbatim overload.
+                    .accessibilityLabel(midi.isConnected
+                        ? Text("MIDI keyboard connected")
+                        : Text("No MIDI keyboard connected"))
             }
 
             #if DEBUG
@@ -172,7 +176,9 @@ struct HomeScreen: View {
                 .frame(width: 34, height: 34)
                 .background(Circle().fill(isPreviewing ? Palette.coral : Palette.ink.opacity(0.07)))
         }
-        .accessibilityLabel(isPreviewing ? "Stop preview" : "Hear a preview of \(song.title)")
+        .accessibilityLabel(isPreviewing
+            ? Text("Stop preview")
+            : Text("Hear a preview of \(song.displayTitle)"))
     }
 
     /// Play the first 4 bars (8 beats — catalog songs are felt in 2/4) on the

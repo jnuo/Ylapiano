@@ -106,15 +106,26 @@ final class PlayerViewModel {
     /// 3-star run with a rung still above. Climbing is always the player's choice.
     var canClimb: Bool { hasMasteryLadder && songFinished && resultStars >= 3 && !isTopRung }
     /// Rung name for the result screen — nil off the ladder, so non-Salta
-    /// songs show no ladder language.
-    var resultRungName: String? { hasMasteryLadder ? currentRung.name : nil }
+    /// songs show no ladder language. Localized at read time (B13): rung
+    /// names are stored canonically in `MasteryLadder` and double as the
+    /// String Catalog keys, so under en this is the canonical name verbatim.
+    var resultRungName: String? {
+        hasMasteryLadder ? String(localized: String.LocalizationValue(currentRung.name)) : nil
+    }
+    /// The next climb turns the key-glow guidance off — losing the glow is
+    /// the headline, so the CTA becomes "Lights off!" (and the view swaps the
+    /// icon). A semantic flag, not a string compare, so it survives
+    /// localization (B13).
+    var climbIsLightsOff: Bool {
+        guard !isTopRung else { return false }
+        let next = MasteryLadder.rungs[rungIndex + 1]
+        return next.guidance == .none && currentRung.guidance != .none
+    }
     /// What the next rung changes, for the climb button. Losing the glow is the
     /// headline ("Lights off!"); otherwise it's always faster.
     var climbLabel: String {
         guard !isTopRung else { return "" }
-        let next = MasteryLadder.rungs[rungIndex + 1]
-        if next.guidance == .none, currentRung.guidance != .none { return "Lights off!" }
-        return "Faster!"
+        return climbIsLightsOff ? String(localized: "Lights off!") : String(localized: "Faster!")
     }
 
     /// The key the keyboard should glow as "play this next", driven off the
