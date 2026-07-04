@@ -1,4 +1,5 @@
 import SpriteKit
+import SwiftUI
 
 /// Sprint 0 Day 1 — Sync proof scene.
 ///
@@ -24,13 +25,13 @@ final class SpikeScene: SKScene {
     private var telemetryStartReal: CFTimeInterval?
 
     override func didMove(to view: SKView) {
-        backgroundColor = SKColor(red: 1.0, green: 0.97, blue: 0.93, alpha: 1.0) // cream
+        backgroundColor = UIColor(Palette.cream)
 
         hitLineY = 140
 
         // Hit line strip — 4pt deep coral
         let line = SKShapeNode(rectOf: CGSize(width: size.width, height: 4))
-        line.fillColor = SKColor(red: 0.84, green: 0.16, blue: 0.16, alpha: 1.0)
+        line.fillColor = UIColor(Palette.deepRed)
         line.strokeColor = .clear
         line.position = CGPoint(x: size.width / 2, y: hitLineY)
         line.zPosition = 10
@@ -50,7 +51,7 @@ final class SpikeScene: SKScene {
         let label = SKLabelNode(fontNamed: "Menlo")
         label.name = "telemetry"
         label.fontSize = 16
-        label.fontColor = SKColor(red: 0.17, green: 0.18, blue: 0.26, alpha: 1.0)
+        label.fontColor = UIColor(Palette.ink)
         label.horizontalAlignmentMode = .left
         label.verticalAlignmentMode = .top
         label.position = CGPoint(x: 24, y: size.height - 24)
@@ -69,7 +70,7 @@ final class SpikeScene: SKScene {
         let laneWidth = size.width / CGFloat(lanes)
         let x = laneWidth * (CGFloat(lane) + 0.5)
         let node = SKShapeNode(rectOf: CGSize(width: laneWidth - 16, height: 64), cornerRadius: 10)
-        node.fillColor = SKColor(red: 0.84, green: 0.16, blue: 0.16, alpha: 1.0) // deep coral
+        node.fillColor = UIColor(Palette.deepRed)
         node.strokeColor = .clear
         node.position = CGPoint(x: x, y: size.height + 200) // off-screen
         node.alpha = 0
