@@ -79,8 +79,8 @@ final class PlayerViewModel {
     var hasMasteryLadder: Bool { song.seedID == "plim-plim" }
 
     /// Which rung of the single-song ladder the player is on (0-based). Same
-    /// song every rung; tempo + guidance + timing window scale. Held in memory
-    /// for the sitting — persisting best-rung across launches is backlog.
+    /// song every rung; tempo + guidance + timing window scale. Restored from
+    /// `Song.bestRung` on open (B3) so an earned rung survives relaunch.
     private(set) var rungIndex = 0
     var currentRung: Rung { MasteryLadder.rungs[rungIndex] }
     var isTopRung: Bool { rungIndex >= MasteryLadder.rungs.count - 1 }
@@ -141,7 +141,13 @@ final class PlayerViewModel {
         self.song = song
         self.metronome = Metronome(bpm: song.bpm)
         self.hitJudge = HitJudge(song: song)
-        applyRung()   // open on rung 1's tempo / guidance / windows
+        // B3: reopen at the earned rung, not rung 1. Clamped so stray stored
+        // values (a shrunk ladder, corrupt data) can't overshoot the top rung.
+        // Non-ladder songs ignore bestRung entirely — rung is Salta-only.
+        if hasMasteryLadder {
+            rungIndex = min(max(song.bestRung, 0), MasteryLadder.rungs.count - 1)
+        }
+        applyRung()   // open on the restored rung's tempo / guidance / windows
     }
 
     /// Push the current rung's three knobs into the live systems: tempo →
@@ -233,8 +239,14 @@ final class PlayerViewModel {
 
     /// Freeze the end-of-song result and raise the result screen. finishSong's
     /// last step; also the seam tests use to drive result-dependent logic.
+    /// Persisting here (not in finishSong) keeps every completed run — real or
+    /// simulated — on the one path that writes the best.
     func setResult(stars: Int) {
         resultStars = stars
+        if stars > song.bestStars {
+            song.bestStars = stars
+            persistProgress()
+        }
         withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
             songFinished = true
         }
@@ -248,11 +260,25 @@ final class PlayerViewModel {
 
     /// Take the next rung up (offered only after a clean 3-star run). The
     /// player chose this — never automatic, never a down-rung punishment.
+    /// The climb is the moment a rung is EARNED, so the best persists here —
+    /// `canClimb` already gates this to ladder songs.
     func climbRung() {
         guard canClimb else { return }
         rungIndex += 1
+        if rungIndex > song.bestRung {
+            song.bestRung = rungIndex
+            persistProgress()
+        }
         songFinished = false
         restart()
+    }
+
+    /// Flush a progress upgrade to disk so it survives a force-quit. The song
+    /// row lives in the app's main-actor SwiftData context (HomeScreen's
+    /// @Query); all callers run on the main run loop. A context-less song
+    /// (previews, unit fixtures) just keeps the in-memory value.
+    private func persistProgress() {
+        try? song.modelContext?.save()
     }
 
     // MARK: - Synced guidance (keyboard glow)

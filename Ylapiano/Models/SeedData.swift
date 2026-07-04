@@ -92,8 +92,8 @@ struct SeedData {
     /// Bundle-is-truth: every intrinsic content field, re-asserted on every
     /// launch so transcription and copy fixes reach already-seeded stores.
     /// Store-is-state: anything NOT listed here is user state and survives a
-    /// refresh — today that's the row identity (Song.id); when B3 lands,
-    /// bestStars/bestRung join it by simply not being assigned here.
+    /// refresh — the row identity (Song.id) and the B3 progress fields
+    /// (bestStars/bestRung), which survive by simply not being assigned here.
     private static func refreshContent(of song: Song, from seed: Song) {
         song.title = seed.title
         song.bpm = seed.bpm

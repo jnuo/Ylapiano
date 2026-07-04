@@ -51,6 +51,7 @@
 		BT000007 /* SampledPianoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100007 /* SampledPianoTests.swift */; };
 		BT000008 /* MicFreeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100008 /* MicFreeTests.swift */; };
 		BT000009 /* AudioSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100009 /* AudioSessionTests.swift */; };
+		BT000010 /* ProgressPersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100010 /* ProgressPersistenceTests.swift */; };
 		BU000001 /* AddSongUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU100001 /* AddSongUITests.swift */; };
 		BU000002 /* SongResultUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU100002 /* SongResultUITests.swift */; };
 		BU000003 /* OnboardingUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU100003 /* OnboardingUITests.swift */; };
@@ -120,6 +121,7 @@
 		BT100007 /* SampledPianoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampledPianoTests.swift; sourceTree = "<group>"; };
 		BT100008 /* MicFreeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicFreeTests.swift; sourceTree = "<group>"; };
 		BT100009 /* AudioSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionTests.swift; sourceTree = "<group>"; };
+		BT100010 /* ProgressPersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressPersistenceTests.swift; sourceTree = "<group>"; };
 		BU100000 /* YlapianoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = YlapianoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BU100001 /* AddSongUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSongUITests.swift; sourceTree = "<group>"; };
 		BU100002 /* SongResultUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongResultUITests.swift; sourceTree = "<group>"; };
@@ -207,6 +209,7 @@
 				BT100007 /* SampledPianoTests.swift */,
 				BT100008 /* MicFreeTests.swift */,
 				BT100009 /* AudioSessionTests.swift */,
+				BT100010 /* ProgressPersistenceTests.swift */,
 			);
 			path = YlapianoTests;
 			sourceTree = "<group>";
@@ -463,6 +466,7 @@
 				BT000007 /* SampledPianoTests.swift in Sources */,
 				BT000008 /* MicFreeTests.swift in Sources */,
 				BT000009 /* AudioSessionTests.swift in Sources */,
+				BT000010 /* ProgressPersistenceTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
