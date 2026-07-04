@@ -25,6 +25,9 @@ struct SeedData {
         return localizedTitles[seedID]?[lang] ?? canonical
     }
 
+    // Bundle-is-truth, store-is-state (#35): the bundle owns a seed song's
+    // content and re-asserts it on every launch; the store owns only user
+    // state — the row that carries it, and user-created songs (seedID == nil).
     static func seedIfNeeded(context: ModelContext) {
         let descriptor = FetchDescriptor<Song>()
         let existing = (try? context.fetch(descriptor)) ?? []
@@ -49,22 +52,148 @@ struct SeedData {
             }
         }
 
-        // Keyed on seedID, never title: titles can change between builds, and
-        // user-created songs may share a seed's title. seedID == nil → user song.
+        // Retirement — a seed that left the bundle is removed from the store:
+        // (a) a tagged row whose seedID is no longer in the catalog, and
+        // (b) a pre-seedID row still matching a frozen build-6 seed shape
+        //     after the adoption pass above (the 5 songs dropped with the
+        //     final-13 catalog — never user compositions). The matcher is the
+        //     adoption matcher inverted: title, bpm AND notes must all equal
+        //     a shape we shipped, so genuine user songs never match. Stores
+        //     that predate seedID also predate stars, so nothing is lost.
+        let catalogIDs = Set(seeds.compactMap(\.seedID))
+        for song in existing {
+            if let seedID = song.seedID {
+                if !catalogIDs.contains(seedID) { context.delete(song) }
+            } else if legacyBuild6Shapes.contains(where: { $0.matches(song) }) {
+                context.delete(song)
+            }
+        }
+
+        // Upsert, keyed on seedID, never title: titles can change between
+        // builds, and user-created songs may share a seed's title. An existing
+        // row gets its content refreshed in place; a missing seed is inserted.
+        let survivors = existing.filter { !$0.isDeleted }
         let existingBySeedID = Dictionary(
-            existing.compactMap { song in song.seedID.map { ($0, song) } },
+            survivors.compactMap { song in song.seedID.map { ($0, song) } },
             uniquingKeysWith: { first, _ in first }
         )
 
         for seed in seeds {
             guard let seedID = seed.seedID else { continue }
             if let current = existingBySeedID[seedID] {
-                current.sortOrder = seed.sortOrder
+                refreshContent(of: current, from: seed)
             } else {
                 context.insert(seed)
             }
         }
         try? context.save()
+    }
+
+    /// Bundle-is-truth: every intrinsic content field, re-asserted on every
+    /// launch so transcription and copy fixes reach already-seeded stores.
+    /// Store-is-state: anything NOT listed here is user state and survives a
+    /// refresh — today that's the row identity (Song.id); when B3 lands,
+    /// bestStars/bestRung join it by simply not being assigned here.
+    private static func refreshContent(of song: Song, from seed: Song) {
+        song.title = seed.title
+        song.bpm = seed.bpm
+        song.notesData = seed.notesData
+        song.language = seed.language
+        song.difficultyRank = seed.difficultyRank
+        song.sortOrder = seed.sortOrder
+    }
+
+    // MARK: - Frozen legacy shapes (build-6 catalog)
+
+    /// One seed shape exactly as an old build shipped it. Frozen forever —
+    /// these must keep matching old stores even when the live catalog moves.
+    struct LegacySeedShape {
+        let title: String
+        let bpm: Int
+        let notes: [NoteEntry]
+
+        func matches(_ song: Song) -> Bool {
+            song.title == title && song.bpm == bpm && song.notes.musicallyEquals(notes)
+        }
+    }
+
+    /// The 9-song catalog as builds ≤ 6 seeded it (git 342fe23) — by title,
+    /// before seedID existed. Four shapes carried into the final-13 catalog
+    /// unchanged, so the adoption pass claims them first; whatever still
+    /// matches here afterwards is a zombie and is retired. Melodies use the
+    /// compact notation of `legacyMelody`; SeedRefreshTests exercises every
+    /// shape against a verbatim NoteEntry copy of the build-6 catalog.
+    static let legacyBuild6Shapes: [LegacySeedShape] = [
+        LegacySeedShape(title: "Hot Cross Buns", bpm: 80, notes: legacyMelody("""
+            Mi4q Re4q Do4h Mi4q Re4q Do4h \
+            Do4e Do4e Do4e Do4e Re4e Re4e Re4e Re4e Mi4q Re4q Do4h
+            """)),
+        LegacySeedShape(title: "Mary Had a Little Lamb", bpm: 90, notes: legacyMelody("""
+            Mi4q Re4q Do4q Re4q Mi4q Mi4q Mi4h Re4q Re4q Re4h Mi4q Sol4q Sol4h \
+            Mi4q Re4q Do4q Re4q Mi4q Mi4q Mi4q Mi4q Re4q Re4q Mi4q Re4q Do4w
+            """)),
+        LegacySeedShape(title: "Twinkle Twinkle Little Star", bpm: 80, notes: legacyMelody("""
+            Do4q Do4q Sol4q Sol4q La4q La4q Sol4h Fa4q Fa4q Mi4q Mi4q Re4q Re4q Do4h \
+            Sol4q Sol4q Fa4q Fa4q Mi4q Mi4q Re4h Sol4q Sol4q Fa4q Fa4q Mi4q Mi4q Re4h
+            """)),
+        LegacySeedShape(title: "Old MacDonald", bpm: 100, notes: legacyMelody("""
+            Do4q Do4q Do4q Sol3q La3q La3q Sol3h Mi4q Mi4q Re4q Re4q Do4h \
+            Do4q Do4q Do4q Sol3q La3q La3q Sol3h Mi4q Mi4q Re4q Re4q Do4h
+            """)),
+        LegacySeedShape(title: "Frère Jacques", bpm: 90, notes: legacyMelody("""
+            Do4q Re4q Mi4q Do4q Do4q Re4q Mi4q Do4q \
+            Mi4q Fa4q Sol4h Mi4q Fa4q Sol4h \
+            Sol4e La4e Sol4e Fa4e Mi4q Do4q Sol4e La4e Sol4e Fa4e Mi4q Do4q \
+            Do4q Sol3q Do4h Do4q Sol3q Do4h
+            """)),
+        LegacySeedShape(title: "Deniz's Lullaby", bpm: 60, notes: legacyMelody("""
+            Do4q Mi4q Sol4h Mi4q Re4q Do4h Do4q Mi4q Sol4q La4q Sol4h \
+            Mi4h Fa4q Mi4q Re4h Do4w
+            """)),
+        LegacySeedShape(title: "La Castanyera", bpm: 90, notes: legacyMelody("""
+            Sol4q Sol4q Mi4q Mi4q Fa4q Sol4q Mi4q Re4q Do4h \
+            Sol4q Mi4q Fa4q Re4q Do4h
+            """)),
+        LegacySeedShape(title: "Plim Plim (Salta l'Esquirol)", bpm: 60, notes: legacyMelody("""
+            Do4q Mi4e Fa4e Sol4h La4e Sol4e Fa4e La4e Sol4h \
+            Do4q Mi4e Fa4e Sol4h La4e Sol4e La4e Sol4e La4q Si4q Do5h \
+            Do4q Mi4e Fa4e Sol4h La4e Sol4e Fa4e La4e Sol4h \
+            Do4q Mi4e Fa4e Sol4h La4e Sol4e La4e Sol4e La4q Si4q Do5h
+            """)),
+        LegacySeedShape(title: "Sol Solet", bpm: 75, notes: legacyMelody("""
+            Sol4q Sol4q Mi4q Sol4e La4e Sol4q La4e Sol4e La4q Sol4q \
+            Sol4q Sol4q Mi4q Sol4e La4e Sol4q Mi4q Re4q Do4h
+            """)),
+    ]
+
+    /// Compact melody notation for frozen legacy shapes: "Sol3q" = Sol,
+    /// octave 3, quarter. Durations: w(hole) h(alf) q(uarter) e(ighth); a
+    /// "." suffix means dotted. No rests — isRest didn't exist before B2.
+    /// Tokens are compile-time constants, each exercised by SeedRefreshTests;
+    /// a typo fails fast rather than silently skipping retirement.
+    private static func legacyMelody(_ compact: String) -> [NoteEntry] {
+        compact.split(whereSeparator: \.isWhitespace).map { token in
+            var body = token
+            let dotted = body.hasSuffix(".")
+            if dotted { body = body.dropLast() }
+            guard let durationCode = body.popLast(),
+                  let octave = body.popLast()?.wholeNumberValue,
+                  let solfege = Solfege(rawValue: String(body)),
+                  let duration: NoteDuration = {
+                      switch (durationCode, dotted) {
+                      case ("w", false): return .whole
+                      case ("h", false): return .half
+                      case ("q", false): return .quarter
+                      case ("e", false): return .eighth
+                      case ("h", true): return .dottedHalf
+                      case ("q", true): return .dottedQuarter
+                      case ("e", true): return .dottedEighth
+                      default: return nil
+                      }
+                  }()
+            else { preconditionFailure("bad legacy melody token: \(token)") }
+            return NoteEntry(solfege: solfege, octave: octave, duration: duration)
+        }
     }
 
     static func createSeedSongs() -> [Song] {
