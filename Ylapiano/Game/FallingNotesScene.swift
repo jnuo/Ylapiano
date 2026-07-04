@@ -1,6 +1,5 @@
 import SpriteKit
 import UIKit
-import AudioToolbox
 
 /// Falling-notes lane for a single song. Each note becomes a rounded coral
 /// rectangle in the lane that matches its pitch's white-key column on the
@@ -52,6 +51,14 @@ final class FallingNotesScene: SKScene {
     /// timebase. Scales with tempo automatically (elapsedBeats uses live bpm).
     var beatsEnabled = false
     private var lastBeatTocked = -1
+
+    /// Makes the tock SOUND when this scene decides a beat crossed. Set by
+    /// `FallingNotesView` to `PianoSampler.playTock()` so the beat plays
+    /// through the shared `AVAudioEngine` — media volume, same silent-switch
+    /// behavior as the piano — instead of the old ringer-volume system sound
+    /// (B6 #14). The scene keeps the WHEN (its clock); the sampler owns the
+    /// HOW (the sound).
+    var onBeat: (() -> Void)?
 
     /// Fired once when the last bar has fallen past the line (+ a short tail),
     /// off this scene's own clock. Drives the end-of-song result.
@@ -220,7 +227,7 @@ final class FallingNotesScene: SKScene {
         let currentBeat = Int(elapsedBeats)
         if beatsEnabled && currentBeat > lastBeatTocked {
             lastBeatTocked = currentBeat
-            AudioServicesPlaySystemSound(1104)
+            onBeat?()
         }
 
         // End of song: last bar has fallen past the line + a short tail.
