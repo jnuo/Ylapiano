@@ -1,60 +1,54 @@
 import AVFoundation
 
-/// Piano tone source for tap-to-play and (later) MIDI input. Renders
-/// additive-synth piano tones with an exponential decay envelope, played
-/// through a pool of `AVAudioPlayerNode`s for true polyphony — pressing
-/// C and D in succession produces two overlapping decays, not a serial queue.
+/// Piano tone source for tap-to-play and MIDI input. Plays a REAL sampled
+/// piano — the FreePats "Upright Piano KW" SoundFont (CC0 1.0, see
+/// ATTRIBUTIONS.md) — through an `AVAudioUnitSampler`, which handles
+/// polyphony, velocity, voice stealing, and note-off release internally.
 ///
-/// **Voice routing.** Each pitch is mapped to a specific voice via
-/// `voiceByPitch` so a later `stop(_:)` (once we swap in the real sampler)
-/// can target the actual voice that's playing that note. New strikes prefer
-/// an idle voice (whose previous tone's decay has finished); if every voice
-/// is still ringing the oldest is reused.
+/// This retired the 4-harmonic additive-synth placeholder (B23, #34). The
+/// `play(_:)` / `stop(_:)` seam is unchanged, so no call site moved:
+/// `play` is MIDI note-on, `stop` is MIDI note-off.
 ///
-/// **Why synth, not Salamander yet:** the CC-BY 3.0 Salamander SF2 (~25 MB)
-/// isn't bundled. Once it is, replace this body with AudioKit's `MIDISampler`
-/// loaded via `loadMelodicSoundFont` — the `play(_:)` / `stop(_:)` signatures
-/// stay identical so call sites don't change.
+/// **Auto note-off.** Taps never send note-off (`handleKeyReleased`
+/// deliberately lets notes ring, mirroring a real piano without dampers).
+/// The bundled SF2 loops its samples with a faint sustain floor (~-36 dBFS)
+/// that would otherwise ring FOREVER, so each strike schedules its own
+/// note-off after `autoNoteOffSeconds` — long past the audible decay, it
+/// only silences the loop tail. A real `stop(_:)` (MIDI input) cancels the
+/// pending one and releases immediately.
+///
+/// **Why Upright Piano KW, not Salamander:** the "Salamander C5 Light" SF2
+/// the plan named is CC-BY-**NC** 4.0 — non-commercial, unusable here — and
+/// the properly licensed Salamander SF2 is 296 MB (budget: ≤20 MB in-bundle).
+/// FreePats' Upright Piano KW small SF2 is a real sampled piano, 9.5 MB,
+/// CC0 1.0 (public domain — no attribution required, credited anyway).
 @MainActor
 final class PianoSampler: ObservableObject {
-    /// How long a struck tone keeps ringing before its voice counts as idle.
-    /// Matches the buffer's audible envelope length (see `renderTone`).
-    private static let voiceRingTime: TimeInterval = 1.5
+    /// Bundled SoundFont resource (in `Resources/Audio/`). FreePats
+    /// "Upright Piano KW" by Gonzalo & Roberto (zenvoid.org), CC0 1.0.
+    static let soundFontResource = "UprightPianoKW-small-20190703"
+
+    /// How long a struck note rings before its scheduled note-off fires.
+    /// The audible decay is over well before this; the note-off only stops
+    /// the SF2's faint loop-sustain floor so mashed keys can't pile up into
+    /// a standing drone (the AU has 64 voices — they must be freed).
+    static let autoNoteOffSeconds: TimeInterval = 8
 
     private let engine = AVAudioEngine()
-    /// Each `AVAudioPlayerNode` plays its scheduled buffers serially, so true
-    /// polyphony requires multiple nodes. 8 voices is more than enough for
-    /// two-hand kids' piano.
-    private let voices: [AVAudioPlayerNode]
-    /// Wall-clock instant each voice was last struck. Used to find the
-    /// oldest voice when no idle one is available, and to detect "still
-    /// ringing."
-    private var voiceLastStruck: [Date]
-    /// Tracks which voice is currently playing a given pitch so `stop(_:)`
-    /// can target it directly. Cleared as voices fall out of their ring
-    /// window or get re-used.
-    private var voiceByPitch: [UInt8: Int] = [:]
-    /// Cache keyed by `(pitch, velocityBucket)`. Each velocity 0–127 maps
-    /// to one of 8 buckets (`velocity / 16`), so striking the same key at
-    /// noticeably different velocities now actually renders different
-    /// amplitudes. With 8 buckets × ~25 in-range pitches × ~72 KB per buffer
-    /// ≈ 14 MB worst case — trivial on iPad.
-    ///
-    /// **Rejected alternative**: cache at neutral velocity, scale per-strike
-    /// via `AVAudioPlayerNode.volume`. `playerNode.volume` parameter-ramps
-    /// over ~10 ms, audibly smearing velocity on fast repeated strikes.
-    private var toneCache: [CacheKey: AVAudioPCMBuffer] = [:]
-
-    /// Cache key — pitch + a coarse velocity bucket (8 buckets covering 1–127).
-    private struct CacheKey: Hashable {
-        let pitch: UInt8
-        let velocityBucket: Int
-    }
+    /// The sampled piano. One sampler node is truly polyphonic — unlike the
+    /// retired synth's hand-rolled `AVAudioPlayerNode` pool, note-on/off,
+    /// velocity mapping, and voice stealing are the AU's job.
+    private let piano = AVAudioUnitSampler()
+    /// Pending auto note-off per pitch. A re-strike replaces the pending
+    /// task so the ring window restarts; `stop(_:)` cancels it outright.
+    private var autoNoteOff: [UInt8: Task<Void, Never>] = [:]
 
     // MARK: Hit-reward sparkle (juice slice)
 
     /// Separate celesta voices for the hit-reward "ting" so a reward never
     /// steals a ringing piano note. Two is plenty — sparkles are short.
+    /// (The sparkle is a designed juice sound — hit-audio-spec.md — not part
+    /// of the retired piano placeholder, so it stays synthesized.)
     private let sparkleVoices: [AVAudioPlayerNode]
     private var nextSparkle = 0
     private var sparkleCache: [UInt8: AVAudioPCMBuffer] = [:]
@@ -66,26 +60,37 @@ final class PianoSampler: ObservableObject {
     @Published private(set) var isReady = false
 
     init() {
-        voices = (0..<8).map { _ in AVAudioPlayerNode() }
         sparkleVoices = (0..<2).map { _ in AVAudioPlayerNode() }
-        voiceLastStruck = Array(repeating: .distantPast, count: 8)
         AudioSession.configurePlayback()
         setupEngine()
     }
 
     private func setupEngine() {
-        let format = AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1)!
-        for voice in voices + sparkleVoices {
+        engine.attach(piano)
+        // nil format: let the sampler output its native (stereo) format and
+        // the mixer handle conversion.
+        engine.connect(piano, to: engine.mainMixerNode, format: nil)
+        let sparkleFormat = AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1)!
+        for voice in sparkleVoices {
             engine.attach(voice)
-            engine.connect(voice, to: engine.mainMixerNode, format: format)
+            engine.connect(voice, to: engine.mainMixerNode, format: sparkleFormat)
         }
         engine.prepare()
         do {
+            guard let url = Self.soundFontURL else {
+                throw NSError(domain: "PianoSampler", code: 1, userInfo: [
+                    NSLocalizedDescriptionKey: "\(Self.soundFontResource).sf2 missing from bundle",
+                ])
+            }
+            try piano.loadSoundBankInstrument(
+                at: url, program: 0,
+                bankMSB: UInt8(kAUSampler_DefaultMelodicBankMSB), bankLSB: 0
+            )
             try engine.start()
-            for voice in voices + sparkleVoices { voice.play() }
+            for voice in sparkleVoices { voice.play() }
             isReady = true
-            status = "synth · \(voices.count)-voice (drop Salamander_C5_Light.sf2 to upgrade)"
-            print("[PianoSampler] synth engine started @ 48 kHz, \(voices.count) voices")
+            status = "sampled · Upright Piano KW (CC0)"
+            print("[PianoSampler] sampled piano started @ 48 kHz — \(Self.soundFontResource).sf2")
             #if os(iOS)
             // Real audio-path latency on THIS device + route. Marco's derisk
             // kill-gate: wired / built-in speaker should read < ~30 ms. Read it
@@ -97,59 +102,61 @@ final class PianoSampler: ObservableObject {
             ))
             #endif
         } catch {
-            status = "engine start failed: \(error.localizedDescription)"
-            print("[PianoSampler] \(status)")
+            // No synth fallback — the placeholder is retired (#34). The SF2 is
+            // a bundled resource; if it can't load, that's a build defect the
+            // test suite catches (SampledPianoTests), not a runtime condition
+            // to paper over with a silently different instrument.
+            status = "soundfont load failed: \(error.localizedDescription)"
+            isReady = false
+            print("[PianoSampler] FAILED — \(status)")
+            assertionFailure("[PianoSampler] \(status)")
         }
     }
 
-    /// Strike `pitch`. Prefers a voice whose previous note has finished its
-    /// decay tail; if every voice is still ringing it steals the oldest.
+    /// Bundle URL of the piano SoundFont. `Bundle(for:)` (not `.main`) so the
+    /// hosted test bundle resolves to Ylapiano.app too.
+    static var soundFontURL: URL? {
+        Bundle(for: PianoSampler.self).url(
+            forResource: soundFontResource, withExtension: "sf2")
+    }
+
+    /// Strike `pitch` — MIDI note-on. The AU allocates a voice, applies the
+    /// velocity layer, and steals the oldest voice if all 64 are busy.
     func play(_ pitch: Pitch, velocity: UInt8 = 100) {
         guard isReady else { return }
-        let key = CacheKey(pitch: pitch.midi, velocityBucket: Int(velocity) / 16)
-        let buffer = toneCache[key] ?? Self.renderTone(pitch: pitch, velocity: velocity)
-        toneCache[key] = buffer
-
-        let voiceIndex = pickVoice()
-        let voice = voices[voiceIndex]
-
-        // If the voice was previously playing another pitch, drop that mapping
-        // so a stale `stop(_:)` for the displaced pitch doesn't hit this voice.
-        if let displaced = voiceByPitch.first(where: { $0.value == voiceIndex })?.key,
-           displaced != pitch.midi {
-            voiceByPitch.removeValue(forKey: displaced)
-        }
-        voiceByPitch[pitch.midi] = voiceIndex
-        voiceLastStruck[voiceIndex] = Date()
-
-        // `.interrupts` cuts any decaying tail still on this specific voice —
-        // necessary so the new note starts cleanly at sample 0 instead of
-        // queueing behind the old buffer.
-        voice.scheduleBuffer(buffer, at: nil, options: .interrupts, completionHandler: nil)
+        piano.startNote(pitch.midi, withVelocity: velocity, onChannel: 0)
+        scheduleAutoNoteOff(pitch.midi)
     }
 
-    /// In synth mode this is a no-op (buffers self-decay) but the voice
-    /// mapping is cleared so subsequent strikes can reuse the slot freely.
-    /// When Salamander loads, this becomes the MIDI note-off path.
+    /// Release `pitch` — the MIDI note-off path (the seam line 133 promised).
+    /// Triggers the SF2 release envelope; the offline audition measured the
+    /// tail at true silence within ~1 s, no click. Cancels the pending auto
+    /// note-off so it can't double-fire.
     func stop(_ pitch: Pitch) {
-        voiceByPitch.removeValue(forKey: pitch.midi)
+        autoNoteOff.removeValue(forKey: pitch.midi)?.cancel()
+        guard isReady else { return }
+        piano.stopNote(pitch.midi, onChannel: 0)
     }
 
-    /// Pre-render and cache tones for `pitches` so the FIRST strike of each note
-    /// during play doesn't synthesize a ~72k-sample buffer inline on the main
-    /// actor — an audible first-touch hitch on exactly the first impression.
-    /// Call when a song loads; the cost is paid before the kid plays (e.g.
-    /// during the count-in), never mid-performance.
-    func prewarm(_ pitches: [Pitch], velocity: UInt8 = 100) {
-        guard isReady else { return }
-        let bucket = Int(velocity) / 16
-        for pitch in pitches {
-            let key = CacheKey(pitch: pitch.midi, velocityBucket: bucket)
-            if toneCache[key] == nil {
-                toneCache[key] = Self.renderTone(pitch: pitch, velocity: velocity)
-            }
+    /// Replace any pending note-off for `midi` and schedule a fresh one.
+    private func scheduleAutoNoteOff(_ midi: UInt8) {
+        autoNoteOff[midi]?.cancel()
+        autoNoteOff[midi] = Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(Self.autoNoteOffSeconds))
+            guard !Task.isCancelled else { return }
+            guard let self else { return }
+            self.autoNoteOff.removeValue(forKey: midi)
+            self.piano.stopNote(midi, onChannel: 0)
         }
     }
+
+    /// Kept for the call-site seam (PlayerScreen prewarms on song load).
+    /// With the synth this pre-rendered tone buffers; the sampler needs no
+    /// warm-up — `loadSoundBankInstrument` made every sample resident at
+    /// init — so this is intentionally a no-op.
+    func prewarm(_ pitches: [Pitch], velocity: UInt8 = 100) {}
+
+    // MARK: Sparkle (unchanged juice synth)
 
     /// Soft celesta "ting" layered over the piano note on a correct hit. Pitched
     /// to the octave above the played note (always consonant); `comboStep`
@@ -199,46 +206,98 @@ final class PianoSampler: ObservableObject {
         return buffer
     }
 
-    /// Pick the next voice. Strategy: first idle voice (whose decay tail has
-    /// finished), else the voice struck longest ago.
-    private func pickVoice() -> Int {
-        let now = Date()
-        if let idle = voiceLastStruck.enumerated().first(where: { now.timeIntervalSince($0.element) >= Self.voiceRingTime })?.offset {
-            return idle
-        }
-        // All ringing — steal the oldest.
-        return voiceLastStruck.enumerated().min(by: { $0.element < $1.element })?.offset ?? 0
-    }
+    // MARK: Offline render (B25 ear-check seam)
 
-    /// Additive synthesis: fundamental + 3 harmonics, exponential decay
-    /// envelope (~1 s tail), 5 ms attack ramp to suppress clicks. Pure (no
-    /// instance state) so `prewarm` and `play` can both render without touching
-    /// `self` — keeps it cheap to call ahead of time.
+    /// Sustain rendered before the offline note-off, and release rendered
+    /// after it. 1.5 s sustain matches the retired synth's ring time (and the
+    /// live feel of a tapped note); the audition measured the release tail at
+    /// true silence well inside 1 s.
+    private static let offlineSustainSeconds = 1.5
+    private static let offlineReleaseSeconds = 1.0
+    private static let offlineSampleRate = 48_000.0
+
+    /// Offline engine + sampler reused across `renderTone` calls — loading
+    /// the 9.5 MB SoundFont per note would make the 13-song ear-check crawl.
+    private static var offlineEngine: AVAudioEngine?
+    private static var offlinePiano: AVAudioUnitSampler?
+
+    /// Render one struck note through the SAME sampled instrument the app
+    /// plays live — note-on, `offlineSustainSeconds` of ring, note-off, then
+    /// the release tail. Mono 48 kHz, like the synth buffers it replaced.
     ///
     /// Internal (not private) so the B25 ear-check harness
     /// (`EarCheckRenderTests`) can render songs offline through the exact
-    /// same tone path the app plays live.
+    /// same tone path the app plays live — that's the whole point of the
+    /// shared seam. Not used by the live path anymore (the AU renders in
+    /// real time); test/tooling only, hence `preconditionFailure` on setup
+    /// errors instead of a fallback.
     static func renderTone(pitch: Pitch, velocity: UInt8) -> AVAudioPCMBuffer {
-        let sampleRate = 48_000.0
-        let frameCount = AVAudioFrameCount(Self.voiceRingTime * sampleRate)
-        let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
-        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount)!
-        buffer.frameLength = frameCount
-        let data = buffer.floatChannelData![0]
+        do {
+            let (engine, piano) = try offlineRenderer()
+            let format = engine.manualRenderingFormat
+            let totalFrames = AVAudioFrameCount(
+                (offlineSustainSeconds + offlineReleaseSeconds) * offlineSampleRate)
+            let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: totalFrames)!
 
-        let frequency = pitch.frequency
-        let amp = 0.22 * min(max(Double(velocity) / 127.0, 0.4), 1.0)
-        let twoPi = 2.0 * Double.pi
-        for i in 0..<Int(frameCount) {
-            let t = Double(i) / sampleRate
-            let envelope = exp(-t * 3.5)
-            let attack = min(t * 200.0, 1.0)
-            let fund = sin(twoPi * frequency * t)
-            let h2 = 0.5  * sin(twoPi * frequency * 2.0 * t)
-            let h3 = 0.25 * sin(twoPi * frequency * 3.0 * t)
-            let h4 = 0.12 * sin(twoPi * frequency * 4.0 * t)
-            data[i] = Float((fund + h2 + h3 + h4) * envelope * attack * amp)
+            piano.startNote(pitch.midi, withVelocity: velocity, onChannel: 0)
+            try render(engine, seconds: offlineSustainSeconds, into: buffer)
+            piano.stopNote(pitch.midi, onChannel: 0)
+            try render(engine, seconds: offlineReleaseSeconds, into: buffer)
+            // Clear residual voice/reverb state so the next call starts clean.
+            engine.reset()
+            return buffer
+        } catch {
+            preconditionFailure("[PianoSampler] offline renderTone failed: \(error)")
         }
-        return buffer
+    }
+
+    /// Lazily build the reusable manual-rendering engine with the bundled
+    /// SoundFont loaded.
+    private static func offlineRenderer() throws -> (AVAudioEngine, AVAudioUnitSampler) {
+        if let engine = offlineEngine, let piano = offlinePiano {
+            return (engine, piano)
+        }
+        guard let url = soundFontURL else {
+            throw NSError(domain: "PianoSampler", code: 1, userInfo: [
+                NSLocalizedDescriptionKey: "\(soundFontResource).sf2 missing from bundle",
+            ])
+        }
+        let engine = AVAudioEngine()
+        let piano = AVAudioUnitSampler()
+        engine.attach(piano)
+        engine.connect(piano, to: engine.mainMixerNode, format: nil)
+        let format = AVAudioFormat(standardFormatWithSampleRate: offlineSampleRate, channels: 1)!
+        try engine.enableManualRenderingMode(.offline, format: format, maximumFrameCount: 4096)
+        try piano.loadSoundBankInstrument(
+            at: url, program: 0,
+            bankMSB: UInt8(kAUSampler_DefaultMelodicBankMSB), bankLSB: 0)
+        try engine.start()
+        offlineEngine = engine
+        offlinePiano = piano
+        return (engine, piano)
+    }
+
+    /// Pull `seconds` of audio out of the manual-rendering engine, appending
+    /// to `buffer` (which must have capacity for it).
+    private static func render(
+        _ engine: AVAudioEngine, seconds: Double, into buffer: AVAudioPCMBuffer
+    ) throws {
+        let format = engine.manualRenderingFormat
+        let chunk = AVAudioPCMBuffer(
+            pcmFormat: format, frameCapacity: engine.manualRenderingMaximumFrameCount)!
+        var remaining = AVAudioFrameCount(seconds * offlineSampleRate)
+        while remaining > 0 {
+            let n = min(engine.manualRenderingMaximumFrameCount, remaining)
+            let outcome = try engine.renderOffline(n, to: chunk)
+            guard outcome == .success else {
+                throw NSError(domain: "PianoSampler", code: 2, userInfo: [
+                    NSLocalizedDescriptionKey: "manual render returned \(outcome)",
+                ])
+            }
+            let dst = buffer.floatChannelData![0] + Int(buffer.frameLength)
+            dst.update(from: chunk.floatChannelData![0], count: Int(chunk.frameLength))
+            buffer.frameLength += chunk.frameLength
+            remaining -= chunk.frameLength
+        }
     }
 }
