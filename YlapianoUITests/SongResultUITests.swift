@@ -27,6 +27,11 @@ final class SongResultUITests: XCTestCase {
         XCTAssertFalse(app.staticTexts["LEARN THE KEYS"].exists,
                        "no ladder rung label on a non-Salta song")
 
+        // B26 (#37): after the stars, the next-song handoff card springs in —
+        // the result screen is a bridge to the next song, not a dead-end.
+        XCTAssertTrue(app.buttons["NextSongHandoffCard"].firstMatch.waitForExistence(timeout: 10),
+                      "next-song handoff card after a real full-song run")
+
         let shot = XCUIScreen.main.screenshot()
         let attachment = XCTAttachment(screenshot: shot)
         attachment.lifetime = .keepAlways
