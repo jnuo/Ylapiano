@@ -40,7 +40,9 @@ struct HomeScreen: View {
             // is alive" signal. Card motion stays B9's star-pop — Pim never
             // competes with the grid.
             HStack(alignment: .bottom) {
-                PimIdleView()
+                // B20: seeded shots freeze Pim on the static still — the
+                // idle's blink/breathe would smear across captures.
+                PimIdleView(reduceMotionOverride: ScreenshotSeed.freezeMotion ? true : nil)
                     .frame(width: 116, height: 116)
                 Spacer()
             }
@@ -133,8 +135,8 @@ struct HomeScreen: View {
             if !hasSeeded {
                 SeedData.seedIfNeeded(context: modelContext)
                 hasSeeded = true
-                #if DEBUG
-                applyDebugStarStates()
+                #if DEBUG || STORE_CAPTURE
+                applyScreenshotSeedIfRequested()
                 #endif
             }
             syncStarBaseline()
@@ -226,21 +228,23 @@ struct HomeScreen: View {
         previewingSongID = nil
     }
 
-    #if DEBUG
-    /// Screenshot/dev aid: `-b9-demo-stars` seeds a visible 0/1/2/3 star
-    /// spread across the first cards so the star states can be reviewed
-    /// without playing, and `-b9-demo-preview` starts the first song's
-    /// speaker-chip preview. DEBUG builds only; never ships.
-    private func applyDebugStarStates() {
-        let args = ProcessInfo.processInfo.arguments
-        if args.contains("-b9-demo-stars") {
-            let spread = [3, 1, 2, 0, 2, 1, 3, 0, 1, 2, 3, 1, 2]
+    #if DEBUG || STORE_CAPTURE
+    /// B20 (#20) — screenshot-seed hook for the library shot: the `home`
+    /// profile (or its legacy `-b9-demo-stars` alias) writes the designed
+    /// star spread across the catalog cards so the grid reads mid-journey
+    /// without playing. `-b9-demo-preview` (dev aid, not a store state)
+    /// still starts the first song's speaker-chip preview. Never compiled
+    /// into App Store builds.
+    private func applyScreenshotSeedIfRequested() {
+        if ScreenshotSeed.profile() == .home {
+            let spread = ScreenshotSeed.homeStarSpread
             for (index, song) in songs.enumerated() {
                 song.bestStars = spread[index % spread.count]
             }
             try? modelContext.save()
         }
-        if args.contains("-b9-demo-preview"), let first = songs.first {
+        if ProcessInfo.processInfo.arguments.contains("-b9-demo-preview"),
+           let first = songs.first {
             togglePreview(first)
         }
     }

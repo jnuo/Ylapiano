@@ -394,6 +394,21 @@ final class PlayerViewModel {
         return 1
     }
 
+    #if DEBUG || STORE_CAPTURE
+    /// B20 (#20) — freeze a live mid-play moment for a pixel-stable store
+    /// shot. Starts a real play (rung tempo, guidance, hit state), then
+    /// banks a fixed elapsed time and clears the wall-clock anchor: the
+    /// shared clock (`elapsedSeconds`) is frozen, so the falling notes hold
+    /// position and the guidance glow holds its key — while `isPlaying`
+    /// stays true, keeping the authentic mid-play chrome (Pause visible, no
+    /// big Play overlay, no count-in).
+    func freezeForScreenshot(atBeats beats: Double) {
+        startPlaying()
+        accumulatedBeforePause = beats * 60.0 / Double(max(metronome.bpm, 30))
+        playStartedAt = nil
+    }
+    #endif
+
     func restart() {
         stopPlaying()
         currentNoteIndex = 0
