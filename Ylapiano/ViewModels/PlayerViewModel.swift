@@ -435,6 +435,34 @@ final class PlayerViewModel {
     }
 }
 
+// MARK: - Next-song handoff (B26)
+
+/// Picks the song the result screen hands the kid next — the bridge that
+/// closes the meta-loop dead-end. Catalog (seed) songs only: user-created
+/// songs never appear as suggestions. Rule, in order:
+///  1. First never-played catalog song (`bestStars == 0`), catalog order.
+///  2. All played → the least-starred one (ties → catalog order).
+///  3. All 3-starred → rule 2 degenerates to "first catalog song" — the loop
+///     restarts from the top, so the card never shows nothing.
+/// The just-finished song is excluded — suggesting "again?" is the replay
+/// button's job. Returns nil only when no OTHER catalog song exists (then no
+/// card shows at all).
+///
+/// Co-located here (not its own file) because the Xcode project uses manual
+/// file references; extract when batching a file add.
+enum NextSongPicker {
+    static func next(after current: Song?, in songs: [Song]) -> Song? {
+        let catalog = songs
+            .filter { $0.isSeed && $0.id != current?.id }
+            .sorted { $0.sortOrder < $1.sortOrder }
+        if let neverPlayed = catalog.first(where: { $0.bestStars == 0 }) {
+            return neverPlayed
+        }
+        guard let fewest = catalog.map(\.bestStars).min() else { return nil }
+        return catalog.first { $0.bestStars == fewest }
+    }
+}
+
 // MARK: - Mastery ladder
 
 /// How strongly the keyboard's target-key glow guides the player on a rung.

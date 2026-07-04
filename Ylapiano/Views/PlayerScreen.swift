@@ -1,10 +1,57 @@
 import SwiftUI
+import SwiftData
 import AVKit
 import CoreImage
 import SwiftMIDIIO
 
+/// Thin shell around one play session. Exists for the B26 next-song handoff:
+/// tapping the result screen's handoff card swaps `currentSong`, and the
+/// `.id(currentSong.id)` below gives the session a fresh SwiftUI identity —
+/// a brand-new `PlayerSessionView` with a brand-new `PlayerViewModel`, no
+/// stale hit/rung/result state, without pushing a second screen onto the
+/// NavigationStack (the stack has no path binding to pop-and-push with, and
+/// stacking players would pile up SpriteKit scenes).
+///
+/// The landscape orientation lock lives HERE (not on the session) because the
+/// shell's identity is stable across song swaps — on the session it would
+/// unlock/relock in unspecified onAppear/onDisappear order mid-swap.
 struct PlayerScreen: View {
+    @State private var currentSong: Song
+    /// Set once the kid arrives via the handoff card: the new song starts
+    /// itself (count-in included) — one tap total, no second Play press.
+    @State private var autoStart = false
+
+    init(song: Song) {
+        _currentSong = State(initialValue: song)
+    }
+
+    var body: some View {
+        // The ZStack is the stable anchor for the orientation lock: its
+        // identity never changes, so the lock can't unlock/relock (in
+        // unspecified order) when the .id below swaps the session out.
+        ZStack {
+            PlayerSessionView(song: currentSong, autoStart: autoStart) { next in
+                autoStart = true
+                currentSong = next
+            }
+            .id(currentSong.id)
+        }
+        .onAppear {
+            // Gameplay is landscape — the keyboard needs the width. The rest
+            // of the app stays free-rotating; we restore that on the way out.
+            OrientationGate.lockLandscape()
+        }
+        .onDisappear { OrientationGate.unlock() }
+    }
+}
+
+struct PlayerSessionView: View {
     let song: Song
+    /// Start the song on arrival (after the usual count-in) — the B26
+    /// handoff path. Normal navigation passes false and waits for Play.
+    var autoStart = false
+    /// The handoff card was tapped: hand the chosen song to the shell.
+    var onPlayNext: (Song) -> Void = { _ in }
     @State private var viewModel: PlayerViewModel
     /// Sampler is owned by `YlapianoApp` so its `AVAudioEngine` outlives any
     /// single song screen — we don't want the engine and its session config
@@ -33,9 +80,20 @@ struct PlayerScreen: View {
     /// one tick later instead of freezing the transition.
     @State private var ready = false
 
-    init(song: Song) {
+    init(song: Song, autoStart: Bool = false, onPlayNext: @escaping (Song) -> Void = { _ in }) {
         self.song = song
+        self.autoStart = autoStart
+        self.onPlayNext = onPlayNext
         _viewModel = State(initialValue: PlayerViewModel(song: song))
+    }
+
+    /// B26 — who the result screen suggests next. Read from the same store
+    /// the home grid shows; nil (no card) only when the song has no context
+    /// (previews, fixtures) or no other catalog song exists.
+    private var nextSong: Song? {
+        guard let context = song.modelContext else { return nil }
+        let all = (try? context.fetch(FetchDescriptor<Song>())) ?? []
+        return NextSongPicker.next(after: song, in: all)
     }
 
     var body: some View {
@@ -161,12 +219,19 @@ struct PlayerScreen: View {
             guard !ready else { return }
             try? await Task.sleep(for: .milliseconds(50))
             ready = true
+            // B26 handoff: arriving via the next-song card starts the song
+            // itself — with the same count-in a Play press gets, so the kid
+            // still has time to find the first key.
+            if autoStart, !song.notes.isEmpty {
+                try? await Task.sleep(for: .milliseconds(350))
+                if countdownText == nil, !viewModel.isActive { startWithCountdown() }
+            }
         }
         .onAppear {
             viewModel.fallingNotesActive = (displayMode == .fallingNotes)
-            // Gameplay is landscape — the keyboard needs the width. The rest of
-            // the app stays free-rotating; we restore that on the way out.
-            OrientationGate.lockLandscape()
+            #if DEBUG
+            fireDemoResultIfRequested()
+            #endif
             // Pre-render this song's tones AFTER the transition settles, so the
             // synth work can't block the push. An un-cached note still
             // synthesizes inline on first tap.
@@ -183,7 +248,6 @@ struct PlayerScreen: View {
         }
         .onDisappear {
             viewModel.stopPlaying()
-            OrientationGate.unlock()   // back to free rotation outside gameplay
         }
         .sheet(isPresented: $viewModel.showingEditSheet) {
             AddSongScreen(existingSong: song)
@@ -199,12 +263,32 @@ struct PlayerScreen: View {
                     rungName: viewModel.resultRungName,
                     canClimb: viewModel.canClimb,
                     climbLabel: viewModel.climbLabel,
+                    nextSong: nextSong,
                     onReplay: { viewModel.replaySong() },
-                    onClimb: { viewModel.climbRung() }
+                    onClimb: { viewModel.climbRung() },
+                    onPlayNext: onPlayNext
                 )
             }
         }
     }
+
+    #if DEBUG
+    /// UI-test / screenshot aid: `-b26-demo-result-stars N` finishes the first
+    /// opened song with N stars shortly after it appears, so the result screen
+    /// (and the handoff card) can be exercised without playing a full song.
+    /// Fires once per launch — the handed-off song must NOT instantly
+    /// re-finish. DEBUG only; never ships.
+    @MainActor private static var demoResultFired = false
+    private func fireDemoResultIfRequested() {
+        let stars = UserDefaults.standard.integer(forKey: "b26-demo-result-stars")
+        guard stars > 0, !Self.demoResultFired else { return }
+        Self.demoResultFired = true
+        Task { @MainActor in
+            try? await Task.sleep(for: .milliseconds(800))
+            viewModel.setResult(stars: min(stars, 3))
+        }
+    }
+    #endif
 
     // MARK: - Toolbar Row
 
@@ -471,8 +555,12 @@ private struct SongResultView: View {
     /// becomes "Faster!" / "Lights off!"; replay stays available beside it.
     let canClimb: Bool
     let climbLabel: String
+    /// B26 — the song the handoff card offers. nil = no card (no other
+    /// catalog song, or a context-less preview).
+    let nextSong: Song?
     let onReplay: () -> Void
     let onClimb: () -> Void
+    let onPlayNext: (Song) -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -481,6 +569,7 @@ private struct SongResultView: View {
     @State private var celebrate = false   // 3/3 sparkle burst
     @State private var burst: CGFloat = 0  // 0→1 drives the burst outward
     @State private var wiggle = false      // mascot reaction on a perfect run
+    @State private var handoff = false     // B26 next-song card springs in last
 
     private let gold = Palette.gold
     private let coral = Palette.coral
@@ -561,15 +650,25 @@ private struct SongResultView: View {
                     }
                 }
 
+                // B26 hero placement: no climb on offer → the handoff card IS
+                // the headline CTA, straight under the stars. (When the climb
+                // is offered it keeps the headline and the card sits below —
+                // climbing is opt-in per the rung design; don't fight its CTA.)
+                if let nextSong, !canClimb {
+                    handoffCard(nextSong, hero: true)
+                }
+
                 // Action row. On a clean 3-star run the headline becomes the
-                // climb ("Faster!" / "Lights off!"); replay is always there too.
+                // climb ("Faster!" / "Lights off!"); replay is always there too,
+                // but visually secondary whenever a bigger invitation (climb or
+                // handoff card) is on screen — kids can also replay from home.
                 HStack(spacing: 20) {
                     Button(action: onReplay) {
                         Image(systemName: "arrow.counterclockwise")
                             .font(.system(size: 30, weight: .bold))
                             .foregroundStyle(.white)
                             .frame(width: 76, height: 76)
-                            .background(Circle().fill(canClimb ? Color.white.opacity(0.22) : coral))
+                            .background(Circle().fill(canClimb || nextSong != nil ? Color.white.opacity(0.22) : coral))
                             .shadow(radius: 8, y: 4)
                     }
                     .accessibilityLabel("Play again")
@@ -592,6 +691,12 @@ private struct SongResultView: View {
                     }
                 }
                 .scaleEffect(card ? 1 : 0.5)
+
+                // B26 secondary placement: the climb owns the headline, the
+                // handoff card waits quietly below it.
+                if let nextSong, canClimb {
+                    handoffCard(nextSong, hero: false)
+                }
             }
             .padding(40)
             .background(RoundedRectangle(cornerRadius: 28).fill(.ultraThinMaterial))
@@ -601,6 +706,33 @@ private struct SongResultView: View {
         .task { await runSequence() }
     }
 
+    /// B26 — the next-song invitation: Pim points at ONE oversized picture
+    /// card (the next song's B9 icon, small title, its current stars — no
+    /// pressure copy, the card itself is the invitation). One tap starts that
+    /// song. Springs in with a Back.Out-style overshoot (~350 ms) after the
+    /// star sequence; static appear under Reduce Motion (`runSequence` just
+    /// sets `handoff` without animation).
+    private func handoffCard(_ next: Song, hero: Bool) -> some View {
+        HStack(alignment: .bottom, spacing: 4) {
+            // Pim points to the right — the card sits where he points.
+            Image("MascotPointing")
+                .resizable()
+                .scaledToFit()
+                .frame(width: hero ? 104 : 68, height: hero ? 104 : 68)
+                .accessibilityHidden(true)
+
+            Button { onPlayNext(next) } label: {
+                SongCardView(song: next)
+                    .frame(width: hero ? 180 : 128, height: hero ? 196 : 140)
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Play \(next.title) next")
+            .accessibilityIdentifier("NextSongHandoffCard")
+        }
+        .scaleEffect(handoff ? 1 : 0.25)
+        .opacity(handoff ? 1 : 0)
+    }
+
     @MainActor
     private func runSequence() async {
         guard !reduceMotion else {
@@ -608,6 +740,7 @@ private struct SongResultView: View {
             revealed = stars
             celebrate = perfect
             burst = 0           // no motion burst in reduced mode
+            handoff = true      // static appear — no spring under Reduce Motion
             return
         }
         withAnimation(.spring(response: 0.45, dampingFraction: 0.6)) { card = true }
@@ -617,11 +750,16 @@ private struct SongResultView: View {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.45)) { revealed = i }
             try? await Task.sleep(for: .milliseconds(340))
         }
-        guard perfect else { return }
-        // Perfect run: sparkle burst + a happy wiggle.
-        celebrate = true
-        withAnimation(.easeOut(duration: 0.7)) { burst = 1 }
-        withAnimation(.easeInOut(duration: 0.12).repeatCount(6, autoreverses: true)) { wiggle = true }
+        if perfect {
+            // Perfect run: sparkle burst + a happy wiggle.
+            celebrate = true
+            withAnimation(.easeOut(duration: 0.7)) { burst = 1 }
+            withAnimation(.easeInOut(duration: 0.12).repeatCount(6, autoreverses: true)) { wiggle = true }
+        }
+        // The handoff moment: one beat after the last star (or the burst)
+        // lands, the next-song card springs in — Back.Out overshoot, ~350 ms.
+        try? await Task.sleep(for: .milliseconds(perfect ? 650 : 380))
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.55)) { handoff = true }
     }
 }
 
