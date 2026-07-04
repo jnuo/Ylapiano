@@ -341,6 +341,23 @@
         }
       }
     },
+    "Email us" : {
+      "comment" : "Grown-Ups corner support row: opens a pre-addressed support email.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Email us"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bize yaz"
+          }
+        }
+      }
+    },
     "Falling notes" : {
       "comment" : "Grown-ups drawer: view picker — the falling-notes game panel.",
       "localizations" : {
@@ -411,6 +428,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Şarkıları nota nota takip et"
+          }
+        }
+      }
+    },
+    "Get help" : {
+      "comment" : "Grown-Ups corner support row: opens the Ylapiano support page.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get help"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yardım al"
           }
         }
       }
@@ -546,6 +580,23 @@
         }
       }
     },
+    "How it works" : {
+      "comment" : "Grown-Ups corner help heading — parent-directed.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How it works"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nasıl çalışır"
+          }
+        }
+      }
+    },
     "Learn piano the fun way!" : {
       "comment" : "Onboarding page 1 headline.",
       "localizations" : {
@@ -622,6 +673,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Işıkları kapat!"
+          }
+        }
+      }
+    },
+    "Love it? Ratings help other families find Ylapiano." : {
+      "comment" : "Grown-Ups corner rating footnote — the honest, unpushy ask.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Love it? Ratings help other families find Ylapiano."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beğendin mi? Puanlar başka ailelerin Ylapiano'yu bulmasına yardımcı olur."
           }
         }
       }
@@ -905,6 +973,23 @@
         }
       }
     },
+    "One song — Plim Plim — climbs a 4-step ladder: each step is a bit faster, the key glow fades, and the timing gets stricter. A 3-star run offers the climb, and your child decides when to take it." : {
+      "comment" : "Grown-Ups corner: the mastery ladder explained to a parent.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One song — Plim Plim — climbs a 4-step ladder: each step is a bit faster, the key glow fades, and the timing gets stricter. A 3-star run offers the climb, and your child decides when to take it."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tek bir şarkı — Plim Plim — 4 basamaklı bir merdiveni tırmanır: her basamak biraz daha hızlı, tuş ışığı gitgide söner, zamanlama sıkılaşır. 3 yıldızlı bir turdan sonra tırmanma teklifi gelir; ne zaman tırmanacağına çocuğun karar verir."
+          }
+        }
+      }
+    },
     "Pause" : {
       "comment" : "Accessibility label of the in-play pause button.",
       "localizations" : {
@@ -918,6 +1003,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Duraklat"
+          }
+        }
+      }
+    },
+    "Piano sound: Upright Piano KW, recorded from a real Kawai upright piano by the FreePats project. Released under CC0 — thank you." : {
+      "comment" : "Grown-Ups corner attribution credit for the CC0 sampled piano (B23).",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piano sound: Upright Piano KW, recorded from a real Kawai upright piano by the FreePats project. Released under CC0 — thank you."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Piyano sesi: FreePats projesinin gerçek bir Kawai duvar piyanosundan kaydettiği Upright Piano KW. CC0 lisansıyla yayımlandı — teşekkürler."
+          }
+        }
+      }
+    },
+    "Pick a song and press play. Notes fall toward the piano keys, and your child plays each one as it lands — right notes earn up to 3 stars. There is no losing; every finished song ends in a little celebration." : {
+      "comment" : "Grown-Ups corner: how the game works, explained to a parent.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pick a song and press play. Notes fall toward the piano keys, and your child plays each one as it lands — right notes earn up to 3 stars. There is no losing; every finished song ends in a little celebration."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bir şarkı seç ve çal tuşuna bas. Notalar tuşlara doğru süzülür; çocuğun her notayı yere indiği anda çalar — doğru notalar 3 yıldıza kadar kazandırır. Kaybetmek yok; biten her şarkı küçük bir kutlamayla sona erer."
           }
         }
       }
@@ -1128,6 +1247,40 @@
         }
       }
     },
+    "Plug a USB MIDI keyboard into the iPad and it connects by itself — the piano-keys icon at the top turns red when it's live. No keyboard around? The on-screen keys work just the same." : {
+      "comment" : "Grown-Ups corner: the USB piano note, explained to a parent.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plug a USB MIDI keyboard into the iPad and it connects by itself — the piano-keys icon at the top turns red when it's live. No keyboard around? The on-screen keys work just the same."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "iPad'e bir USB MIDI klavye tak, bağlantı kendiliğinden kurulur — üstteki piyano simgesi kırmızıya döndüyse hazır demektir. Klavye yoksa ekrandaki tuşlar aynı şekilde çalışır."
+          }
+        }
+      }
+    },
+    "Rate Ylapiano" : {
+      "comment" : "Grown-Ups corner rating row + its section header: fires the system rating prompt.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rate Ylapiano"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ylapiano'ya puan ver"
+          }
+        }
+      }
+    },
     "Resume" : {
       "comment" : "Accessibility label of the big play button while paused.",
       "localizations" : {
@@ -1299,6 +1452,23 @@
         }
       }
     },
+    "Support" : {
+      "comment" : "Grown-Ups corner section header for the help/email links.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Support"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Destek"
+          }
+        }
+      }
+    },
     "Sync spike" : {
       "comment" : "DEBUG-only dev tool toolbar button — never ships in Release.",
       "localizations" : {
@@ -1329,6 +1499,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Güzel çalıştın!"
+          }
+        }
+      }
+    },
+    "The mastery ladder" : {
+      "comment" : "Grown-Ups corner help heading — parent-directed.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The mastery ladder"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ustalık merdiveni"
           }
         }
       }
@@ -1373,6 +1560,40 @@
         }
       }
     },
+    "USB piano" : {
+      "comment" : "Grown-Ups corner help heading — parent-directed.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "USB piano"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "USB piyano"
+          }
+        }
+      }
+    },
+    "Version %@" : {
+      "comment" : "Grown-Ups corner footer: app version + build, e.g. 'Version 1.4.10 (10)'.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version %@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sürüm %@"
+          }
+        }
+      }
+    },
     "View" : {
       "comment" : "Grown-ups drawer: falling-notes vs sheet-music picker row.",
       "localizations" : {
@@ -1409,6 +1630,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Birlik"
+          }
+        }
+      }
+    },
+    "Write a review" : {
+      "comment" : "Grown-Ups corner rating row: deep-links to the App Store review sheet.",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Write a review"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Yorum yaz"
           }
         }
       }

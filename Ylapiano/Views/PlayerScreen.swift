@@ -284,6 +284,13 @@ struct PlayerSessionView: View {
             // Only judge taps as hits while the falling-notes panel is showing.
             viewModel.fallingNotesActive = (newMode == .fallingNotes)
         }
+        // B28 (#39) — every finished song feeds the rating engine; when its
+        // gates all pass (Nth completion, good result, not the first session,
+        // budget left) the system review prompt rises over the result screen:
+        // the result/home boundary, never mid-play. Silent under UI tests.
+        .onChange(of: viewModel.songFinished) { _, finished in
+            if finished { ReviewAsk.songCompleted(stars: viewModel.resultStars) }
+        }
         .onDisappear {
             viewModel.stopPlaying()
         }
