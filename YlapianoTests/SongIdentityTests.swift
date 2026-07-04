@@ -88,7 +88,9 @@ final class SongIdentityTests: XCTestCase {
     }
 
     // Sub-task 3 (defensive): two byte-identical legacy copies — only one
-    // adopts the seedID; the other stays a user song.
+    // adopts the seedID. Since B24 (#35) the leftover copy is retired as a
+    // legacy zombie: byte-identical to a shipped seed shape, it was never a
+    // user composition.
     func testOnlyOneOfTwoIdenticalLegacyCopiesIsAdopted() throws {
         let context = try freshContext()
         let canonical = SeedData.createSeedSongs().first!
@@ -101,8 +103,8 @@ final class SongIdentityTests: XCTestCase {
         let songs = try context.fetch(FetchDescriptor<Song>())
         XCTAssertEqual(songs.filter { $0.seedID == canonical.seedID }.count, 1,
                        "exactly one copy may adopt the seedID")
-        XCTAssertEqual(songs.count, SeedData.createSeedSongs().count + 1,
-                       "no extra seed insert, no deletion (catalog + leftover copy)")
+        XCTAssertEqual(songs.count, SeedData.createSeedSongs().count,
+                       "no extra seed insert; the duplicate legacy copy is retired")
     }
 
     // Sub-task 4: localized titles are keyed by seedID per language.
