@@ -214,7 +214,11 @@ final class PianoSampler: ObservableObject {
     /// envelope (~1 s tail), 5 ms attack ramp to suppress clicks. Pure (no
     /// instance state) so `prewarm` and `play` can both render without touching
     /// `self` — keeps it cheap to call ahead of time.
-    private static func renderTone(pitch: Pitch, velocity: UInt8) -> AVAudioPCMBuffer {
+    ///
+    /// Internal (not private) so the B25 ear-check harness
+    /// (`EarCheckRenderTests`) can render songs offline through the exact
+    /// same tone path the app plays live.
+    static func renderTone(pitch: Pitch, velocity: UInt8) -> AVAudioPCMBuffer {
         let sampleRate = 48_000.0
         let frameCount = AVAudioFrameCount(Self.voiceRingTime * sampleRate)
         let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
