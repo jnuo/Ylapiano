@@ -55,6 +55,9 @@
 		B27T0001 /* PimIdleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B27T1001 /* PimIdleTests.swift */; };
 		B11A0001 /* ResultSounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11A1001 /* ResultSounds.swift */; };
 		B11T0001 /* ResultSoundTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11T1001 /* ResultSoundTests.swift */; };
+		B10A0001 /* GrownUpGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10A1001 /* GrownUpGate.swift */; };
+		B10T0001 /* GrownUpGateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10T1001 /* GrownUpGateTests.swift */; };
+		B10T0002 /* KidModePlayerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10T1002 /* KidModePlayerUITests.swift */; };
 		BT000007 /* SampledPianoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100007 /* SampledPianoTests.swift */; };
 		BT000008 /* MicFreeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100008 /* MicFreeTests.swift */; };
 		BT000009 /* AudioSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100009 /* AudioSessionTests.swift */; };
@@ -134,6 +137,9 @@
 		B27T1001 /* PimIdleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PimIdleTests.swift; sourceTree = "<group>"; };
 		B11A1001 /* ResultSounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultSounds.swift; sourceTree = "<group>"; };
 		B11T1001 /* ResultSoundTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultSoundTests.swift; sourceTree = "<group>"; };
+		B10A1001 /* GrownUpGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrownUpGate.swift; sourceTree = "<group>"; };
+		B10T1001 /* GrownUpGateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrownUpGateTests.swift; sourceTree = "<group>"; };
+		B10T1002 /* KidModePlayerUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KidModePlayerUITests.swift; sourceTree = "<group>"; };
 		BT100007 /* SampledPianoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampledPianoTests.swift; sourceTree = "<group>"; };
 		BT100008 /* MicFreeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicFreeTests.swift; sourceTree = "<group>"; };
 		BT100009 /* AudioSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionTests.swift; sourceTree = "<group>"; };
@@ -233,6 +239,7 @@
 				BT100011 /* ArtSystemTests.swift */,
 				B27T1001 /* PimIdleTests.swift */,
 				B11T1001 /* ResultSoundTests.swift */,
+				B10T1001 /* GrownUpGateTests.swift */,
 			);
 			path = YlapianoTests;
 			sourceTree = "<group>";
@@ -244,6 +251,7 @@
 				BU100002 /* SongResultUITests.swift */,
 				B26T1002 /* NextSongHandoffUITests.swift */,
 				BU100003 /* OnboardingUITests.swift */,
+				B10T1002 /* KidModePlayerUITests.swift */,
 			);
 			path = YlapianoUITests;
 			sourceTree = "<group>";
@@ -268,6 +276,7 @@
 				AB000012 /* MetronomeBarView.swift */,
 				AB000013 /* SongCardView.swift */,
 				B27A1001 /* PimIdleView.swift */,
+				B10A1001 /* GrownUpGate.swift */,
 				AB00B902 /* SongIconView.swift */,
 				AB000015 /* NoteEntryRow.swift */,
 				AB000018 /* OnboardingView.swift */,
@@ -463,6 +472,7 @@
 				AA000012 /* MetronomeBarView.swift in Sources */,
 				AA000013 /* SongCardView.swift in Sources */,
 				B27A0001 /* PimIdleView.swift in Sources */,
+				B10A0001 /* GrownUpGate.swift in Sources */,
 				AA00B901 /* Theme.swift in Sources */,
 				AA00B902 /* SongIconView.swift in Sources */,
 				AA000014 /* PlayerViewModel.swift in Sources */,
@@ -502,6 +512,7 @@
 				BT000011 /* ArtSystemTests.swift in Sources */,
 				B27T0001 /* PimIdleTests.swift in Sources */,
 				B11T0001 /* ResultSoundTests.swift in Sources */,
+				B10T0001 /* GrownUpGateTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -513,6 +524,7 @@
 				BU000002 /* SongResultUITests.swift in Sources */,
 				B26T0002 /* NextSongHandoffUITests.swift in Sources */,
 				BU000003 /* OnboardingUITests.swift in Sources */,
+				B10T0002 /* KidModePlayerUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -251,6 +251,13 @@ final class Song {
 
     var isSeed: Bool { seedID != nil }
 
+    /// The single mastery-ladder song (B4 #21). The ladder owns this song's
+    /// tempo / guidance / timing windows; every other song plays the gentle
+    /// fixed config. Lives on the model (not just `PlayerViewModel`) so the
+    /// song editor can honestly mark its BPM field ladder-owned (B10, PR #33
+    /// residual: editing Salta's BPM silently did nothing).
+    var hasMasteryLadder: Bool { seedID == "plim-plim" }
+
     var notes: [NoteEntry] {
         get {
             (try? JSONDecoder().decode([NoteEntry].self, from: notesData)) ?? []
