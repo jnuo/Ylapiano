@@ -1,13 +1,13 @@
 # YLapiano — Store Config
 
 Per-app config read by the global `jpm-appstore-release` and `jpm-appstore-screenshots` skills.
-YLapiano is a **native iOS app** (SwiftUI, `Ylapiano.xcodeproj`) — gamified piano learning, built for Deniz. First solo paid App Store launch (€1 one-time paid).
+YLapiano is a **native iOS app** (SwiftUI, `Ylapiano.xcodeproj`) — gamified piano learning, built for Deniz. First solo paid App Store launch (€3.99 one-time paid).
 
 ## Platforms & store
 
 - **iOS only.** No Android. Skip every Play Console / AAB step in the release skill.
 - **Bundle ID:** `com.ylapiano.app`
-- **Pricing:** €1 one-time paid (Tier set in App Store Connect).
+- **Pricing:** €3.99 one-time paid (committee 2026-07-04, #44 decision 6; tier set in App Store Connect). TR storefront stays live at the symbolic tier ASC derives — no TR ASO investment.
 - **Launch geo:** Turkey + non-EU first; **EU added now that DSA trader verification is live** (approved 2026-06-09).
 - **Age / category:** standard **4+**, NOT the Apple Kids Category, and **iPad-only** (`TARGETED_DEVICE_FAMILY = 2`) — both LOCKED in `product/decisions/2026-06-11-kids-category-no-ipad-only.md`.
 
