@@ -117,12 +117,15 @@ enum IntroGate {
     /// True exactly once per process launch. UI-test launches — which always
     /// inject `-hasCompletedOnboarding` (an override no real launch carries)
     /// — skip the intro entirely so 4 s of overlay can't eat their first tap.
+    /// Screenshot-seed launches (B20 `-screenshotState`) skip it for the same
+    /// reason: the seeded state must never race a 4 s overlay.
     static func consumeShouldShow(
         arguments: [String] = ProcessInfo.processInfo.arguments
     ) -> Bool {
         guard !hasShownThisLaunch else { return false }
         hasShownThisLaunch = true
         return !arguments.contains("-hasCompletedOnboarding")
+            && ScreenshotSeed.profile(from: arguments) == nil
     }
 
     /// Test seam.

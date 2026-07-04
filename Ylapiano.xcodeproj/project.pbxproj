@@ -76,6 +76,9 @@
 		B17A0001 /* GrownUpsCornerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17A1001 /* GrownUpsCornerView.swift */; };
 		B17A0002 /* RatingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17A1002 /* RatingEngine.swift */; };
 		B17T0001 /* RatingEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17T1001 /* RatingEngineTests.swift */; };
+		B20A0001 /* ScreenshotSeed.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20A1001 /* ScreenshotSeed.swift */; };
+		B20T0001 /* ScreenshotSeedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20T1001 /* ScreenshotSeedTests.swift */; };
+		B20U0001 /* StoreScreenshotsUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B20U1001 /* StoreScreenshotsUITests.swift */; };
 		B17T0002 /* GrownUpsCornerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17T1002 /* GrownUpsCornerTests.swift */; };
 		B17U0001 /* GrownUpsCornerUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B17U1001 /* GrownUpsCornerUITests.swift */; };
 /* End PBXBuildFile section */
@@ -159,6 +162,9 @@
 		B17A1001 /* GrownUpsCornerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrownUpsCornerView.swift; sourceTree = "<group>"; };
 		B17A1002 /* RatingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingEngine.swift; sourceTree = "<group>"; };
 		B17T1001 /* RatingEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RatingEngineTests.swift; sourceTree = "<group>"; };
+		B20A1001 /* ScreenshotSeed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotSeed.swift; sourceTree = "<group>"; };
+		B20T1001 /* ScreenshotSeedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenshotSeedTests.swift; sourceTree = "<group>"; };
+		B20U1001 /* StoreScreenshotsUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreScreenshotsUITests.swift; sourceTree = "<group>"; };
 		B17T1002 /* GrownUpsCornerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrownUpsCornerTests.swift; sourceTree = "<group>"; };
 		B17U1001 /* GrownUpsCornerUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrownUpsCornerUITests.swift; sourceTree = "<group>"; };
 		B31T1001 /* IntroTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntroTests.swift; sourceTree = "<group>"; };
@@ -216,6 +222,7 @@
 				AB000001 /* YlapianoApp.swift */,
 				AB000002 /* ContentView.swift */,
 				AB00B901 /* Theme.swift */,
+				B20A1001 /* ScreenshotSeed.swift */,
 				AB000017 /* Info.plist */,
 				AD000004 /* Models */,
 				AD000005 /* Views */,
@@ -268,6 +275,7 @@
 				B13T1001 /* LocalizationTests.swift */,
 				B17T1001 /* RatingEngineTests.swift */,
 				B17T1002 /* GrownUpsCornerTests.swift */,
+				B20T1001 /* ScreenshotSeedTests.swift */,
 			);
 			path = YlapianoTests;
 			sourceTree = "<group>";
@@ -282,6 +290,7 @@
 				B10T1002 /* KidModePlayerUITests.swift */,
 				B13U1001 /* TurkishScreenshotsUITests.swift */,
 				B17U1001 /* GrownUpsCornerUITests.swift */,
+				B20U1001 /* StoreScreenshotsUITests.swift */,
 			);
 			path = YlapianoUITests;
 			sourceTree = "<group>";
@@ -512,6 +521,7 @@
 				B17A0001 /* GrownUpsCornerView.swift in Sources */,
 				B31A0001 /* IntroView.swift in Sources */,
 				AA00B901 /* Theme.swift in Sources */,
+				B20A0001 /* ScreenshotSeed.swift in Sources */,
 				AA00B902 /* SongIconView.swift in Sources */,
 				AA000014 /* PlayerViewModel.swift in Sources */,
 				B17A0002 /* RatingEngine.swift in Sources */,
@@ -556,6 +566,7 @@
 				B13T0001 /* LocalizationTests.swift in Sources */,
 				B17T0001 /* RatingEngineTests.swift in Sources */,
 				B17T0002 /* GrownUpsCornerTests.swift in Sources */,
+				B20T0001 /* ScreenshotSeedTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -570,6 +581,7 @@
 				B10T0002 /* KidModePlayerUITests.swift in Sources */,
 				B13U0001 /* TurkishScreenshotsUITests.swift in Sources */,
 				B17U0001 /* GrownUpsCornerUITests.swift in Sources */,
+				B20U0001 /* StoreScreenshotsUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

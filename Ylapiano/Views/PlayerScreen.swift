@@ -267,8 +267,8 @@ struct PlayerSessionView: View {
         }
         .onAppear {
             viewModel.fallingNotesActive = (displayMode == .fallingNotes)
-            #if DEBUG
-            fireDemoResultIfRequested()
+            #if DEBUG || STORE_CAPTURE
+            applyScreenshotSeedIfRequested()
             #endif
             // Pre-render this song's tones AFTER the transition settles, so the
             // synth work can't block the push. An un-cached note still
@@ -340,20 +340,36 @@ struct PlayerSessionView: View {
         .animation(.spring(response: 0.28, dampingFraction: 0.85), value: showingGrownUpsDrawer)
     }
 
-    #if DEBUG
-    /// UI-test / screenshot aid: `-b26-demo-result-stars N` finishes the first
-    /// opened song with N stars shortly after it appears, so the result screen
-    /// (and the handoff card) can be exercised without playing a full song.
-    /// Fires once per launch — the handed-off song must NOT instantly
-    /// re-finish. DEBUG only; never ships.
-    @MainActor private static var demoResultFired = false
-    private func fireDemoResultIfRequested() {
-        let stars = UserDefaults.standard.integer(forKey: "b26-demo-result-stars")
-        guard stars > 0, !Self.demoResultFired else { return }
-        Self.demoResultFired = true
-        Task { @MainActor in
-            try? await Task.sleep(for: .milliseconds(800))
-            viewModel.setResult(stars: min(stars, 3))
+    #if DEBUG || STORE_CAPTURE
+    /// B20 (#20) — screenshot-seed hook for the two player states. On the
+    /// first opened song only (the handed-off / replayed song must NOT
+    /// instantly re-seed):
+    ///  • `.result` — finishes the song with the seeded stars shortly after
+    ///    it appears (3-star hero + handoff card, or the legacy
+    ///    `-b26-demo-result-stars N` tier), so the result screen can be
+    ///    exercised without playing a full song.
+    ///  • `.playing` — freezes a mid-play falling-notes moment on the shared
+    ///    clock once the stage has built (the `ready` gate flips ~50 ms in).
+    /// Never compiled into App Store builds.
+    @MainActor private static var screenshotSeedFired = false
+    private func applyScreenshotSeedIfRequested() {
+        guard !Self.screenshotSeedFired else { return }
+        switch ScreenshotSeed.profile() {
+        case .result:
+            Self.screenshotSeedFired = true
+            let stars = ScreenshotSeed.resultStars() ?? 3
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(800))
+                viewModel.setResult(stars: stars)
+            }
+        case .playing:
+            Self.screenshotSeedFired = true
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(800))
+                viewModel.freezeForScreenshot(atBeats: ScreenshotSeed.playingFreezeBeats)
+            }
+        case .home, nil:
+            break
         }
     }
     #endif
@@ -772,7 +788,9 @@ private struct SongResultView: View {
                         // Reward clip when bundled + motion allowed; the white-bg
                         // video sits in a cream rounded "stage" so its edges blend
                         // into the app's cream palette instead of reading as a box.
-                        if let url = tierVideoURL, !reduceMotion {
+                        // B20: seeded shots swap the looping clip for the
+                        // static pose — a video mid-frame is never pixel-stable.
+                        if let url = tierVideoURL, !reduceMotion, !ScreenshotSeed.freezeMotion {
                             // White background is chroma-keyed out in the player,
                             // so Pim floats transparently on the card.
                             LoopingVideoView(url: url)

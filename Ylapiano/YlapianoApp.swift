@@ -42,7 +42,12 @@ struct YlapianoApp: App {
         let schema = Schema([Song.self])
         let modelConfiguration = ModelConfiguration(
             schema: schema,
-            isStoredInMemoryOnly: false
+            // B20 (#20): a seeded screenshot launch gets a throwaway
+            // in-memory store — the shot must show the pristine catalog
+            // (no dev/user songs living in the simulator's persisted store)
+            // and must never write seeded stars into real data. Always
+            // false in Release (the seed parser is compiled out).
+            isStoredInMemoryOnly: ScreenshotSeed.profile() != nil
         )
         do {
             return try ModelContainer(
