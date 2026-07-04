@@ -53,6 +53,19 @@ final class PianoSampler: ObservableObject {
     private var nextSparkle = 0
     private var sparkleCache: [UInt8: AVAudioPCMBuffer] = [:]
 
+    // MARK: Result celebration (B11 #16)
+
+    /// Dedicated one-shot voices for the result-screen star dings + tier
+    /// fanfare, on the SAME engine (B6 — no new session config). Four voices
+    /// so a full 3-star sequence (3 dings + fanfare) never queues behind or
+    /// cuts a ringing sibling.
+    private let resultVoices: [AVAudioPlayerNode]
+    private var nextResultVoice = 0
+    /// Pre-mastered celebration buffers, rendered offline from the bundled
+    /// SF2 on first need (see `ResultSounds.swift`) and cached for the
+    /// session — a result screen after the prewarm never renders.
+    private var resultCache: [String: AVAudioPCMBuffer] = [:]
+
     // MARK: Count-in / metronome tock (B6 #14)
 
     /// Dedicated voice for the count-in and metronome tock, on the SAME
@@ -73,8 +86,10 @@ final class PianoSampler: ObservableObject {
 
     init() {
         sparkleVoices = (0..<2).map { _ in AVAudioPlayerNode() }
+        resultVoices = (0..<4).map { _ in AVAudioPlayerNode() }
         AudioSession.configurePlayback()
         setupEngine()
+        prewarmResultSounds()
     }
 
     private func setupEngine() {
@@ -84,6 +99,10 @@ final class PianoSampler: ObservableObject {
         engine.connect(piano, to: engine.mainMixerNode, format: nil)
         let sparkleFormat = AVAudioFormat(standardFormatWithSampleRate: 48_000, channels: 1)!
         for voice in sparkleVoices {
+            engine.attach(voice)
+            engine.connect(voice, to: engine.mainMixerNode, format: sparkleFormat)
+        }
+        for voice in resultVoices {
             engine.attach(voice)
             engine.connect(voice, to: engine.mainMixerNode, format: sparkleFormat)
         }
@@ -102,6 +121,7 @@ final class PianoSampler: ObservableObject {
             )
             try engine.start()
             for voice in sparkleVoices { voice.play() }
+            for voice in resultVoices { voice.play() }
             tockVoice.play()
             isReady = true
             status = "sampled · Upright Piano KW (CC0)"
@@ -233,6 +253,71 @@ final class PianoSampler: ObservableObject {
             data[i] = Float((body + snap) * env * attack * 0.35)
         }
         return buffer
+    }
+
+    // MARK: Result celebration playback (B11 #16)
+
+    /// One warm piano note as star `index` (0-based) pops — Do–Mi–Sol rising
+    /// across the three stars. `SongResultView.runSequence` fires this on the
+    /// same beat as the visual pop.
+    func playStarDing(_ index: Int) {
+        guard isReady else { return }
+        let buffer = resultBuffer(key: "ding-\(min(max(index, 0), 2))") {
+            Self.renderStarDing(index: index)
+        }
+        scheduleResult(buffer)
+    }
+
+    /// The tier fanfare, one beat after the last star: 1★ warm and gentle,
+    /// 2★ brighter, 3★ a full flourish picked at random from the variation
+    /// pool so repeat celebrations stay fresh.
+    func playResultFanfare(stars: Int) {
+        guard isReady else { return }
+        let tier = ResultSoundDesign.clampedTier(stars)
+        let variant = Int.random(in: 0..<ResultSoundDesign.variantCount(stars: tier))
+        let buffer = resultBuffer(key: "fanfare-\(tier)-\(variant)") {
+            Self.renderResultPhrase(ResultSoundDesign.fanfare(stars: tier, variant: variant))
+        }
+        scheduleResult(buffer)
+    }
+
+    /// Render every celebration buffer once, shortly after launch, so the
+    /// first result screen plays from cache instead of rendering mid-
+    /// celebration. Yields between renders to stay off the launch path.
+    private func prewarmResultSounds() {
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(for: .seconds(1))
+            // No SF2 → no renders: `renderTone` treats a missing SoundFont as
+            // a build defect (preconditionFailure); the live path must not.
+            guard self?.isReady == true else { return }
+            for index in 0..<ResultSoundDesign.starDingMidis.count {
+                guard let self else { return }
+                _ = self.resultBuffer(key: "ding-\(index)") { Self.renderStarDing(index: index) }
+                await Task.yield()
+            }
+            for tier in 1...3 {
+                for variant in 0..<ResultSoundDesign.variantCount(stars: tier) {
+                    guard let self else { return }
+                    _ = self.resultBuffer(key: "fanfare-\(tier)-\(variant)") {
+                        Self.renderResultPhrase(ResultSoundDesign.fanfare(stars: tier, variant: variant))
+                    }
+                    await Task.yield()
+                }
+            }
+        }
+    }
+
+    private func resultBuffer(key: String, render: () -> AVAudioPCMBuffer) -> AVAudioPCMBuffer {
+        if let cached = resultCache[key] { return cached }
+        let buffer = render()
+        resultCache[key] = buffer
+        return buffer
+    }
+
+    private func scheduleResult(_ buffer: AVAudioPCMBuffer) {
+        let voice = resultVoices[nextResultVoice]
+        nextResultVoice = (nextResultVoice + 1) % resultVoices.count
+        voice.scheduleBuffer(buffer, at: nil, options: .interrupts, completionHandler: nil)
     }
 
     // MARK: Sparkle (unchanged juice synth)

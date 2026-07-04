@@ -53,6 +53,8 @@
 		B26T0001 /* NextSongPickerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B26T1001 /* NextSongPickerTests.swift */; };
 		B27A0001 /* PimIdleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B27A1001 /* PimIdleView.swift */; };
 		B27T0001 /* PimIdleTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B27T1001 /* PimIdleTests.swift */; };
+		B11A0001 /* ResultSounds.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11A1001 /* ResultSounds.swift */; };
+		B11T0001 /* ResultSoundTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B11T1001 /* ResultSoundTests.swift */; };
 		BT000007 /* SampledPianoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100007 /* SampledPianoTests.swift */; };
 		BT000008 /* MicFreeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100008 /* MicFreeTests.swift */; };
 		BT000009 /* AudioSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100009 /* AudioSessionTests.swift */; };
@@ -130,6 +132,8 @@
 		B26T1001 /* NextSongPickerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextSongPickerTests.swift; sourceTree = "<group>"; };
 		B27A1001 /* PimIdleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PimIdleView.swift; sourceTree = "<group>"; };
 		B27T1001 /* PimIdleTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PimIdleTests.swift; sourceTree = "<group>"; };
+		B11A1001 /* ResultSounds.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultSounds.swift; sourceTree = "<group>"; };
+		B11T1001 /* ResultSoundTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultSoundTests.swift; sourceTree = "<group>"; };
 		BT100007 /* SampledPianoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SampledPianoTests.swift; sourceTree = "<group>"; };
 		BT100008 /* MicFreeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicFreeTests.swift; sourceTree = "<group>"; };
 		BT100009 /* AudioSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionTests.swift; sourceTree = "<group>"; };
@@ -228,6 +232,7 @@
 				BT100010 /* ProgressPersistenceTests.swift */,
 				BT100011 /* ArtSystemTests.swift */,
 				B27T1001 /* PimIdleTests.swift */,
+				B11T1001 /* ResultSoundTests.swift */,
 			);
 			path = YlapianoTests;
 			sourceTree = "<group>";
@@ -288,6 +293,7 @@
 				AB00PT01 /* Pitch.swift */,
 				AB00AS01 /* AudioSession.swift */,
 				AB00PS01 /* PianoSampler.swift */,
+				B11A1001 /* ResultSounds.swift */,
 				AB00MI01 /* MIDIBridge.swift */,
 			);
 			path = Audio;
@@ -467,6 +473,7 @@
 				AA00PT01 /* Pitch.swift in Sources */,
 				AA00AS01 /* AudioSession.swift in Sources */,
 				AA00PS01 /* PianoSampler.swift in Sources */,
+				B11A0001 /* ResultSounds.swift in Sources */,
 				AA00MI01 /* MIDIBridge.swift in Sources */,
 				AA000019 /* SpikeScene.swift in Sources */,
 				AA00KL01 /* KeyboardLayout.swift in Sources */,
@@ -494,6 +501,7 @@
 				BT000010 /* ProgressPersistenceTests.swift in Sources */,
 				BT000011 /* ArtSystemTests.swift in Sources */,
 				B27T0001 /* PimIdleTests.swift in Sources */,
+				B11T0001 /* ResultSoundTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
