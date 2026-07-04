@@ -296,7 +296,7 @@ struct PlayerScreen: View {
             // banner + chime + character look-up ships in v1.1.
             Image(systemName: "pianokeys")
                 .font(.system(.title3))
-                .foregroundStyle(midi.isConnected ? Color(red: 0.84, green: 0.16, blue: 0.16) : .gray)
+                .foregroundStyle(midi.isConnected ? Palette.deepRed : .gray)
                 .accessibilityLabel(midi.isConnected ? "MIDI keyboard connected" : "No MIDI keyboard connected")
                 .frame(width: 36, height: 44)
 
@@ -482,11 +482,10 @@ private struct SongResultView: View {
     @State private var burst: CGFloat = 0  // 0→1 drives the burst outward
     @State private var wiggle = false      // mascot reaction on a perfect run
 
-    private let gold = Color(red: 1.0, green: 0.78, blue: 0.20)
-    private let coral = Color(red: 0.97, green: 0.45, blue: 0.30)
+    private let gold = Palette.gold
+    private let coral = Palette.coral
     private var perfect: Bool { stars >= 3 }
 
-    private let cream = Color(red: 1.0, green: 0.97, blue: 0.93)
 
     /// Per-tier reward clip — Pim reacts to how the kid did (1★ = "hmm, again!",
     /// 2★ = clap, 3★ = jump-cheer). Looks up `PimResult1/2/3.mp4` in the bundle;

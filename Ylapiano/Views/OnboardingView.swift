@@ -8,10 +8,11 @@ struct OnboardingView: View {
         ZStack {
             // Background gradient
             LinearGradient(
+                // B9: warm Pim-palette wash (was a cool pastel gradient).
                 colors: [
-                    Color(red: 0.95, green: 0.85, blue: 1.0),
-                    Color(red: 0.85, green: 0.92, blue: 1.0),
-                    Color(red: 0.9, green: 1.0, blue: 0.9)
+                    Palette.cream,
+                    Palette.pimCream,
+                    Palette.pimBlush.opacity(0.45)
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing

@@ -1,4 +1,5 @@
 import SpriteKit
+import SwiftUI
 import UIKit
 
 /// Falling-notes lane for a single song. Each note becomes a rounded coral
@@ -93,7 +94,7 @@ final class FallingNotesScene: SKScene {
     init(song: Song, size: CGSize) {
         self.song = song
         super.init(size: size)
-        backgroundColor = SKColor(red: 1.0, green: 0.97, blue: 0.93, alpha: 1.0) // cream
+        backgroundColor = UIColor(Palette.cream)
         scaleMode = .resizeFill
     }
 
@@ -139,7 +140,7 @@ final class FallingNotesScene: SKScene {
     private func drawHitLine() {
         let height: CGFloat = 6
         let line = SKShapeNode(rectOf: CGSize(width: size.width, height: height))
-        line.fillColor = SKColor(red: 0.84, green: 0.16, blue: 0.16, alpha: 1.0) // deep coral
+        line.fillColor = UIColor(Palette.deepRed)
         line.strokeColor = .clear
         line.position = CGPoint(x: size.width / 2, y: height / 2)
         line.zPosition = 10
@@ -172,7 +173,7 @@ final class FallingNotesScene: SKScene {
             let lengthInPixels = max(20, CGFloat(lengthBeats * 60.0 / Double(bpm)) * pixelsPerSecond)
             let noteWidth = max(8, laneWidth - 6)
             let node = SKShapeNode(rectOf: CGSize(width: noteWidth, height: lengthInPixels), cornerRadius: 8)
-            node.fillColor = SKColor(red: 0.84, green: 0.16, blue: 0.16, alpha: 1.0) // RH coral
+            node.fillColor = UIColor(Palette.deepRed) // RH
             node.strokeColor = .clear
             node.position = CGPoint(x: laneWidth * (CGFloat(lane) + 0.5), y: size.height + 200)
             node.alpha = 0
@@ -310,8 +311,8 @@ final class FallingNotesScene: SKScene {
     }
 
     private func emitSparkles(at point: CGPoint, count: Int, gold: Bool) {
-        let coral = SKColor(red: 0.97, green: 0.45, blue: 0.30, alpha: 1)
-        let goldColor = SKColor(red: 1.0, green: 0.82, blue: 0.32, alpha: 1)
+        let coral = UIColor(Palette.coral)
+        let goldColor = UIColor(Palette.gold)
         for _ in 0..<count {
             let dot = SKShapeNode(circleOfRadius: CGFloat.random(in: 2...4.5))
             dot.fillColor = (gold && Bool.random()) ? goldColor : coral

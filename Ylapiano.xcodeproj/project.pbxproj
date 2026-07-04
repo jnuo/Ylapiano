@@ -20,6 +20,8 @@
 		AA000010 /* Metronome.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000010 /* Metronome.swift */; };
 		AA000012 /* MetronomeBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000012 /* MetronomeBarView.swift */; };
 		AA000013 /* SongCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000013 /* SongCardView.swift */; };
+		AA00B901 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00B901 /* Theme.swift */; };
+		AA00B902 /* SongIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB00B902 /* SongIconView.swift */; };
 		AA000014 /* PlayerViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000014 /* PlayerViewModel.swift */; };
 		AA000015 /* NoteEntryRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000015 /* NoteEntryRow.swift */; };
 		AA000016 /* SeedData.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB000016 /* SeedData.swift */; };
@@ -52,6 +54,7 @@
 		BT000008 /* MicFreeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100008 /* MicFreeTests.swift */; };
 		BT000009 /* AudioSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100009 /* AudioSessionTests.swift */; };
 		BT000010 /* ProgressPersistenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100010 /* ProgressPersistenceTests.swift */; };
+		BT000011 /* ArtSystemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BT100011 /* ArtSystemTests.swift */; };
 		BU000001 /* AddSongUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU100001 /* AddSongUITests.swift */; };
 		BU000002 /* SongResultUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU100002 /* SongResultUITests.swift */; };
 		BU000003 /* OnboardingUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BU100003 /* OnboardingUITests.swift */; };
@@ -89,6 +92,8 @@
 		AB000010 /* Metronome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Metronome.swift; sourceTree = "<group>"; };
 		AB000012 /* MetronomeBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetronomeBarView.swift; sourceTree = "<group>"; };
 		AB000013 /* SongCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongCardView.swift; sourceTree = "<group>"; };
+		AB00B901 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		AB00B902 /* SongIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongIconView.swift; sourceTree = "<group>"; };
 		AB000014 /* PlayerViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerViewModel.swift; sourceTree = "<group>"; };
 		AB000015 /* NoteEntryRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NoteEntryRow.swift; sourceTree = "<group>"; };
 		AB000016 /* SeedData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeedData.swift; sourceTree = "<group>"; };
@@ -122,6 +127,7 @@
 		BT100008 /* MicFreeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MicFreeTests.swift; sourceTree = "<group>"; };
 		BT100009 /* AudioSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioSessionTests.swift; sourceTree = "<group>"; };
 		BT100010 /* ProgressPersistenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressPersistenceTests.swift; sourceTree = "<group>"; };
+		BT100011 /* ArtSystemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArtSystemTests.swift; sourceTree = "<group>"; };
 		BU100000 /* YlapianoUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = YlapianoUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BU100001 /* AddSongUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddSongUITests.swift; sourceTree = "<group>"; };
 		BU100002 /* SongResultUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SongResultUITests.swift; sourceTree = "<group>"; };
@@ -169,6 +175,7 @@
 			children = (
 				AB000001 /* YlapianoApp.swift */,
 				AB000002 /* ContentView.swift */,
+				AB00B901 /* Theme.swift */,
 				AB000017 /* Info.plist */,
 				AD000004 /* Models */,
 				AD000005 /* Views */,
@@ -210,6 +217,7 @@
 				BT100008 /* MicFreeTests.swift */,
 				BT100009 /* AudioSessionTests.swift */,
 				BT100010 /* ProgressPersistenceTests.swift */,
+				BT100011 /* ArtSystemTests.swift */,
 			);
 			path = YlapianoTests;
 			sourceTree = "<group>";
@@ -243,6 +251,7 @@
 				AB000009 /* PianoKeyboardView.swift */,
 				AB000012 /* MetronomeBarView.swift */,
 				AB000013 /* SongCardView.swift */,
+				AB00B902 /* SongIconView.swift */,
 				AB000015 /* NoteEntryRow.swift */,
 				AB000018 /* OnboardingView.swift */,
 				AB000021 /* SpikeView.swift */,
@@ -435,6 +444,8 @@
 				AA000010 /* Metronome.swift in Sources */,
 				AA000012 /* MetronomeBarView.swift in Sources */,
 				AA000013 /* SongCardView.swift in Sources */,
+				AA00B901 /* Theme.swift in Sources */,
+				AA00B902 /* SongIconView.swift in Sources */,
 				AA000014 /* PlayerViewModel.swift in Sources */,
 				AA000015 /* NoteEntryRow.swift in Sources */,
 				AA000016 /* SeedData.swift in Sources */,
@@ -467,6 +478,7 @@
 				BT000008 /* MicFreeTests.swift in Sources */,
 				BT000009 /* AudioSessionTests.swift in Sources */,
 				BT000010 /* ProgressPersistenceTests.swift in Sources */,
+				BT000011 /* ArtSystemTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
