@@ -1,68 +1,43 @@
+import AVFoundation   // AVAudioFramePosition (CountIn) — no session use here
 import Foundation
-import AVFoundation
-import Combine
+import Observation
 
+/// The song's tempo knob. BPM is the single value the rest of the pipeline
+/// reads — the falling-notes scene, HitJudge, abcjs, and the count-in all
+/// convert beats → seconds through it.
+///
+/// **B6 (#14): this owns NO audio and NO session anymore.** The old
+/// free-running `Timer` + system-sound tick was replaced by
+/// `FallingNotesScene`'s beat tocks (fired off the same clock as the blocks,
+/// through the shared engine), and its private `AVAudioSession` setup — the
+/// record-capable-category mic legacy B5 (#27) found — is folded into
+/// `AudioSession.configurePlayback()`, the app's one session owner.
 @Observable
 final class Metronome {
-    var bpm: Int {
-        didSet {
-            if isPlaying {
-                stop()
-                start()
-            }
-        }
-    }
-    var isPlaying = false
-    var currentBeat = 0
-
-    private var timer: Timer?
-    private var audioPlayer: AVAudioPlayer?
+    var bpm: Int
 
     init(bpm: Int = 100) {
         self.bpm = bpm
-        prepareAudio()
+        AudioSession.configurePlayback()
     }
+}
 
-    private func prepareAudio() {
-        // Playback only — the record-capable category here was mic-pipeline
-        // legacy (B5 #27 deleted the mic). B6 owns unifying this with
-        // `AudioSession.configurePlayback()`; keep the minimal flip here.
-        let session = AVAudioSession.sharedInstance()
-        try? session.setCategory(.playback)
-        try? session.setActive(true)
-    }
+/// Count-in scheduling math — pure frame arithmetic, unit-tested without an
+/// engine (`CountInTests`).
+///
+/// The count-in IS the song's lead-in: `beats` equals `HitJudge.leadInBeats`
+/// (4 beats = two bars of 2/4), so the overlay's 3-2-1-Go spans exactly the
+/// run-up the falling notes are already shifted by and the last count beat
+/// hands off to beat 0 of the song.
+enum CountIn {
+    /// Beats in the count-in. Must equal `HitJudge.leadInBeats` — pinned by
+    /// `CountInTests.testCountInBeatsMatchTheLeadIn`.
+    static let beats = 4
 
-    func start() {
-        guard !isPlaying else { return }
-        isPlaying = true
-        currentBeat = 0
-
-        let interval = 60.0 / Double(bpm)
-        tick() // Play first tick immediately
-
-        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
-            self?.tick()
-        }
-    }
-
-    func stop() {
-        isPlaying = false
-        timer?.invalidate()
-        timer = nil
-        currentBeat = 0
-    }
-
-    func toggle() {
-        if isPlaying { stop() } else { start() }
-    }
-
-    private func tick() {
-        currentBeat += 1
-        playTickSound()
-    }
-
-    private func playTickSound() {
-        // Generate a short click sound using AudioServices
-        AudioServicesPlaySystemSound(1104) // Tock sound
+    /// Sample-frame offset of each count-in tock relative to the first one.
+    /// BPM clamps at 30, the same floor as the scene and `HitJudge`.
+    static func frameOffsets(bpm: Int, sampleRate: Double) -> [AVAudioFramePosition] {
+        let beatFrames = AVAudioFramePosition((60.0 / Double(max(bpm, 30))) * sampleRate)
+        return (0..<beats).map { AVAudioFramePosition($0) * beatFrames }
     }
 }

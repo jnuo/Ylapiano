@@ -18,6 +18,9 @@ struct FallingNotesView: UIViewRepresentable {
     let lastHit: HitEvent?
     /// When true the scene plays the metronome beat (synced to the blocks).
     let beatsEnabled: Bool
+    /// Sounds one beat tock — wired to `PianoSampler.playTock()` so the beat
+    /// goes through the shared engine (B6 #14), not a system sound.
+    let onBeat: () -> Void
     /// Fired once when the song's last bar has fallen — raises the result.
     let onSongEnd: () -> Void
 
@@ -38,6 +41,7 @@ struct FallingNotesView: UIViewRepresentable {
         scene.accumulatedBeforePause = accumulatedBeforePause
         scene.currentBPM = bpm
         scene.beatsEnabled = beatsEnabled
+        scene.onBeat = onBeat
         scene.onSongEnd = onSongEnd
 
         // Forward each new judged press into the scene exactly once.

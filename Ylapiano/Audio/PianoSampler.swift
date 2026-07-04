@@ -52,6 +52,18 @@ final class PianoSampler: ObservableObject {
     private let sparkleVoices: [AVAudioPlayerNode]
     private var nextSparkle = 0
     private var sparkleCache: [UInt8: AVAudioPCMBuffer] = [:]
+
+    // MARK: Count-in / metronome tock (B6 #14)
+
+    /// Dedicated voice for the count-in and metronome tock, on the SAME
+    /// engine as the piano. It used to be system sound 1104 — played at
+    /// RINGER volume, ignoring the `.playback` session — so the tock could
+    /// blast over a quiet piano or vanish with a muted ringer while the piano
+    /// kept sounding. Engine-routed, it lives on media volume and behaves
+    /// exactly like the piano (silent switch included).
+    private let tockVoice = AVAudioPlayerNode()
+    /// Rendered once, reused for every tock (immediate and scheduled).
+    private lazy var tockBuffer = Self.renderTock()
     /// Major-pentatonic semitone steps — combo climbs these so a streak plays
     /// a rising melody that can't sound wrong over the song.
     private static let pentatonic = [0, 2, 4, 7, 9]
@@ -75,6 +87,8 @@ final class PianoSampler: ObservableObject {
             engine.attach(voice)
             engine.connect(voice, to: engine.mainMixerNode, format: sparkleFormat)
         }
+        engine.attach(tockVoice)
+        engine.connect(tockVoice, to: engine.mainMixerNode, format: sparkleFormat)
         engine.prepare()
         do {
             guard let url = Self.soundFontURL else {
@@ -88,6 +102,7 @@ final class PianoSampler: ObservableObject {
             )
             try engine.start()
             for voice in sparkleVoices { voice.play() }
+            tockVoice.play()
             isReady = true
             status = "sampled · Upright Piano KW (CC0)"
             print("[PianoSampler] sampled piano started @ 48 kHz — \(Self.soundFontResource).sf2")
@@ -155,6 +170,70 @@ final class PianoSampler: ObservableObject {
     /// warm-up — `loadSoundBankInstrument` made every sample resident at
     /// init — so this is intentionally a no-op.
     func prewarm(_ pitches: [Pitch], velocity: UInt8 = 100) {}
+
+    // MARK: Tock (count-in + synced metronome beat)
+
+    /// One metronome tock, now. Fired by `FallingNotesScene` as each beat
+    /// crosses — the SCENE decides when off its own clock; this only makes
+    /// the sound, through the shared engine.
+    func playTock() {
+        guard isReady else { return }
+        tockVoice.scheduleBuffer(tockBuffer, at: nil, options: .interrupts, completionHandler: nil)
+    }
+
+    /// Schedule the full 3-2-1-Go count-in: `CountIn.beats` tocks spaced
+    /// sample-accurately on the engine's render clock (`AVAudioTime`), not on
+    /// `Task.sleep` — the overlay numerals follow approximately, the AUDIO
+    /// spacing is exact. Tempo-scaled via `CountIn.frameOffsets`.
+    func playCountIn(bpm: Int) {
+        guard isReady else { return }
+        let sampleRate = tockBuffer.format.sampleRate
+        // Anchor on the player's own timeline. If the render clock isn't
+        // readable yet (engine just started), fall back to immediate
+        // scheduling — buffers then play back-to-back, which is wrong spacing
+        // but never silence; in practice the engine has been running since
+        // app launch.
+        guard let nodeTime = tockVoice.lastRenderTime,
+              let playerTime = tockVoice.playerTime(forNodeTime: nodeTime),
+              playerTime.isSampleTimeValid
+        else {
+            playTock()
+            return
+        }
+        // Small lead so tock #1 is never already in the past when the
+        // schedule lands on the render thread.
+        let leadFrames = AVAudioFramePosition(0.02 * sampleRate)
+        for offset in CountIn.frameOffsets(bpm: bpm, sampleRate: sampleRate) {
+            let when = AVAudioTime(
+                sampleTime: playerTime.sampleTime + leadFrames + offset,
+                atRate: sampleRate
+            )
+            tockVoice.scheduleBuffer(tockBuffer, at: when, completionHandler: nil)
+        }
+    }
+
+    /// Short woodblock-style click (the engine-routed replacement for system
+    /// sound 1104): bright sine pair with a hard attack and fast exponential
+    /// decay. Mono 48 kHz like the sparkle buffers.
+    private static func renderTock() -> AVAudioPCMBuffer {
+        let sampleRate = 48_000.0
+        let frameCount = AVAudioFrameCount(0.06 * sampleRate)
+        let format = AVAudioFormat(standardFormatWithSampleRate: sampleRate, channels: 1)!
+        let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount)!
+        buffer.frameLength = frameCount
+        let data = buffer.floatChannelData![0]
+
+        let twoPi = 2.0 * Double.pi
+        for i in 0..<Int(frameCount) {
+            let t = Double(i) / sampleRate
+            let env = exp(-t * 90.0)               // dead in ~50 ms — a click, not a tone
+            let attack = min(t * 2000.0, 1.0)      // 0.5 ms attack, no thump
+            let body = sin(twoPi * 1_780.0 * t)    // woody fundamental
+            let snap = 0.5 * sin(twoPi * 2_710.0 * t)  // inharmonic edge = "tock"
+            data[i] = Float((body + snap) * env * attack * 0.35)
+        }
+        return buffer
+    }
 
     // MARK: Sparkle (unchanged juice synth)
 

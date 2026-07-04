@@ -1,5 +1,4 @@
 import SwiftUI
-import AudioToolbox
 import AVKit
 import CoreImage
 import SwiftMIDIIO
@@ -85,6 +84,7 @@ struct PlayerScreen: View {
                             bpm: viewModel.metronome.bpm,
                             lastHit: viewModel.lastHit,
                             beatsEnabled: viewModel.playMetronome,
+                            onBeat: { sampler.playTock() },
                             onSongEnd: { viewModel.finishSong() }
                         )
                     }
@@ -347,23 +347,27 @@ struct PlayerScreen: View {
         }
     }
 
-    /// 4-beat count-in at the song's tempo. Plays a system "tock" on each
-    /// number so anyone joining on a real keyboard can sync. Tempo-scaled —
-    /// at 60 BPM the prep is 4 s, at 120 BPM it's 2 s.
+    /// 4-beat (`CountIn.beats`) count-in at the song's tempo, so anyone
+    /// joining on a real keyboard can sync. Tempo-scaled — at 60 BPM the prep
+    /// is 4 s, at 120 BPM it's 2 s.
+    ///
+    /// The four tocks are scheduled up front on the shared `AVAudioEngine`'s
+    /// render clock (`sampler.playCountIn`) — sample-accurate spacing, media
+    /// volume, same silent-switch behavior as the piano (B6 #14). The overlay
+    /// numerals below follow on `Task.sleep`, which only has to be close
+    /// enough for eyes, not ears.
     private func startWithCountdown() {
         let bpm = max(viewModel.metronome.bpm, 30)
         let beatNs = UInt64(60_000_000_000 / bpm)
+        sampler.playCountIn(bpm: bpm)
         countdownText = "3"
-        AudioServicesPlaySystemSound(1104)
         Task { @MainActor in
             for n in [2, 1] {
                 try? await Task.sleep(nanoseconds: beatNs)
                 countdownText = "\(n)"
-                AudioServicesPlaySystemSound(1104)
             }
             try? await Task.sleep(nanoseconds: beatNs)
             countdownText = "Go!"
-            AudioServicesPlaySystemSound(1104)
             try? await Task.sleep(nanoseconds: beatNs / 2)
             countdownText = nil
             viewModel.startPlaying()
